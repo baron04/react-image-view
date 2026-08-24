@@ -75,10 +75,12 @@ function App() {
       >
         <div className="grid">
           {images.map((img, i) => (
-            <button key={img.src} className="thumb" data-testid={`thumb-${i}`} onClick={() => { setIndex(i); setOpen(true) }}>
-              <img src={img.src} alt={img.name} />
+            <div key={img.src} className="thumb">
+              <ImageView.Trigger index={i} src={img.src} alt={img.name} name={img.name}>
+                <img src={img.src} alt={img.name} data-testid={`thumb-${i}`} />
+              </ImageView.Trigger>
               <span>{img.name}</span>
-            </button>
+            </div>
           ))}
         </div>
 

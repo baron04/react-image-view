@@ -46,4 +46,14 @@ dialog[data-image-view] {
 
 dialog[data-image-view]::backdrop {
   background: rgb(0 0 0 / 0.32);
+  animation: riv-backdrop-in 220ms ease-out;
+}
+
+@keyframes riv-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog[data-image-view]::backdrop { animation: none; }
 }

@@ -87,7 +87,10 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
       for (const command of commands) {
         switch (command.type) {
           case 'cancelAnimations':
+            // A finger down outranks any motion in flight, and taking over
+            // also takes ownership back from whatever was animating.
             internals.ticker.cancelAll()
+            internals.markDirty()
             break
 
           case 'settle':

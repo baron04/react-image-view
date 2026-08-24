@@ -44,6 +44,12 @@ export interface ViewerContextValue {
   extensions: Extension[]
   registerTrigger(reg: TriggerRegistration): () => void
   indexOf(id: string): number
+  /**
+   * Live position of the thumbnail for a slide, measured on demand — the page
+   * may have scrolled since it was opened, and closing has to land where the
+   * thumbnail is now, not where it was.
+   */
+  getTriggerRect(index: number): DOMRect | null
   openAt(index: number, from: DOMRect | null): void
 }
 

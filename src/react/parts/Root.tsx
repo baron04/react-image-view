@@ -5,6 +5,7 @@ import type { Size, Transform } from '../../core/types'
 import { IDENTITY, clamp, fitScale as computeFit, maxScale as computeMax, zoomAbout } from '../../core/transform'
 import { Ticker } from '../../core/ticker'
 import { animateTransform } from '../../core/animate'
+import { prefersReducedMotion, transformFromRect } from '../../core/flip'
 import { paintImage, paintTrack } from '../paint'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
@@ -72,6 +73,17 @@ export function Root({
   // undo where they navigated to.
   const pristineRef = React.useRef(true)
 
+  // Where the viewer was opened from, and whether the entry animation still
+  // owes a run. Both are refs: they are read once, during a layout effect, and
+  // must not schedule a render of their own.
+  const originRectRef = React.useRef<DOMRect | null>(null)
+  const flipPendingRef = React.useRef(false)
+  const closingRef = React.useRef(false)
+  // True while an animation owns the transform. The refit effect below re-runs
+  // whenever geometry resolves, which lands right on top of an entry animation
+  // and snaps it to its destination — so it has to know to keep its hands off.
+  const animatingRef = React.useRef(false)
+
   const registry = React.useRef<TriggerRegistration[]>([])
   const registerTrigger = React.useCallback((reg: TriggerRegistration) => {
     registry.current.push(reg)
@@ -83,6 +95,11 @@ export function Root({
     const at = registry.current.findIndex((r) => r.id === id)
     return at < 0 ? 0 : at
   }, [])
+
+  const getTriggerRect = React.useCallback(
+    (at: number) => registry.current[at]?.getRect() ?? null,
+    [],
+  )
 
   const images: ImageItem[] = React.useMemo(
     () => imagesProp ?? registry.current.map((r) => r.item),
@@ -114,6 +131,7 @@ export function Root({
   const glideTo = React.useCallback(
     (target: Transform) => {
       ticker.cancelAll()
+      animatingRef.current = true
       animateTransform(
         ticker,
         transformRef.current,
@@ -122,7 +140,10 @@ export function Root({
           transformRef.current = t
           paintImage(imageRef.current, t)
         },
-        syncTransform,
+        () => {
+          animatingRef.current = false
+          syncTransform()
+        },
       )
     },
     [ticker, syncTransform],
@@ -182,15 +203,44 @@ export function Root({
       next: () => goTo(index + 1),
       prev: () => goTo(index - 1),
       close: () => {
+        if (closingRef.current) return
+        const target = getTriggerRect(index)
+        const stageEl = imageRef.current?.closest('[data-image-view-stage]')
+
+        // Nothing to fly back to — an unmatched trigger, a reduced-motion
+        // preference, or no image yet. Close outright rather than inventing a
+        // destination.
+        if (!target || !stageEl || !natural || prefersReducedMotion()) {
+          ticker.cancelAll()
+          setOpen(false)
+          return
+        }
+
+        closingRef.current = true
+        animatingRef.current = true
+        const to = transformFromRect(target, stageEl.getBoundingClientRect(), natural, transformRef.current.rotation)
         ticker.cancelAll()
-        setOpen(false)
+        animateTransform(
+          ticker,
+          transformRef.current,
+          to,
+          (t) => {
+            transformRef.current = t
+            paintImage(imageRef.current, t)
+          },
+          () => {
+            closingRef.current = false
+            animatingRef.current = false
+            setOpen(false)
+          },
+        )
       },
       retry: () => {
         setStatus('loading')
         setReloadToken((n) => n + 1)
       },
     }
-  }, [index, total, open, transform, fitScale, minScale, maxScale, status, setIndex, setOpen, glideTo, ticker])
+  }, [index, total, open, transform, fitScale, minScale, maxScale, status, natural, getTriggerRect, setIndex, setOpen, glideTo, ticker])
 
   const internals = React.useMemo<ViewerInternals>(
     () => ({
@@ -218,17 +268,50 @@ export function Root({
   useIsomorphicLayoutEffect(() => {
     if (!natural || !stageSize.width) return
     if (!pristineRef.current) return
+    if (animatingRef.current) return
+    const fitted: Transform = { ...IDENTITY, scale: fitScale, rotation: transformRef.current.rotation }
+
+    // Entry animation. Park the image over the thumbnail first, then let it
+    // travel to where it belongs. Doing this in a layout effect is what keeps
+    // the fitted frame from being painted before the animation starts.
+    const origin = originRectRef.current
+    const stageEl = imageRef.current?.closest('[data-image-view-stage]')
+    if (flipPendingRef.current && origin && stageEl) {
+      flipPendingRef.current = false
+      const from = transformFromRect(origin, stageEl.getBoundingClientRect(), natural, fitted.rotation)
+      transformRef.current = from
+      paintImage(imageRef.current, from)
+      ticker.cancelAll()
+      animatingRef.current = true
+      animateTransform(
+        ticker,
+        from,
+        fitted,
+        (t) => {
+          transformRef.current = t
+          paintImage(imageRef.current, t)
+        },
+        () => {
+          animatingRef.current = false
+          syncTransform()
+        },
+      )
+      return
+    }
+
     if (Math.abs(transformRef.current.scale - fitScale) < 1e-6) return
-    transformRef.current = { ...IDENTITY, scale: fitScale, rotation: transformRef.current.rotation }
-    setTransform(transformRef.current)
-    paintImage(imageRef.current, transformRef.current)
-  }, [natural, stageSize, fitScale, index, open])
+    transformRef.current = fitted
+    setTransform(fitted)
+    paintImage(imageRef.current, fitted)
+  }, [natural, stageSize, fitScale, index, open, ticker, syncTransform])
 
   React.useEffect(() => () => ticker.cancelAll(), [ticker])
 
   const openAt = React.useCallback(
-    (at: number, _from: DOMRect | null) => {
-      // `_from` is the trigger's rect, kept for the FLIP open animation.
+    (at: number, from: DOMRect | null) => {
+      originRectRef.current = from
+      flipPendingRef.current = from !== null && !prefersReducedMotion()
+      pristineRef.current = true
       setIndex(at)
       setOpen(true)
     },
@@ -236,8 +319,8 @@ export function Root({
   )
 
   const value = React.useMemo<ViewerContextValue>(
-    () => ({ api, images, container, internals, extensions, registerTrigger, indexOf, openAt }),
-    [api, images, container, internals, extensions, registerTrigger, indexOf, openAt],
+    () => ({ api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerRect, openAt }),
+    [api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerRect, openAt],
   )
 
   return <ViewerProvider value={value}>{children}</ViewerProvider>
