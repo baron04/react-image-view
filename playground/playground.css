@@ -44,3 +44,8 @@ h1 { font-size: 22px; margin: 0 0 8px; }
   .counter { flex: none; }
   .topbar { gap: 8px; }
 }
+
+.demo { margin-bottom: 48px; }
+.demo h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+.demo .hint { margin-bottom: 16px; }
+.demo code { font-family: ui-monospace, monospace; font-size: 12px; background: #eef0f3; padding: 1px 5px; border-radius: 4px; }

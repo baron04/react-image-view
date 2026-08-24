@@ -95,3 +95,255 @@ dialog[data-image-view][data-closing]::backdrop {
 @media (prefers-reduced-motion: reduce) {
   dialog[data-image-view]::backdrop { animation: none; }
 }
+
+/* ==========================================================================
+   Preset layout — the assembled default UI (DefaultContent).
+   Every rule below hangs off data-image-view-* attributes, the same hooks a
+   consumer restyling this from the outside would use — there is no private
+   class name the preset gets that a rebuild from source could not also use.
+   ========================================================================== */
+
+[data-image-view-region='header'] {
+  height: 48px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px 0 8px;
+  background: var(--riv-chrome);
+  border-bottom: 1px solid var(--riv-line);
+  overflow: hidden;
+}
+
+[data-image-view-title] {
+  font-size: 13.5px;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-image-view-counter] {
+  flex: none;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--riv-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.riv-spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+.riv-sep {
+  width: 1px;
+  height: 18px;
+  flex: none;
+  background: var(--riv-line);
+}
+
+[data-image-view-control='close'] {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 11px 0 9px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--riv-radius);
+  color: var(--riv-ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+[data-image-view-control='close']:hover { background: var(--riv-hover); }
+
+[data-image-view-control='download'] {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--riv-line);
+  background: var(--riv-chrome);
+  border-radius: var(--riv-radius);
+  color: var(--riv-ink);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  flex: none;
+}
+[data-image-view-control='download']:hover { background: var(--riv-hover); }
+
+[data-image-view-stage] {
+  flex: 1;
+  position: relative;
+  background: var(--riv-stage);
+  min-height: 0;
+}
+
+[data-image-view-control='prev'],
+[data-image-view-control='next'] {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--riv-ink-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1;
+}
+[data-image-view-control='prev'] { left: 10px; }
+[data-image-view-control='next'] { right: 10px; }
+[data-image-view-control='prev']:hover,
+[data-image-view-control='next']:hover {
+  background: color-mix(in srgb, var(--riv-chrome) 74%, transparent);
+  color: var(--riv-ink);
+}
+/* Present but inert at the ends of the set — hidden rather than disabled, so
+   the layout never shifts as the arrows appear and disappear. */
+[data-image-view-control='prev'][data-boundary],
+[data-image-view-control='next'][data-boundary] {
+  display: none;
+}
+
+[data-image-view-loading],
+[data-image-view-error] {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  color: var(--riv-ink-muted);
+  font-size: 13px;
+}
+
+[data-image-view-error] {
+  gap: 18px;
+  color: var(--riv-ink);
+}
+.riv-error-copy { display: flex; flex-direction: column; gap: 6px; }
+.riv-error-title { font-size: 15px; font-weight: 600; }
+.riv-error-hint { font-size: 13px; color: var(--riv-ink-muted); line-height: 1.6; max-width: 40ch; }
+.riv-error-actions { display: flex; align-items: center; gap: 10px; }
+.riv-error-actions button,
+.riv-error-actions a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 15px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.riv-error-actions [data-image-view-control='retry'] {
+  border: 1px solid var(--riv-line);
+  background: var(--riv-chrome);
+  color: var(--riv-ink);
+}
+.riv-error-actions [data-image-view-control='retry']:hover { background: var(--riv-hover); }
+.riv-error-actions [data-image-view-control='download'] {
+  border: 1px solid var(--riv-accent);
+  background: var(--riv-accent);
+  color: white;
+  height: 34px;
+}
+
+.riv-spinner {
+  width: 26px;
+  height: 26px;
+  animation: riv-spin 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .riv-spinner { animation-duration: 2.4s; }
+}
+@keyframes riv-spin {
+  to { transform: rotate(360deg); }
+}
+
+[data-image-view-region='toolbar'] {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+  padding: 0 7px;
+  background: var(--riv-chrome);
+  border: 1px solid var(--riv-line);
+  border-radius: var(--riv-radius-toolbar);
+  box-shadow:
+    0 2px 4px rgb(20 26 32 / 0.05),
+    0 14px 34px -16px rgb(20 26 32 / 0.34);
+  z-index: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-riv-theme='light']) [data-image-view-region='toolbar'] {
+    box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.9);
+  }
+}
+:root[data-riv-theme='dark'] [data-image-view-region='toolbar'] {
+  box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.9);
+}
+
+[data-image-view-region='toolbar'] .riv-tbsep {
+  width: 1px;
+  height: 22px;
+  background: var(--riv-line);
+  margin: 0 4px;
+  flex: none;
+}
+
+[data-image-view-control] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 7px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--riv-radius);
+  color: var(--riv-ink);
+  cursor: pointer;
+}
+[data-image-view-region='toolbar'] [data-image-view-control]:hover { background: var(--riv-hover); }
+[data-image-view-region='toolbar'] [data-image-view-control][data-active] {
+  background: var(--riv-accent-surface);
+  color: var(--riv-accent);
+}
+[data-image-view-control]:disabled {
+  color: var(--riv-ink-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+[data-image-view-control]:focus-visible {
+  outline: 2px solid var(--riv-accent);
+  outline-offset: 2px;
+}
+
+/* Touch targets grow to the 44px floor on touch-primary devices without
+   changing the visual size the toolbar was drawn at. */
+@media (pointer: coarse) {
+  [data-image-view-control='prev'],
+  [data-image-view-control='next'] {
+    width: 64px;
+  }
+}

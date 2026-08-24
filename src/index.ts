@@ -10,24 +10,32 @@ import {
 import {
   Counter, ErrorState, Footer, Header, Loading, Title, Toolbar,
 } from './react/parts/containers'
+import { SingleImage } from './preset/SingleImage'
+import { DefaultContent } from './preset/DefaultContent'
 
 /**
- * Every part, namespaced. Assembling these is what the presets do, and what
- * the copy-paste source in the registry shows — there is no second, private
- * API underneath.
+ * `<ImageView src alt>` is the L1 entry point (a single image, one line, no
+ * further setup); the same callable also carries every part as a static, so
+ * `<ImageView.Root>`/`<ImageView.Trigger>`/… reach L2 and L3 without a second
+ * import. There is no private assembly behind any tier — L1 wraps L2's
+ * default, and L2 is L3's `Root` auto-completing itself with the same
+ * `DefaultContent` the registry's copy-paste source starts from.
  */
-export const ImageView = {
+export const ImageView = Object.assign(SingleImage, {
   Root, Trigger, Content, Stage, Image,
   Header, Toolbar, Footer, Title, Counter, Loading, Error: ErrorState,
   Close, Prev, Next, ZoomIn, ZoomOut, RotateLeft, RotateRight,
   FitToWindow, ActualSize, Download,
-}
+  /** The assembled default content — swap it or use it as a starting point. */
+  DefaultContent,
+})
 
 export {
   Root, Trigger, Content, Stage, Image,
   Header, Toolbar, Footer, Title, Counter, Loading, ErrorState,
   Close, Prev, Next, ZoomIn, ZoomOut, RotateLeft, RotateRight,
   FitToWindow, ActualSize, Download,
+  DefaultContent,
 }
 
 export { useViewer } from './react/context'
@@ -37,5 +45,7 @@ export type {
 } from './types'
 export type { ControlProps, DownloadProps } from './react/parts/controls'
 export type { CounterProps, ErrorProps, RegionProps, StatusProps, TitleProps } from './react/parts/containers'
+export type { SingleImageProps } from './preset/SingleImage'
+export type { DefaultContentProps } from './preset/DefaultContent'
 export type { Size, Point, Transform, Bounds } from './core/types'
 export * as core from './core'

@@ -58,14 +58,67 @@ function Toolbar() {
   )
 }
 
-function App() {
+/**
+ * The actual preset — L2, `Root` auto-completing with `DefaultContent`. This
+ * is what a consumer sees who wrote nothing beyond the triggers, and the one
+ * to compare against the design spec.
+ */
+function DefaultDemo() {
+  return (
+    <section className="demo">
+      <h2>默认预设 · L2</h2>
+      <p className="hint">
+        <code>&lt;ImageView.Root images={'{'}images{'}'}&gt;</code>
+        ，不写 <code>Content</code>，自动得到设计稿里的默认界面。
+      </p>
+      <ImageView.Root images={images}>
+        <div className="grid">
+          {images.map((img, i) => (
+            <div key={img.src} className="thumb">
+              <ImageView.Trigger index={i} src={img.src} alt={img.name} name={img.name}>
+                <img src={img.src} alt={img.name} data-testid={`default-thumb-${i}`} />
+              </ImageView.Trigger>
+              <span>{img.name}</span>
+            </div>
+          ))}
+        </div>
+      </ImageView.Root>
+    </section>
+  )
+}
+
+/**
+ * Single-image, one-line entry point — L1. Wraps its own Root/Trigger and
+ * still renders the same default content.
+ */
+function SingleDemo() {
+  const solo = images[0]!
+  return (
+    <section className="demo">
+      <h2>单图 · L1</h2>
+      <p className="hint">
+        <code>&lt;ImageView src alt&gt;</code>，一行接入，无需 Root/Trigger。
+      </p>
+      <div className="grid" style={{ maxWidth: 200 }}>
+        <ImageView src={solo.src} alt={solo.alt} name={solo.name} width={solo.width} height={solo.height}>
+          <div className="thumb">
+            <img src={solo.src} alt={solo.alt} data-testid="solo-thumb" />
+            <span>{solo.name}</span>
+          </div>
+        </ImageView>
+      </div>
+    </section>
+  )
+}
+
+function AdvancedDemo() {
   const [open, setOpen] = React.useState(false)
   const [index, setIndex] = React.useState(0)
 
   return (
-    <main>
-      <h1>react-img-view</h1>
-      <p className="hint">点击缩略图打开。放大后拖到边缘继续拖，应当接力翻页且中途不停顿。</p>
+    <section className="demo">
+      <h2>完全组合 · L3</h2>
+      <p className="hint">自己拼界面，用于验证行为与调试。放大后拖到边缘继续拖，应当接力翻页且中途不停顿。</p>
       <ImageView.Root
         images={images}
         open={open}
@@ -113,6 +166,17 @@ function App() {
           </div>
         </ImageView.Content>
       </ImageView.Root>
+    </section>
+  )
+}
+
+function App() {
+  return (
+    <main>
+      <h1>react-img-view</h1>
+      <DefaultDemo />
+      <SingleDemo />
+      <AdvancedDemo />
     </main>
   )
 }

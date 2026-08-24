@@ -14,6 +14,8 @@ import { prefersReducedMotion, transformFromRect } from '../../core/flip'
  */
 const EXIT_STIFFNESS = 3600
 import { paintImage, paintTrack } from '../paint'
+import { Content } from './Content'
+import { DefaultContent } from '../../preset/DefaultContent'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
 function useControllable<T>(
@@ -421,5 +423,19 @@ export function Root({
     [api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerRect, openAt],
   )
 
-  return <ViewerProvider value={value}>{children}</ViewerProvider>
+  // L2 falls out of L3 rather than being a separate path: if the caller
+  // already placed a <Content>, this is a full composition and nothing is
+  // added. Otherwise the reviewed default is appended, so `<Root><Trigger/>
+  // ...</Root>` with no further markup is a complete, styled viewer — the
+  // "multi-image, shared preview" tier the architecture doc describes.
+  const hasContent = React.Children.toArray(children).some(
+    (child) => React.isValidElement(child) && child.type === Content,
+  )
+
+  return (
+    <ViewerProvider value={value}>
+      {children}
+      {!hasContent && <DefaultContent />}
+    </ViewerProvider>
+  )
 }
