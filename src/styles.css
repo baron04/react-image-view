@@ -55,9 +55,24 @@ dialog[data-image-view]::backdrop {
    chrome out alongside it still read as two things happening; the image
    returning to its thumbnail is the whole story, and everything else is
    scenery that should simply stop being there. */
-dialog[data-image-view][data-closing] {
+/* Every opaque surface steps aside at once, not just the dialog's own.
+   The stage carries a background of its own — leaving it painted meant the
+   page underneath stayed hidden for the whole flight, which is the delay this
+   is meant to remove. Selectors are attribute-based so they outrank a
+   consumer's class without needing !important. */
+dialog[data-image-view][data-closing],
+dialog[data-image-view][data-closing] > *,
+dialog[data-image-view][data-closing] [data-image-view-stage],
+dialog[data-image-view][data-closing] [data-image-view-viewport],
+dialog[data-image-view][data-closing] [data-image-view-slide] {
   background: transparent;
+  box-shadow: none;
   pointer-events: none;
+}
+
+/* Only the travelling image remains. */
+dialog[data-image-view][data-closing] [data-image-view-slide]:not([data-current]) {
+  visibility: hidden;
 }
 
 dialog[data-image-view][data-closing] [data-image-view-region],

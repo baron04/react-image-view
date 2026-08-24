@@ -6,7 +6,6 @@ import { VelocityTracker } from '../../core/gesture/pointer'
 import { panBounds } from '../../core/gesture/bounds'
 import { animateFling, animateTransform, animateValue } from '../../core/animate'
 import { fitScale as computeFit, maxScale as computeMax, IDENTITY } from '../../core/transform'
-import type { Transform } from '../../core/types'
 import {
   createState,
   reduce,
@@ -56,7 +55,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
   // Touch delivers pointermove faster than the screen refreshes, and painting
   // per event means several writes the compositor throws away — which is what
   // a stuttering pinch actually is. Keep the latest and paint once per frame.
-  const pending = React.useRef<{ transform: Transform; trackOffset: number } | null>(null)
+  const pending = React.useRef<{ trackOffset: number } | null>(null)
   const rafId = React.useRef<number | null>(null)
 
   const flush = React.useCallback(() => {
@@ -64,13 +63,17 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
     const next = pending.current
     if (!next) return
     pending.current = null
-    paintImage(internals.imageRef.current, next.transform)
-    paintTrack(internals.trackRef.current, api.index, next.trackOffset)
-  }, [internals, api.index])
+    // Read the transform from the ref rather than from what was queued. A
+    // frame scheduled during a gesture can land after a page turn has already
+    // set the authoritative value, and repainting the captured one put the
+    // outgoing image's scale back on the incoming slide.
+    paintImage(internals.imageRef.current, internals.transformRef.current)
+    paintTrack(internals.trackRef.current, internals.indexRef.current, next.trackOffset)
+  }, [internals])
 
   const schedulePaint = React.useCallback(
-    (transform: Transform, trackOffset: number) => {
-      pending.current = { transform, trackOffset }
+    (trackOffset: number) => {
+      pending.current = { trackOffset }
       if (rafId.current === null) rafId.current = requestAnimationFrame(flush)
     },
     [flush],
@@ -170,7 +173,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
             // lets it re-render at rest on the new slide.
             if (command.direction > 0) api.next()
             else api.prev()
-            paintTrack(internals.trackRef.current, api.index + command.direction, 0)
+            paintTrack(internals.trackRef.current, internals.indexRef.current, 0)
             break
 
           case 'snapBack':
@@ -178,7 +181,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
               internals.ticker,
               gesture.current.trackOffset,
               0,
-              (offset) => paintTrack(internals.trackRef.current, api.index, offset),
+              (offset) => paintTrack(internals.trackRef.current, internals.indexRef.current, offset),
             )
             break
 
@@ -203,7 +206,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
       // The ref updates now — the reducer reads it on the next event — but the
       // DOM write waits for the frame.
       internals.transformRef.current = result.state.transform
-      schedulePaint(result.state.transform, result.state.trackOffset)
+      schedulePaint(result.state.trackOffset)
 
       // 6a) Backdrop opacity follows a dismiss drag, so pulling down reads as
       // "letting go of this" rather than the modal coming apart. Set on the
@@ -221,7 +224,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
 
       runCommands(result.commands, gctx)
     },
-    [gestureContext, internals, api.index, runCommands],
+    [gestureContext, internals, runCommands],
   )
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {

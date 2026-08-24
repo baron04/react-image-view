@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ViewerProvider, type TriggerRegistration, type ViewerContextValue, type ViewerInternals } from '../context'
 import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerStatus } from '../../types'
-import type { Size, Transform } from '../../core/types'
+import type { Size, SlideSize, Transform } from '../../core/types'
 import { IDENTITY, clamp, fitScale as computeFit, maxScale as computeMax, zoomAbout } from '../../core/transform'
 import { Ticker } from '../../core/ticker'
 import { animateTransform } from '../../core/animate'
@@ -10,9 +10,9 @@ import { prefersReducedMotion, transformFromRect } from '../../core/flip'
 /**
  * Exits are much quicker than entrances. An entrance is showing you where the
  * image came from; an exit is getting out of the way, and anything lingering
- * there feels like a stall. Roughly 140ms.
+ * there feels like a stall. Roughly 100ms.
  */
-const EXIT_STIFFNESS = 1800
+const EXIT_STIFFNESS = 3600
 import { paintImage, paintTrack } from '../paint'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
@@ -58,7 +58,7 @@ export function Root({
       prev.width === next.width && prev.height === next.height ? prev : next,
     )
   }, [])
-  const [natural, setNatural] = React.useState<Size | null>(null)
+  const [natural, setNatural] = React.useState<SlideSize | null>(null)
   const [status, setStatus] = React.useState<ViewerStatus>('idle')
   // Changing this remounts the <img>, which is the only reliable way to make a
   // failed request run again — the browser will otherwise serve its cached
@@ -184,7 +184,20 @@ export function Root({
       pristineRef.current = true
       // A slide change ends any claim the entry animation had.
       flipPendingRef.current = false
-      transformRef.current = { ...IDENTITY, scale: fitScale }
+
+      // Size the incoming slide from its own dimensions, here and now.
+      //
+      // Leaving it on the outgoing slide's scale and waiting for the refit
+      // effect to correct it means the new image is painted at the wrong size
+      // first — which is a visible pop at best, and if anything interrupts the
+      // correction the image just stays wrong. Where dimensions were declared
+      // this needs no measurement at all.
+      const incoming = images[target]
+      const nextScale =
+        incoming?.width && incoming.height && stageSize.width
+          ? computeFit({ width: incoming.width, height: incoming.height }, stageSize)
+          : fitScale
+      transformRef.current = { ...IDENTITY, scale: nextScale }
       setTransform(transformRef.current)
     }
 
@@ -280,7 +293,7 @@ export function Root({
         setReloadToken((n) => n + 1)
       },
     }
-  }, [index, total, open, transform, fitScale, minScale, maxScale, status, natural, getTriggerRect, setIndex, setOpen, glideTo, stopAnimations, ticker])
+  }, [index, total, open, transform, fitScale, minScale, maxScale, status, natural, images, stageSize, getTriggerRect, setIndex, setOpen, glideTo, stopAnimations, ticker])
 
   const internals = React.useMemo<ViewerInternals>(
     () => ({
@@ -288,6 +301,7 @@ export function Root({
       transformRef,
       imageRef,
       trackRef,
+      indexRef,
       stageSize,
       setStageSize,
       natural,
@@ -348,21 +362,46 @@ export function Root({
     )
   }, [open, natural, stageSize, fitScale, ticker, stopAnimations, syncTransform])
 
-  // Fit whenever the framing changes underneath us — a new image arrives, the
-  // window resizes, the image is turned. Only while the transform is still
-  // ours: once someone has zoomed in deliberately, or something is animating
-  // it, a refit would throw away where they were.
+  // Which slide the current framing was computed for. A slide change always
+  // re-frames, whatever else is going on.
+  const framedForRef = React.useRef<number | null>(null)
+
+  /**
+   * Fit whenever the framing changes underneath us — a new image arrives, the
+   * window resizes, the image is turned.
+   *
+   * A *slide change* overrides every guard. Those guards exist to protect a
+   * deliberate zoom from being undone by a resize, but they have no business
+   * on a new image: it has its own dimensions and has never been looked at.
+   * Letting them apply is what left a turned page wearing the previous
+   * image's scale whenever anything happened to be mid-flight.
+   */
   useIsomorphicLayoutEffect(() => {
     if (!natural || !stageSize.width) return
-    if (!pristineRef.current) return
-    if (animatingRef.current || flipPendingRef.current) return
+    // The entry animation gets first claim on the opening frame.
+    if (flipPendingRef.current) return
+    // Dimensions for a slide we have already left; reframing on them is what
+    // put the previous image's scale on the new one.
+    if (natural.forIndex !== index) return
+
+    const slideChanged = framedForRef.current !== index
+    if (!slideChanged) {
+      if (!pristineRef.current) return
+      if (animatingRef.current) return
+    } else {
+      // A new slide invalidates anything animating the old one.
+      stopAnimations()
+      pristineRef.current = true
+    }
+
+    framedForRef.current = index
     if (Math.abs(transformRef.current.scale - fitScale) < 1e-6) return
 
     const fitted: Transform = { ...IDENTITY, scale: fitScale, rotation: transformRef.current.rotation }
     transformRef.current = fitted
     setTransform(fitted)
     paintImage(imageRef.current, fitted)
-  }, [natural, stageSize, fitScale, index, open])
+  }, [natural, stageSize, fitScale, index, open, stopAnimations])
 
   React.useEffect(() => () => ticker.cancelAll(), [ticker])
 

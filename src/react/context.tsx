@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type { Extension, ImageItem, ViewerApi, ViewerStatus } from '../types'
-import type { Size, Transform } from '../core/types'
+import type { Size, SlideSize, Transform } from '../core/types'
 import type { Ticker } from '../core/ticker'
 
 export interface TriggerRegistration {
@@ -22,10 +22,12 @@ export interface ViewerInternals {
   transformRef: React.MutableRefObject<Transform>
   imageRef: React.MutableRefObject<HTMLImageElement | null>
   trackRef: React.MutableRefObject<HTMLDivElement | null>
+  /** Always-current slide index; closures capture stale ones. */
+  indexRef: React.MutableRefObject<number>
   stageSize: Size
   setStageSize(size: Size): void
-  natural: Size | null
-  setNatural(size: Size | null): void
+  natural: SlideSize | null
+  setNatural(size: SlideSize | null): void
   /** Copy the live transform into React state so controls catch up. */
   syncTransform(): void
   /** Hand transform ownership to the viewer; stops auto-refit on resize. */

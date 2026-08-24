@@ -65,12 +65,12 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
   React.useLayoutEffect(() => {
     if (!current) return
     if (current.width && current.height) {
-      setNatural({ width: current.width, height: current.height })
+      setNatural({ width: current.width, height: current.height, forIndex: index })
       return
     }
     const el = currentImage()
     if (el?.complete && el.naturalWidth) {
-      setNatural({ width: el.naturalWidth, height: el.naturalHeight })
+      setNatural({ width: el.naturalWidth, height: el.naturalHeight, forIndex: index })
     } else {
       // Nothing trustworthy yet; onLoad will fill it in.
       setNatural(null)
@@ -153,7 +153,7 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
                 onLoad={(event) => {
                   if (!isCurrent) return
                   const el = event.currentTarget
-                  internals.setNatural({ width: el.naturalWidth, height: el.naturalHeight })
+                  internals.setNatural({ width: el.naturalWidth, height: el.naturalHeight, forIndex: i })
                   setStatus('ready')
                 }}
                 onError={() => {

@@ -3,6 +3,17 @@ export interface Size {
   height: number
 }
 
+/**
+ * A measured size together with the slide it belongs to.
+ *
+ * Sizes arrive a render later than the index that asked for them, so an
+ * unlabelled one is ambiguous: reframing with the outgoing image's dimensions
+ * is exactly how a turned page ended up wearing the wrong scale.
+ */
+export interface SlideSize extends Size {
+  forIndex: number
+}
+
 export interface Point {
   x: number
   y: number
