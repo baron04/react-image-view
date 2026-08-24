@@ -38,7 +38,10 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
   const hostRef = React.useRef<HTMLDivElement | null>(null)
   const velocity = React.useRef(new VelocityTracker())
   const gesture = React.useRef<GestureState>(createState(IDENTITY))
-  const dragging = React.useRef(false)
+  // A set, not a boolean: a pinch has two pointers, and collapsing them into
+  // one flag meant the first finger to lift disabled the second — pinch, lift
+  // one finger, and the image stopped responding to the one still down.
+  const activePointers = React.useRef(new Set<number>())
 
   // Measure the stage. Every derived quantity — fit scale, pan bounds, the
   // distance a page drag has to cover — is relative to it.
@@ -184,7 +187,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
     } catch {
       /* capture is an optimisation, not a requirement */
     }
-    dragging.current = true
+    activePointers.current.add(event.pointerId)
     internals.markDirty()
     velocity.current.reset()
     velocity.current.add(event.clientX, event.clientY)
@@ -192,20 +195,24 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
   }
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current) return
+    if (!activePointers.current.has(event.pointerId)) return
     velocity.current.add(event.clientX, event.clientY)
     dispatch({ type: 'pointermove', id: event.pointerId, x: event.clientX, y: event.clientY })
   }
 
   const endPointer = (event: React.PointerEvent<HTMLDivElement>, cancelled: boolean) => {
-    if (!dragging.current) return
-    dragging.current = false
+    if (!activePointers.current.delete(event.pointerId)) return
     dispatch(
       cancelled
         ? { type: 'pointercancel', id: event.pointerId }
         : { type: 'pointerup', id: event.pointerId, velocity: velocity.current.velocity() },
     )
-    internals.syncTransform()
+    // Only once the last finger is up is the gesture actually over; syncing
+    // mid-pinch would publish a transform that is still moving.
+    if (activePointers.current.size === 0) {
+      velocity.current.reset()
+      internals.syncTransform()
+    }
   }
 
   const onWheel = (event: React.WheelEvent<HTMLDivElement>) => {
