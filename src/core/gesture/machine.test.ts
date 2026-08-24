@@ -115,6 +115,39 @@ describe('edge handoff', () => {
     expect(state.trackOffset).not.toBe(0)
   })
 
+  it('keeps the track continuous across the handoff', () => {
+    // The seam this whole mechanism exists to remove. Start 100px short of the
+    // edge so the pan genuinely consumes part of the drag: only what comes
+    // after may reach the track, and it has to arrive smoothly rather than
+    // jumping by the distance the pan already used.
+    const PAN_ROOM = 100
+    const short = context({ transform: { scale: 0.8, x: 400 - PAN_ROOM, y: 0, rotation: 0 } })
+    let state = createState(short.transform)
+    const step = (x: number) => {
+      state = reduce(state, { type: 'pointermove', id: 1, x, y: 300 }, short).state
+      return state
+    }
+    state = reduce(state, down(400, 300), short).state
+
+    // Still panning while the image has room.
+    step(400 + PAN_ROOM - 10)
+    expect(state.phase).toBe('panning')
+    expect(state.trackOffset).toBe(0)
+
+    const handoffAt = PAN_ROOM + HANDOFF_THRESHOLD + 10
+    step(400 + handoffAt)
+    expect(state.phase).toBe('paging')
+    const atHandoff = state.trackOffset
+
+    // The track carries only the overshoot, not the 100px the pan used.
+    expect(Math.abs(atHandoff)).toBeCloseTo(HANDOFF_THRESHOLD + 10, 5)
+    expect(Math.abs(atHandoff)).toBeLessThan(handoffAt)
+
+    // And 20px more finger travel is 20px more track, no more.
+    const after = step(400 + handoffAt + 20).trackOffset
+    expect(after - atHandoff).toBeCloseTo(20, 5)
+  })
+
   it('refuses to hand off when there is no page to turn to', () => {
     const noPrev = context({ transform: atEdge, canPrev: false })
     const { state } = run([down(400, 300), move(400 + HANDOFF_THRESHOLD + 50, 300)], noPrev)

@@ -1,0 +1,28 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Noto Sans SC", sans-serif; background: #f7f8f9; color: #14171f; }
+main { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+h1 { font-size: 22px; margin: 0 0 8px; }
+.hint { color: #565e70; font-size: 14px; margin: 0 0 28px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+.thumb { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid #dee1e8; border-radius: 8px; background: #fff; cursor: zoom-in; font: inherit; text-align: left; }
+.thumb img { width: 100%; height: 130px; object-fit: cover; border-radius: 4px; background: #eee; }
+.thumb span { font-size: 12px; color: #565e70; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.shell { display: flex; flex-direction: column; height: 100%; }
+.topbar { height: 48px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid var(--riv-line); }
+.ghost { border: 0; background: transparent; font: inherit; font-size: 13px; color: var(--riv-ink); cursor: pointer; padding: 6px 10px; border-radius: 6px; }
+.ghost:hover { background: var(--riv-hover); }
+.sep { width: 1px; height: 18px; background: var(--riv-line); }
+.title { font-size: 13.5px; font-weight: 500; }
+.spacer { flex: 1; }
+.readout { display: flex; gap: 14px; font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--riv-ink-muted); font-variant-numeric: tabular-nums; }
+
+.stage { flex: 1; position: relative; background: var(--riv-stage); min-height: 0; cursor: grab; }
+.stage:active { cursor: grabbing; }
+
+.toolbar { flex: none; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 12px; background: var(--riv-chrome); border-top: 1px solid var(--riv-line); }
+.toolbar button { height: 32px; min-width: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; color: var(--riv-ink); cursor: pointer; }
+.toolbar button:hover:not(:disabled) { background: var(--riv-hover); }
+.toolbar button:disabled { opacity: .38; cursor: default; }
+.toolbar button[data-active] { background: var(--riv-accent-surface); color: var(--riv-accent); }
+.toolbar i { width: 1px; height: 20px; background: var(--riv-line); margin: 0 5px; }

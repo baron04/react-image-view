@@ -1,5 +1,7 @@
 import * as React from 'react'
 import type { ImageItem, ViewerApi } from '../types'
+import type { Size, Transform } from '../core/types'
+import type { Ticker } from '../core/ticker'
 
 export interface TriggerRegistration {
   id: string
@@ -7,12 +9,36 @@ export interface TriggerRegistration {
   getRect(): DOMRect | null
 }
 
+/**
+ * Machinery the parts share but consumers never see.
+ *
+ * `transformRef` is the single source of truth during a gesture; the mirrored
+ * React state exists only to drive control affordances. Nobody watches whether
+ * the zoom button greys out mid-flick, so paying a re-render per frame for it
+ * would buy nothing.
+ */
+export interface ViewerInternals {
+  ticker: Ticker
+  transformRef: React.MutableRefObject<Transform>
+  imageRef: React.MutableRefObject<HTMLImageElement | null>
+  trackRef: React.MutableRefObject<HTMLDivElement | null>
+  stageSize: Size
+  setStageSize(size: Size): void
+  natural: Size | null
+  setNatural(size: Size | null): void
+  /** Copy the live transform into React state so controls catch up. */
+  syncTransform(): void
+  /** Hand transform ownership to the viewer; stops auto-refit on resize. */
+  markDirty(): void
+  paint(): void
+}
+
 export interface ViewerContextValue {
   api: ViewerApi
   images: ImageItem[]
   container: HTMLElement | null
+  internals: ViewerInternals
   registerTrigger(reg: TriggerRegistration): () => void
-  /** Index a trigger occupies, resolved at click time from registration order. */
   indexOf(id: string): number
   openAt(index: number, from: DOMRect | null): void
 }

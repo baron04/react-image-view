@@ -67,6 +67,15 @@ export interface GestureState {
   trackOffset: number
   /** Movement accumulated past a pan edge; carried into the pager on handoff. */
   overshoot: number
+  /**
+   * Drag distance already spent on panning before the pager took over.
+   *
+   * Without it the pager would read the whole gesture delta, including the
+   * part that merely moved the image to its edge, and the track would jump by
+   * that much the instant control changed hands — the exact seam the handoff
+   * exists to avoid.
+   */
+  pageBase: number
   /** Vertical progress of a dismiss drag, 0..1, for backdrop opacity. */
   dismissProgress: number
   pinch: { startDistance: number; startScale: number } | null
@@ -105,6 +114,7 @@ export function createState(transform: Transform): GestureState {
     transform,
     trackOffset: 0,
     overshoot: 0,
+    pageBase: 0,
     dismissProgress: 0,
     pinch: null,
   }
@@ -165,6 +175,7 @@ export function reduce(
             startTransform: ctx.transform,
             transform: ctx.transform,
             overshoot: 0,
+            pageBase: 0,
             dismissProgress: 0,
           },
           commands: [{ type: 'cancelAnimations' }],
@@ -260,10 +271,13 @@ function applyDrag(state: GestureState, ctx: GestureContext): GestureState {
   }
 
   if (state.phase === 'paging') {
-    const direction: -1 | 1 = delta.x < 0 ? 1 : -1
+    // Only the movement since the pager took over counts. After a handoff
+    // `pageBase` holds what the pan already consumed.
+    const travel = delta.x - state.pageBase
+    const direction: -1 | 1 = travel < 0 ? 1 : -1
     // Resisting at the ends of the set makes the boundary legible instead of
     // looking like a dropped frame.
-    const offset = canPage(direction, ctx) ? delta.x : rubberBand(delta.x, ctx.stage.width)
+    const offset = canPage(direction, ctx) ? travel : rubberBand(travel, ctx.stage.width)
     return { ...state, trackOffset: offset }
   }
 
@@ -289,6 +303,8 @@ function applyDrag(state: GestureState, ctx: GestureContext): GestureState {
         phase: 'paging',
         trackOffset: overshoot,
         overshoot,
+        // Everything before the overshoot belongs to the pan, not the page.
+        pageBase: delta.x - overshoot,
         transform: clampX(state.startTransform, bounds, direction),
       }
     }
@@ -329,7 +345,7 @@ function release(
   velocity: Point,
   ctx: GestureContext,
 ): { state: GestureState; commands: Command[] } {
-  const settled: GestureState = { ...state, phase: 'idle', pinch: null, overshoot: 0 }
+  const settled: GestureState = { ...state, phase: 'idle', pinch: null, overshoot: 0, pageBase: 0 }
 
   switch (state.phase) {
     case 'paging': {
