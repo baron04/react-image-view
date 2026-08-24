@@ -1,0 +1,49 @@
+/*
+ * Optional preset styling. Tokens live on :root and on the dialog itself,
+ * never on an ancestor class — the viewer is portalled out of the tree, so
+ * anything scoped to a wrapper would not follow it.
+ */
+:root,
+dialog[data-image-view] {
+  --riv-chrome: #ffffff;
+  --riv-stage: #f2f4f8;
+  --riv-line: #dee1e8;
+  --riv-ink: #14171f;
+  --riv-ink-muted: #565e70;
+  --riv-hover: #eceef4;
+  --riv-accent: #3d4e8f;
+  --riv-accent-surface: #e9ebf5;
+  --riv-radius: 6px;
+  --riv-radius-toolbar: 11px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-riv-theme='light']),
+  dialog[data-image-view]:not([data-riv-theme='light']) {
+    --riv-chrome: #1b1d24;
+    --riv-stage: #121419;
+    --riv-line: #2a2e3a;
+    --riv-ink: #e5e7ee;
+    --riv-ink-muted: #959bae;
+    --riv-hover: #262a35;
+    --riv-accent: #8e9bdb;
+    --riv-accent-surface: #242840;
+  }
+}
+
+dialog[data-image-view] {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--riv-chrome);
+  color: var(--riv-ink);
+  overflow: hidden;
+}
+
+dialog[data-image-view]::backdrop {
+  background: rgb(0 0 0 / 0.32);
+}

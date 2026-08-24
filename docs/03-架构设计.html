@@ -331,11 +331,56 @@ react-img-view/styles.css   → 可选样式</code></pre>
 </section>
 
 <section>
-  <p class="eyebrow">要先想清楚的</p>
-  <h2>三个还没定的问题</h2>
+  <p class="eyebrow">已定</p>
+  <h2>Portal 默认开，容器可指定</h2>
+  <div class="prose">
+    <p>先厘清一件容易混淆的事：<strong>Portal 和 <code>&lt;dialog&gt;</code> 不是二选一，它们解决的是两组不相交的问题</strong>，要一起用。</p>
+  </div>
+
+  <div class="scroller">
+    <table>
+      <thead><tr><th>问题</th><th>&lt;dialog&gt; + showModal</th><th>Portal</th></tr></thead>
+      <tbody>
+        <tr><td class="note">z-index 战争</td><td><span class="chip ok">已解决</span> top layer 恒在最上</td><td class="note">部分缓解</td></tr>
+        <tr><td class="note">祖先 overflow:hidden 裁剪</td><td><span class="chip ok">已解决</span></td><td class="note">也能解决</td></tr>
+        <tr><td class="note">祖先 transform 造成的定位偏移</td><td><span class="chip ok">已解决</span></td><td class="note">也能解决</td></tr>
+        <tr><td class="note">焦点陷阱 · ESC · 背景 inert</td><td><span class="chip ok">已解决</span></td><td><span class="chip no">帮不上</span></td></tr>
+        <tr><td class="note">继承祖先 font / color / line-height</td><td><span class="chip no">帮不上</span></td><td><span class="chip ok">已解决</span></td></tr>
+        <tr><td class="note">祖先的后代选择器命中（<code>.panel * {…}</code>）</td><td><span class="chip no">帮不上</span></td><td><span class="chip ok">已解决</span></td></tr>
+        <tr><td class="note">祖先 display:none 导致打不开</td><td><span class="chip no">帮不上</span></td><td><span class="chip ok">已解决</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose">
+    <p>top layer 把<strong>定位类</strong>问题全包了，但对<strong>样式继承类</strong>问题完全无能为力——因为元素虽然渲染在顶层，<strong>它在 DOM 树里还待在原地</strong>，祖先的可继承属性和后代选择器照常命中。而我们的主场景恰恰是后台管理系统，那里 <code>* { font-family }</code>、组件库全局重置、<code>.container *</code> 这类写法是常态。所以 Portal 默认开。</p>
+  </div>
+
+<pre><code>&lt;ImageView.Root
+  container={myEl}       <span class="c">// 可选，默认 document.body</span>
+/&gt;</code></pre>
+
+  <h3>为什么必须留 <code>container</code></h3>
+  <div class="prose">
+    <p>Portal 到 <code>body</code> 会引入一个新问题：<strong>如果应用把主题类挂在某个嵌套容器上</strong>（<code>&lt;div class="dark"&gt;</code> 包住业务区，而不是挂在 <code>html</code> 上），传送出去就脱离了那个容器，暗色模式会失效。<code>container</code> 就是这种情况的解法——指到主题容器里，既隔离了全局污染，又保住了主题作用域。</p>
+    <p>配套的一条实现约束：<strong>我们自己的 CSS 变量定义在 <code>:root</code> 和 dialog 元素自身上，不依赖任何祖先 class</strong>。这样即使用户没管 <code>container</code>，我们的默认样式在 body 下也是完整的。</p>
+  </div>
+
+  <h3>三条要写进文档的行为</h3>
   <div class="prose">
     <ul class="plain">
-      <li><strong><code>&lt;dialog&gt;</code> 渲染在原地还是 Portal？</strong>原生 top layer 让定位不受祖先 <code>transform</code> 影响，所以原地渲染在视觉上没问题；但它仍会继承祖先的 <code>font</code>、<code>color</code> 等可继承属性。原地更简单、SSR 更干净，我倾向原地 + 文档里写清楚这个继承行为。<em>需要你拍板的点：后台系统里常有全局 <code>* { font-family }</code> 覆盖，原地渲染会被波及。</em></li>
+      <li><strong>事件仍沿 React 树冒泡，不沿 DOM 树。</strong>预览器里的点击会冒泡到 <code>Root</code> 的 React 祖先，尽管 DOM 上它在 body 底下。这是 Portal 的既定行为，通常正合需要（上下文、表单都还能用），但会让第一次遇到的人困惑。</li>
+      <li><strong>SSR 期间不渲染。</strong><code>container</code> 要等 <code>document</code> 存在，所以挂载前返回 <code>null</code>。因为预览器只在打开时才挂载，这不产生首屏影响。</li>
+      <li><strong><code>showModal()</code> 在 layout effect 里调</strong>，早于浏览器绘制，避免闪一帧未模态的状态。</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">要先想清楚的</p>
+  <h2>两个还没定的问题</h2>
+  <div class="prose">
+    <ul class="plain">
       <li><strong>触发器怎么拿到 <code>index</code>。</strong>按挂载顺序自动登记最省事，但 React 并发渲染下顺序不保证稳定。备选是要求显式传 <code>index</code>，啰嗦但确定。倾向：<strong>自动登记为主，显式 <code>index</code> 可覆盖</strong>。</li>
       <li><strong>预设样式用 CSS 还是 Tailwind。</strong>npm 包附 <code>styles.css</code>（不依赖 Tailwind，谁都能用），registry 给 Tailwind 版源码。两份要保持同步，是一笔持续成本——但这正是同时吃到「装包即用」和「拷贝即改」两种分发的代价。</li>
     </ul>

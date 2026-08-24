@@ -13,3 +13,6 @@ dist/
 # 编辑器
 .vscode/
 .idea/
+
+# pnpm
+.pnpm-store/
