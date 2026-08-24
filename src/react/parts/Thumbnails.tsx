@@ -1,0 +1,70 @@
+import * as React from 'react'
+import { useViewerContext } from '../context'
+
+export type ThumbnailsMode = 'auto' | 'always' | 'never'
+
+export interface ThumbnailsProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
+  /**
+   * `auto` (default) renders nothing for a single image and lets a narrow
+   * viewport hide the strip via CSS — on a phone it costs about 15% of the
+   * screen for little benefit at that scale. `always` keeps it up regardless
+   * of width or count; `never` renders nothing.
+   */
+  mode?: ThumbnailsMode
+}
+
+/**
+ * A horizontal strip of every image in the set. Downgraded to P1 for this
+ * library's primary scenario — reviewing a handful of attachments, where the
+ * counter already answers "how many, where am I" — so it is never part of
+ * `DefaultContent` automatically; add it explicitly where a longer set (a
+ * gallery, a product's photos) makes jumping around worth the space.
+ */
+export const Thumbnails = React.forwardRef<HTMLDivElement, ThumbnailsProps>(function Thumbnails(
+  { mode = 'auto', ...rest },
+  forwardedRef,
+) {
+  const { images, api } = useViewerContext('Thumbnails')
+  const stripRef = React.useRef<HTMLDivElement | null>(null)
+  const activeRef = React.useRef<HTMLButtonElement | null>(null)
+
+  React.useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+  }, [api.index])
+
+  if (mode === 'never' || (mode === 'auto' && images.length <= 1)) return null
+
+  return (
+    <div
+      {...rest}
+      ref={(node) => {
+        stripRef.current = node
+        if (typeof forwardedRef === 'function') forwardedRef(node)
+        else if (forwardedRef) forwardedRef.current = node
+      }}
+      data-image-view-thumbnails=""
+      data-mode={mode}
+      role="tablist"
+      aria-label="所有图片"
+    >
+      {images.map((item, i) => {
+        const active = i === api.index
+        return (
+          <button
+            key={`${item.src}-${i}`}
+            ref={active ? activeRef : undefined}
+            type="button"
+            data-image-view-thumb=""
+            data-active={active ? '' : undefined}
+            role="tab"
+            aria-selected={active}
+            aria-label={item.name ?? item.alt ?? `第 ${i + 1} 张`}
+            onClick={() => api.go(i)}
+          >
+            <img src={item.src} alt="" draggable={false} />
+          </button>
+        )
+      })}
+    </div>
+  )
+})

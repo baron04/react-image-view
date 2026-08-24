@@ -10,6 +10,7 @@ import {
 import {
   Counter, ErrorState, Footer, Header, Loading, Title, Toolbar,
 } from './react/parts/containers'
+import { Thumbnails } from './react/parts/Thumbnails'
 import { SingleImage } from './preset/SingleImage'
 import { DefaultContent } from './preset/DefaultContent'
 
@@ -25,7 +26,7 @@ export const ImageView = Object.assign(SingleImage, {
   Root, Trigger, Content, Stage, Image,
   Header, Toolbar, Footer, Title, Counter, Loading, Error: ErrorState,
   Close, Prev, Next, ZoomIn, ZoomOut, RotateLeft, RotateRight,
-  FitToWindow, ActualSize, Download,
+  FitToWindow, ActualSize, Download, Thumbnails,
   /** The assembled default content — swap it or use it as a starting point. */
   DefaultContent,
 })
@@ -34,7 +35,7 @@ export {
   Root, Trigger, Content, Stage, Image,
   Header, Toolbar, Footer, Title, Counter, Loading, ErrorState,
   Close, Prev, Next, ZoomIn, ZoomOut, RotateLeft, RotateRight,
-  FitToWindow, ActualSize, Download,
+  FitToWindow, ActualSize, Download, Thumbnails,
   DefaultContent,
 }
 
@@ -45,6 +46,7 @@ export type {
 } from './types'
 export type { ControlProps, DownloadProps } from './react/parts/controls'
 export type { CounterProps, ErrorProps, RegionProps, StatusProps, TitleProps } from './react/parts/containers'
+export type { ThumbnailsProps, ThumbnailsMode } from './react/parts/Thumbnails'
 export type { SingleImageProps } from './preset/SingleImage'
 export type { DefaultContentProps } from './preset/DefaultContent'
 export type { Size, Point, Transform, Bounds } from './core/types'

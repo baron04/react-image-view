@@ -88,6 +88,36 @@ function DefaultDemo() {
 }
 
 /**
+ * Default preset with the thumbnail strip turned on — the opt-in gallery
+ * configuration the decisions doc describes (products, a longer set), as
+ * opposed to the handful-of-attachments default above.
+ */
+function ThumbnailsDemo() {
+  return (
+    <section className="demo">
+      <h2>缩略图轨 · 可选</h2>
+      <p className="hint">
+        <code>&lt;ImageView.Root images={'{'}images{'}'}&gt;&lt;ImageView.DefaultContent thumbnails /&gt;&lt;/ImageView.Root&gt;</code>
+        。窄屏下默认隐藏（<code>mode="auto"</code>），除非传 <code>thumbnails="always"</code>。
+      </p>
+      <ImageView.Root images={images}>
+        <div className="grid">
+          {images.map((img, i) => (
+            <div key={img.src} className="thumb">
+              <ImageView.Trigger index={i} src={img.src} alt={img.name} name={img.name}>
+                <img src={img.src} alt={img.name} data-testid={`gallery-thumb-${i}`} />
+              </ImageView.Trigger>
+              <span>{img.name}</span>
+            </div>
+          ))}
+        </div>
+        <ImageView.DefaultContent thumbnails />
+      </ImageView.Root>
+    </section>
+  )
+}
+
+/**
  * Single-image, one-line entry point — L1. Wraps its own Root/Trigger and
  * still renders the same default content.
  */
@@ -175,6 +205,7 @@ function App() {
     <main>
       <h1>react-img-view</h1>
       <DefaultDemo />
+      <ThumbnailsDemo />
       <SingleDemo />
       <AdvancedDemo />
     </main>

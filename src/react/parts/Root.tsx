@@ -424,12 +424,14 @@ export function Root({
   )
 
   // L2 falls out of L3 rather than being a separate path: if the caller
-  // already placed a <Content>, this is a full composition and nothing is
-  // added. Otherwise the reviewed default is appended, so `<Root><Trigger/>
-  // ...</Root>` with no further markup is a complete, styled viewer — the
-  // "multi-image, shared preview" tier the architecture doc describes.
+  // already placed a <Content> — or a <DefaultContent> configured
+  // differently, e.g. with the thumbnail strip on — this is a full
+  // composition and nothing more is added. Otherwise the reviewed default is
+  // appended, so `<Root><Trigger/>...</Root>` with no further markup is a
+  // complete, styled viewer — the "multi-image, shared preview" tier the
+  // architecture doc describes.
   const hasContent = React.Children.toArray(children).some(
-    (child) => React.isValidElement(child) && child.type === Content,
+    (child) => React.isValidElement(child) && (child.type === Content || child.type === DefaultContent),
   )
 
   return (

@@ -2,6 +2,7 @@ import { Content } from '../react/parts/Content'
 import { Stage } from '../react/parts/Stage'
 import { Image } from '../react/parts/Image'
 import { Header, Toolbar, Title, Counter, Loading, ErrorState } from '../react/parts/containers'
+import { Thumbnails, type ThumbnailsMode } from '../react/parts/Thumbnails'
 import {
   Close, Prev, Next, ZoomIn, ZoomOut, RotateLeft, RotateRight,
   FitToWindow, ActualSize, Download,
@@ -17,6 +18,14 @@ export interface DefaultContentProps {
    *  doc for why: with the handful of attachments this is built for, the
    *  arrows already say whether there is more. */
   counter?: boolean
+  /**
+   * Show the thumbnail strip. Off by default for the same reason `counter`
+   * is — this library's primary scenario is a handful of attachments, where
+   * the arrows and (optionally) the counter already say what a strip would.
+   * Pass `true` for its default `auto` behaviour, or a mode directly for
+   * `always`/`never`.
+   */
+  thumbnails?: boolean | ThumbnailsMode
   /** Text shown under the alert icon while the current image failed to load. */
   errorTitle?: string
   errorHint?: string
@@ -31,7 +40,11 @@ export function DefaultContent({
   counter = false,
   errorTitle = '无法加载这张图片',
   errorHint = '文件可能已损坏，或使用了浏览器不支持的编码格式。原始文件仍可下载后用本地工具打开。',
+  thumbnails = false,
 }: DefaultContentProps) {
+  const thumbnailsMode: ThumbnailsMode | false =
+    thumbnails === true ? 'auto' : thumbnails === false ? false : thumbnails
+
   return (
     <Content>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -85,30 +98,34 @@ export function DefaultContent({
               </>
             )}
           </ErrorState>
+
+          {/* Anchored to the stage on purpose — see the comment on why this
+              moved inside it. */}
+          <Toolbar>
+            <ZoomOut>
+              <ZoomOutIcon />
+            </ZoomOut>
+            <ZoomIn>
+              <ZoomInIcon />
+            </ZoomIn>
+            <span className="riv-tbsep" />
+            <RotateLeft>
+              <RotateLeftIcon />
+            </RotateLeft>
+            <RotateRight>
+              <RotateRightIcon />
+            </RotateRight>
+            <span className="riv-tbsep" />
+            <FitToWindow>
+              <FitIcon />
+            </FitToWindow>
+            <ActualSize>
+              <ActualSizeIcon />
+            </ActualSize>
+          </Toolbar>
         </Stage>
 
-        <Toolbar>
-          <ZoomOut>
-            <ZoomOutIcon />
-          </ZoomOut>
-          <ZoomIn>
-            <ZoomInIcon />
-          </ZoomIn>
-          <span className="riv-tbsep" />
-          <RotateLeft>
-            <RotateLeftIcon />
-          </RotateLeft>
-          <RotateRight>
-            <RotateRightIcon />
-          </RotateRight>
-          <span className="riv-tbsep" />
-          <FitToWindow>
-            <FitIcon />
-          </FitToWindow>
-          <ActualSize>
-            <ActualSizeIcon />
-          </ActualSize>
-        </Toolbar>
+        {thumbnailsMode && <Thumbnails mode={thumbnailsMode} />}
       </div>
     </Content>
   )
