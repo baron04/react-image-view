@@ -51,19 +51,25 @@ dialog[data-image-view]::backdrop {
   animation: riv-backdrop-in 220ms ease-out;
 }
 
-/* The chrome leaves alongside the image rather than after it: waiting for the
-   flight to land and only then vanishing reads as two separate events. */
-dialog[data-image-view][data-closing] [data-image-view-region],
-dialog[data-image-view][data-closing] [data-image-view-control='prev'],
-dialog[data-image-view][data-closing] [data-image-view-control='next'] {
-  opacity: 0;
-  transition: opacity 140ms ease-out;
+/* On close the modal goes at once and only the image travels. Fading the
+   chrome out alongside it still read as two things happening; the image
+   returning to its thumbnail is the whole story, and everything else is
+   scenery that should simply stop being there. */
+dialog[data-image-view][data-closing] {
+  background: transparent;
   pointer-events: none;
 }
 
+dialog[data-image-view][data-closing] [data-image-view-region],
+dialog[data-image-view][data-closing] [data-image-view-control='prev'],
+dialog[data-image-view][data-closing] [data-image-view-control='next'],
+dialog[data-image-view][data-closing] [data-image-view-loading],
+dialog[data-image-view][data-closing] [data-image-view-error] {
+  display: none;
+}
+
 dialog[data-image-view][data-closing]::backdrop {
-  opacity: 0;
-  transition: opacity 180ms ease-out;
+  background: transparent;
 }
 
 @keyframes riv-backdrop-in {

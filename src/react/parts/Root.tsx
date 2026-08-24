@@ -7,8 +7,12 @@ import { Ticker } from '../../core/ticker'
 import { animateTransform } from '../../core/animate'
 import { prefersReducedMotion, transformFromRect } from '../../core/flip'
 
-/** Exits run quicker than entrances; a slow dismissal feels like a stall. */
-const EXIT_STIFFNESS = 900
+/**
+ * Exits are much quicker than entrances. An entrance is showing you where the
+ * image came from; an exit is getting out of the way, and anything lingering
+ * there feels like a stall. Roughly 140ms.
+ */
+const EXIT_STIFFNESS = 1800
 import { paintImage, paintTrack } from '../paint'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
@@ -126,6 +130,24 @@ export function Root({
   }, [])
 
   const syncTransform = React.useCallback(() => setTransform(transformRef.current), [])
+
+  /**
+   * Stop every animation and hand ownership of the transform back.
+   *
+   * Cancelling a ticker entry does not run its completion callback, so
+   * clearing the ticker alone left `animatingRef` stuck on: after any
+   * interrupted animation the refit below would bail forever, and a turned
+   * page kept the previous image's scale.
+   *
+   * Deliberately does not publish state. Doing so from inside a layout effect
+   * re-entered that same effect before it had finished setting up, and the
+   * second pass overwrote the entry animation's starting frame. Callers that
+   * need the controls updated call `syncTransform` themselves.
+   */
+  const stopAnimations = React.useCallback(() => {
+    ticker.cancelAll()
+    animatingRef.current = false
+  }, [ticker])
   const markDirty = React.useCallback(() => {
     pristineRef.current = false
   }, [])
@@ -133,7 +155,7 @@ export function Root({
   /** Animate to a target and mirror it into state once it arrives. */
   const glideTo = React.useCallback(
     (target: Transform) => {
-      ticker.cancelAll()
+      stopAnimations()
       animatingRef.current = true
       animateTransform(
         ticker,
@@ -149,7 +171,7 @@ export function Root({
         },
       )
     },
-    [ticker, syncTransform],
+    [ticker, stopAnimations, syncTransform],
   )
 
   const api = React.useMemo<ViewerApi>(() => {
@@ -160,6 +182,8 @@ export function Root({
       // A new slide is framed on its own terms; carrying zoom across would open
       // it on an arbitrary crop of an image the viewer has not seen yet.
       pristineRef.current = true
+      // A slide change ends any claim the entry animation had.
+      flipPendingRef.current = false
       transformRef.current = { ...IDENTITY, scale: fitScale }
       setTransform(transformRef.current)
     }
@@ -182,8 +206,7 @@ export function Root({
         const next = clamp(scale, minScale, maxScale)
         const target = zoomAbout(live(), next, options?.origin ?? { x: 0, y: 0 })
         if (options?.immediate) {
-          ticker.cancelAll()
-          animatingRef.current = false
+          stopAnimations()
           transformRef.current = target
           paintImage(imageRef.current, target)
           return
@@ -223,15 +246,15 @@ export function Root({
         // preference, or no image yet. Close outright rather than inventing a
         // destination.
         if (!target || !stageEl || !natural || prefersReducedMotion()) {
-          ticker.cancelAll()
+          stopAnimations()
           setOpen(false)
           return
         }
 
+        const to = transformFromRect(target, stageEl.getBoundingClientRect(), natural, transformRef.current.rotation)
+        stopAnimations()
         closingRef.current = true
         animatingRef.current = true
-        const to = transformFromRect(target, stageEl.getBoundingClientRect(), natural, transformRef.current.rotation)
-        ticker.cancelAll()
         // 3) Tell the chrome to leave at the same time as the image, rather
         // than waiting for it to land and then vanishing all at once.
         dialogEl?.setAttribute('data-closing', '')
@@ -257,7 +280,7 @@ export function Root({
         setReloadToken((n) => n + 1)
       },
     }
-  }, [index, total, open, transform, fitScale, minScale, maxScale, status, natural, getTriggerRect, setIndex, setOpen, glideTo, ticker])
+  }, [index, total, open, transform, fitScale, minScale, maxScale, status, natural, getTriggerRect, setIndex, setOpen, glideTo, stopAnimations, ticker])
 
   const internals = React.useMemo<ViewerInternals>(
     () => ({
@@ -271,56 +294,75 @@ export function Root({
       setNatural,
       syncTransform,
       markDirty,
+      stopAnimations,
       setStatus,
       reloadToken,
       paint,
     }),
-    [ticker, stageSize, setStageSize, natural, syncTransform, markDirty, reloadToken, paint],
+    [ticker, stageSize, setStageSize, natural, syncTransform, markDirty, stopAnimations, reloadToken, paint],
   )
+
+  /**
+   * Entry animation, in its own effect and nothing else's business.
+   *
+   * It used to live inside the refit below, where the two fought: refit re-runs
+   * whenever geometry resolves, which is exactly while the entry animation is
+   * getting started, and each pass could undo the other. Splitting them makes
+   * the ordering trivial — this claims the transform, and refit steps aside
+   * for anything that has claimed it.
+   */
+  useIsomorphicLayoutEffect(() => {
+    if (!flipPendingRef.current) return
+    if (!open) {
+      flipPendingRef.current = false
+      return
+    }
+    // Geometry is not ready yet; keep the claim and wait for the next pass.
+    if (!natural || !stageSize.width) return
+
+    const origin = originRectRef.current
+    const stageEl = imageRef.current?.closest('[data-image-view-stage]')
+    flipPendingRef.current = false
+    if (!origin || !stageEl) return
+
+    const fitted: Transform = { ...IDENTITY, scale: fitScale, rotation: transformRef.current.rotation }
+    const from = transformFromRect(origin, stageEl.getBoundingClientRect(), natural, fitted.rotation)
+
+    stopAnimations()
+    animatingRef.current = true
+    transformRef.current = from
+    paintImage(imageRef.current, from)
+
+    animateTransform(
+      ticker,
+      from,
+      fitted,
+      (t) => {
+        transformRef.current = t
+        paintImage(imageRef.current, t)
+      },
+      () => {
+        animatingRef.current = false
+        syncTransform()
+      },
+    )
+  }, [open, natural, stageSize, fitScale, ticker, stopAnimations, syncTransform])
 
   // Fit whenever the framing changes underneath us — a new image arrives, the
   // window resizes, the image is turned. Only while the transform is still
-  // ours: once someone has zoomed in deliberately, a resize must not throw
-  // away where they were looking.
+  // ours: once someone has zoomed in deliberately, or something is animating
+  // it, a refit would throw away where they were.
   useIsomorphicLayoutEffect(() => {
     if (!natural || !stageSize.width) return
     if (!pristineRef.current) return
-    if (animatingRef.current) return
-    const fitted: Transform = { ...IDENTITY, scale: fitScale, rotation: transformRef.current.rotation }
-
-    // Entry animation. Park the image over the thumbnail first, then let it
-    // travel to where it belongs. Doing this in a layout effect is what keeps
-    // the fitted frame from being painted before the animation starts.
-    const origin = originRectRef.current
-    const stageEl = imageRef.current?.closest('[data-image-view-stage]')
-    if (flipPendingRef.current && origin && stageEl) {
-      flipPendingRef.current = false
-      const from = transformFromRect(origin, stageEl.getBoundingClientRect(), natural, fitted.rotation)
-      transformRef.current = from
-      paintImage(imageRef.current, from)
-      ticker.cancelAll()
-      animatingRef.current = true
-      animateTransform(
-        ticker,
-        from,
-        fitted,
-        (t) => {
-          transformRef.current = t
-          paintImage(imageRef.current, t)
-        },
-        () => {
-          animatingRef.current = false
-          syncTransform()
-        },
-      )
-      return
-    }
-
+    if (animatingRef.current || flipPendingRef.current) return
     if (Math.abs(transformRef.current.scale - fitScale) < 1e-6) return
+
+    const fitted: Transform = { ...IDENTITY, scale: fitScale, rotation: transformRef.current.rotation }
     transformRef.current = fitted
     setTransform(fitted)
     paintImage(imageRef.current, fitted)
-  }, [natural, stageSize, fitScale, index, open, ticker, syncTransform])
+  }, [natural, stageSize, fitScale, index, open])
 
   React.useEffect(() => () => ticker.cancelAll(), [ticker])
 

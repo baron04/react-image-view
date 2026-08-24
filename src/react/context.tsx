@@ -30,6 +30,8 @@ export interface ViewerInternals {
   syncTransform(): void
   /** Hand transform ownership to the viewer; stops auto-refit on resize. */
   markDirty(): void
+  /** Halt every animation and return ownership of the transform. */
+  stopAnimations(): void
   setStatus(status: ViewerStatus): void
   /** Bumped to force a fresh <img> element, which is how retry reloads. */
   reloadToken: number

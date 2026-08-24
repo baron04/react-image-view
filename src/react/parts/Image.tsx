@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useViewerContext } from '../context'
 import { paintImage, paintTrack } from '../paint'
+import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
 export interface ImageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Slides kept mounted either side of the current one. */
@@ -26,7 +27,20 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
   // re-run the effect below on every frame of a drag and reset the track
   // underneath the gesture painting it.
   const { trackRef } = internals
-  const imageElRef = React.useRef<HTMLImageElement | null>(null)
+  const viewportRef = React.useRef<HTMLDivElement | null>(null)
+
+  /**
+   * Find the live image by querying, not by remembering a ref.
+   *
+   * Which element is current changes as the mounted window slides, and ref
+   * detach/attach ordering across that change is not something to depend on —
+   * depending on it left the painted transform a whole slide behind. A single
+   * querySelector per render costs nothing and cannot be out of date.
+   */
+  const currentImage = React.useCallback(
+    () => viewportRef.current?.querySelector<HTMLImageElement>('[data-image-view-slide][data-current] img') ?? null,
+    [],
+  )
 
   const from = Math.max(0, index - overscan)
   const to = Math.min(images.length - 1, index + overscan)
@@ -54,26 +68,38 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
       setNatural({ width: current.width, height: current.height })
       return
     }
-    const el = imageElRef.current
+    const el = currentImage()
     if (el?.complete && el.naturalWidth) {
       setNatural({ width: el.naturalWidth, height: el.naturalHeight })
     } else {
       // Nothing trustworthy yet; onLoad will fill it in.
       setNatural(null)
     }
-  }, [index, current, setNatural])
+  }, [index, current, setNatural, currentImage])
+
+  // Keep the rendered image in step with the transform after every render, and
+  // republish it so anything painting from outside reaches the right element.
+  useIsomorphicLayoutEffect(() => {
+    const el = currentImage()
+    internals.imageRef.current = el
+    paintImage(el, internals.transformRef.current)
+  })
 
   // A decoded neighbour is ready the moment it becomes current, so status has
   // to be settled here rather than waiting on a load event that will not fire.
   React.useEffect(() => {
-    const el = imageElRef.current
+    const el = currentImage()
     setStatus(el?.complete && el.naturalWidth ? 'ready' : 'loading')
-  }, [index, reloadToken, setStatus])
+  }, [index, reloadToken, setStatus, currentImage])
 
   return (
     <div
       {...rest}
-      ref={forwardedRef}
+      ref={(node) => {
+        viewportRef.current = node
+        if (typeof forwardedRef === 'function') forwardedRef(node)
+        else if (forwardedRef) forwardedRef.current = node
+      }}
       data-image-view-viewport=""
       style={{ position: 'absolute', inset: 0, overflow: 'hidden', ...style }}
     >
@@ -120,15 +146,6 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
               }}
             >
               <img
-                ref={
-                  isCurrent
-                    ? (node) => {
-                        internals.imageRef.current = node
-                        imageElRef.current = node
-                        if (node) paintImage(node, internals.transformRef.current)
-                      }
-                    : undefined
-                }
                 src={item.src}
                 alt={item.alt ?? item.name ?? ''}
                 draggable={false}

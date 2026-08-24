@@ -236,11 +236,17 @@ describe('release', () => {
     expect(commands).toContainEqual({ type: 'cancelDismiss' })
   })
 
-  it('dismisses on a fast flick even when the drag is short', () => {
-    const { commands } = run(
-      [down(400, 100), move(400, 160), up({ x: 0, y: 1.2 })],
-      ctx,
-    )
+  it('refuses to dismiss on speed alone', () => {
+    // Any brisk downward swipe clears a velocity threshold, which is why
+    // dismissing used to fire by accident while reading. Speed only counts
+    // once the drag has also covered ground.
+    const { commands } = run([down(400, 100), move(400, 160), up({ x: 0, y: 2 })], ctx)
+    expect(commands).toContainEqual({ type: 'cancelDismiss' })
+  })
+
+  it('dismisses on a flick that has also travelled', () => {
+    const far = dismissDistance * 0.8
+    const { commands } = run([down(400, 100), move(400, 100 + far), up({ x: 0, y: 2 })], ctx)
     expect(commands).toContainEqual({ type: 'dismiss' })
   })
 

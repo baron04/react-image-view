@@ -39,7 +39,13 @@ export const PAGE_COMMIT_VELOCITY = 0.4
  * loses the reader's place for no reason.
  */
 export const DISMISS_COMMIT_RATIO = 0.35
-export const DISMISS_COMMIT_VELOCITY = 0.7
+export const DISMISS_COMMIT_VELOCITY = 1.6
+/**
+ * A flick alone must not dismiss. Any brisk downward swipe clears a velocity
+ * threshold — that was what kept closing the viewer by accident — so the drag
+ * has to have covered real ground as well before speed counts for anything.
+ */
+export const DISMISS_FLICK_MIN_PROGRESS = 0.5
 
 export interface ActivePointer {
   id: number
@@ -371,7 +377,8 @@ function release(
 
     case 'dismissing': {
       const travelled = state.dismissProgress
-      const flicked = velocity.y > DISMISS_COMMIT_VELOCITY
+      const flicked =
+        velocity.y > DISMISS_COMMIT_VELOCITY && travelled > DISMISS_FLICK_MIN_PROGRESS
       const commit = travelled >= 1 || flicked
       return {
         state: { ...settled, dismissProgress: commit ? 1 : 0 },
