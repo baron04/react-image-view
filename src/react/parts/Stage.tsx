@@ -51,6 +51,9 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
   // one flag meant the first finger to lift disabled the second — pinch, lift
   // one finger, and the image stopped responding to the one still down.
   const activePointers = React.useRef(new Set<number>())
+  // Which kind of input is driving the current gesture. Only touch and pen may
+  // dismiss by dragging.
+  const pointerKind = React.useRef<string>('mouse')
 
   // Touch delivers pointermove faster than the screen refreshes, and painting
   // per event means several writes the compositor throws away — which is what
@@ -125,6 +128,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
       maxScale: computeMax(natural, transform.rotation),
       canPrev: api.canPrev,
       canNext: api.canNext,
+      canDismiss: pointerKind.current === 'touch' || pointerKind.current === 'pen',
     }
   }, [internals, api.canPrev, api.canNext])
 
@@ -237,6 +241,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
     } catch {
       /* capture is an optimisation, not a requirement */
     }
+    if (activePointers.current.size === 0) pointerKind.current = event.pointerType
     activePointers.current.add(event.pointerId)
     internals.markDirty()
     velocity.current.reset()

@@ -65,6 +65,14 @@ export interface GestureContext {
   maxScale: number
   canPrev: boolean
   canNext: boolean
+  /**
+   * Whether a downward drag may dismiss.
+   *
+   * Swipe-to-dismiss is a touch idiom — no desktop product closes a window
+   * because the mouse was dragged downward, and treating a stray mouse drag as
+   * "I want out of here" costs the reader their place for nothing.
+   */
+  canDismiss: boolean
 }
 
 export interface GestureState {
@@ -157,7 +165,10 @@ export function resolveIntent(delta: Point, ctx: GestureContext): GesturePhase {
   const ax = Math.abs(delta.x)
   const ay = Math.abs(delta.y)
   if (ax < INTENT_THRESHOLD && ay < INTENT_THRESHOLD) return 'tracking'
-  return ax > ay ? 'paging' : 'dismissing'
+  if (ax > ay) return 'paging'
+  // Vertical, but this input cannot dismiss. Stay undecided rather than
+  // committing to nothing: the same drag may still turn out to be horizontal.
+  return ctx.canDismiss ? 'dismissing' : 'tracking'
 }
 
 /** Is a page turn in this direction possible at all? */

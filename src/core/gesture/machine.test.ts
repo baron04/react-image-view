@@ -27,6 +27,7 @@ function context(over: Partial<GestureContext> = {}): GestureContext {
     maxScale: 4,
     canPrev: true,
     canNext: true,
+    canDismiss: true,
     ...over,
   }
 }
@@ -58,6 +59,15 @@ describe('resolveIntent', () => {
     const ctx = context()
     expect(resolveIntent({ x: 40, y: 5 }, ctx)).toBe('paging')
     expect(resolveIntent({ x: 5, y: 40 }, ctx)).toBe('dismissing')
+  })
+
+  it('leaves a vertical drag undecided when the input cannot dismiss', () => {
+    // Swipe-to-dismiss is a touch idiom; a mouse dragged downward should do
+    // nothing at all rather than close the viewer.
+    const mouse = context({ canDismiss: false })
+    expect(resolveIntent({ x: 5, y: 40 }, mouse)).toBe('tracking')
+    // Undecided, not inert: the same drag can still become a page turn.
+    expect(resolveIntent({ x: 60, y: 40 }, mouse)).toBe('paging')
   })
 
   it('stays undecided below the threshold', () => {
@@ -225,6 +235,16 @@ describe('release', () => {
   // Expressed against the threshold rather than a fixed pixel count, so
   // retuning the constant does not fail the test that guards the behaviour.
   const dismissDistance = STAGE.height * DISMISS_COMMIT_RATIO
+
+  it('never dismisses from a mouse, however far it is dragged', () => {
+    const mouse = context({ canDismiss: false })
+    const { commands, state } = run(
+      [down(400, 100), move(400, 100 + dismissDistance * 2), up({ x: 0, y: 3 })],
+      mouse,
+    )
+    expect(state.phase).toBe('idle')
+    expect(commands).not.toContainEqual({ type: 'dismiss' })
+  })
 
   it('dismisses on a long pull down', () => {
     const { commands } = run([down(400, 100), move(400, 100 + dismissDistance + 10), up()], ctx)
