@@ -9,7 +9,9 @@ export function panBounds(natural: Size, stage: Size, t: Transform): Bounds {
   const r = renderedSize(natural, t)
   const slackX = Math.max(0, (r.width - stage.width) / 2)
   const slackY = Math.max(0, (r.height - stage.height) / 2)
-  return { minX: -slackX, maxX: slackX, minY: -slackY, maxY: slackY }
+  // `+ 0` normalises -0, which compares equal to 0 but trips Object.is and
+  // snapshot equality further downstream.
+  return { minX: -slackX + 0, maxX: slackX, minY: -slackY + 0, maxY: slackY }
 }
 
 /**

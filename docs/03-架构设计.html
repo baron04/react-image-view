@@ -377,6 +377,72 @@ react-img-view/styles.css   → 可选样式</code></pre>
 </section>
 
 <section>
+  <p class="eyebrow">运行时架构</p>
+  <h2>写状态机之前必须先定的五件事</h2>
+  <div class="prose">
+    <p>前面几节定的是<strong>公开 API</strong>——外面怎么用。这一节定的是<strong>运行时</strong>——里面怎么跑。两者独立：API 再清楚，也回答不了「每帧的 transform 提交到哪里」。而这五条每一条做错，代价都是重写而不是重构。</p>
+  </div>
+
+  <h3>一 · 变换提交路径：手势期间绕开 React</h3>
+  <div class="prose">
+    <p>手势期间 transform 每帧都变。走 <code>setState</code> 等于每秒 60 次重渲染整棵子树，在低端安卓上必然掉帧。</p>
+    <p><strong>决策：<code>transformRef</code> 是唯一真相，手势期间直接写 DOM，静止后才同步回 React state。</strong></p>
+  </div>
+<pre><code><span class="c">// 手势中 —— 不碰 React</span>
+transformRef.current = next
+imgRef.current.style.transform =
+  `translate3d(${next.x}px, ${next.y}px, 0) scale(${next.scale}) rotate(${next.rotation}deg)`
+
+<span class="c">// 静止后 —— 同步一次，驱动按钮的 disabled / data-active</span>
+setTransform(transformRef.current)</code></pre>
+  <div class="prose">
+    <p>这带来两份状态，必须明确各自的职责边界：<strong><code>ref</code> 供渲染，<code>state</code> 供 UI 反馈</strong>。工具栏按钮的可用性不需要每帧精确——用户不会在甩动图片的中途去看放大按钮灰没灰。命令式操作（点按钮、按快捷键）则两者同时更新。</p>
+  </div>
+
+  <h3>二 · 轨道模型：两层 transform，互不干涉</h3>
+  <div class="prose">
+    <p>边缘接力要求「拖到头继续拖就翻页」是<strong>连续</strong>的，那么下一张图在手指还没抬起时就必须已经在 DOM 里、且可见。所以不能只渲染当前图。</p>
+    <p><strong>决策：渲染窗口 <code>[index-1, index, index+1]</code>，轨道横向平移。</strong>关键在于两层 transform 分工：</p>
+  </div>
+<pre><code>&lt;div class="track"&gt;              <span class="c">← 第 1 层：翻页　translateX</span>
+  &lt;div class="slide"&gt;&lt;img/&gt;&lt;/div&gt;  <span class="c">  index - 1</span>
+  &lt;div class="slide"&gt;&lt;img/&gt;&lt;/div&gt;  <span class="c">← 第 2 层：缩放 + 平移在 img 上</span>
+  &lt;div class="slide"&gt;&lt;img/&gt;&lt;/div&gt;  <span class="c">  index + 1</span>
+&lt;/div&gt;
+
+track.style.transform = `translate3d(${-index * 100 + dragPercent}%, 0, 0)`
+img.style.transform   = `translate3d(${x}px, ${y}px, 0) scale(${s})`</code></pre>
+  <div class="prose">
+    <p>缩放平移作用在 <code>img</code>，翻页作用在 <code>track</code>。<strong>边缘接力因此不是「切换模式」，只是把每帧的位移从内层记账改成外层记账</strong>——两层始终并存，永远不需要中断或重置任何一层。这是让交接感觉不到接缝的根本原因。</p>
+  </div>
+
+  <h3>三 · 坐标系：一次说清，否则处处出错</h3>
+  <div class="prose">
+    <ul class="plain">
+      <li><code>transform.x / y</code> —— <strong>以舞台中心为原点</strong>的 CSS 像素偏移。<code>{x:0, y:0}</code> 即居中。</li>
+      <li><code>transform.scale</code> —— 相对<strong>原始像素</strong>。<code>scale === 1</code> 即 1:1。</li>
+      <li>缩放锚点 —— 指针事件给的是 client 坐标，进 <code>zoomAbout</code> 前必须换算：<code>origin = client − stageRect 中心</code>。</li>
+      <li>轨道位移用<strong>百分比</strong>不用像素，这样窗口 resize 时不需要重算。</li>
+    </ul>
+  </div>
+
+  <h3>四 · 动画所有权：一个 Ticker，用户输入永远优先</h3>
+  <div class="prose">
+    <p>同时可能存在的动画有四种：开合 FLIP、缩放回弹、平移惯性、翻页吸附。各自起一个 <code>requestAnimationFrame</code> 会互相打架——两个循环同时写同一个 <code>style.transform</code>，结果取决于调用顺序。</p>
+    <p><strong>决策：单一 Ticker，所有动画向它注册；任何 <code>pointerdown</code> 无条件取消全部在跑的动画。</strong>用户的手指永远赢——中途接管一个正在回弹的图片，必须立刻跟手，而不是等动画放完。</p>
+  </div>
+
+  <h3>五 · 预加载：按 index 驱动，不用 IntersectionObserver</h3>
+  <div class="prose">
+    <p>常见做法是 IntersectionObserver，但预览器里三张图始终都在视口内，观察器给不出有用信号。<strong>决策：以 <code>index</code> 变化为触发源，预加载前后各一张；切换时若目标图未 decode 完，保持当前图并显示加载态，不留空白。</strong>这正是 <code>core/image.ts</code> 里 decode-before-swap 的用武之处。</p>
+  </div>
+
+  <div class="callout prose">
+    <p><strong>五条定完，状态机才有地方落。</strong>迁移函数要写成<strong>纯函数</strong>——输入 <code>(state, event, context)</code>，输出 <code>(nextState, commands)</code>，自己不碰 DOM、不碰 rAF。副作用由 React 绑定层执行。这样状态机能脱离浏览器做单测：喂一串合成指针事件，断言相位迁移和最终 transform，不需要 jsdom，也不需要真机。</p>
+  </div>
+</section>
+
+<section>
   <p class="eyebrow">要先想清楚的</p>
   <h2>两个还没定的问题</h2>
   <div class="prose">
