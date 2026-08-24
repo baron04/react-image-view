@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { ImageItem, ViewerApi } from '../types'
+import type { Extension, ImageItem, ViewerApi, ViewerStatus } from '../types'
 import type { Size, Transform } from '../core/types'
 import type { Ticker } from '../core/ticker'
 
@@ -30,6 +30,9 @@ export interface ViewerInternals {
   syncTransform(): void
   /** Hand transform ownership to the viewer; stops auto-refit on resize. */
   markDirty(): void
+  setStatus(status: ViewerStatus): void
+  /** Bumped to force a fresh <img> element, which is how retry reloads. */
+  reloadToken: number
   paint(): void
 }
 
@@ -38,6 +41,7 @@ export interface ViewerContextValue {
   images: ImageItem[]
   container: HTMLElement | null
   internals: ViewerInternals
+  extensions: Extension[]
   registerTrigger(reg: TriggerRegistration): () => void
   indexOf(id: string): number
   openAt(index: number, from: DOMRect | null): void

@@ -40,7 +40,7 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
   }, [index, trackRef])
 
   const current = images[index]
-  const { setNatural } = internals
+  const { setNatural, setStatus, reloadToken } = internals
 
   // Republish the natural size on every slide change.
   //
@@ -62,6 +62,13 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
       setNatural(null)
     }
   }, [index, current, setNatural])
+
+  // A decoded neighbour is ready the moment it becomes current, so status has
+  // to be settled here rather than waiting on a load event that will not fire.
+  React.useEffect(() => {
+    const el = imageElRef.current
+    setStatus(el?.complete && el.naturalWidth ? 'ready' : 'loading')
+  }, [index, reloadToken, setStatus])
 
   return (
     <div
@@ -94,7 +101,7 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
           const isCurrent = i === index
           return (
             <div
-              key={`${item.src}-${i}`}
+              key={`${item.src}-${i}-${isCurrent ? reloadToken : 0}`}
               data-image-view-slide=""
               data-current={isCurrent ? '' : undefined}
               style={{
@@ -130,6 +137,10 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
                   if (!isCurrent) return
                   const el = event.currentTarget
                   internals.setNatural({ width: el.naturalWidth, height: el.naturalHeight })
+                  setStatus('ready')
+                }}
+                onError={() => {
+                  if (isCurrent) setStatus('error')
                 }}
                 style={
                   isCurrent

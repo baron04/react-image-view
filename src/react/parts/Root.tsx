@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ViewerProvider, type TriggerRegistration, type ViewerContextValue, type ViewerInternals } from '../context'
-import type { ImageItem, ImageViewRootProps, ViewerApi } from '../../types'
+import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerStatus } from '../../types'
 import type { Size, Transform } from '../../core/types'
 import { IDENTITY, clamp, fitScale as computeFit, maxScale as computeMax, zoomAbout } from '../../core/transform'
 import { Ticker } from '../../core/ticker'
@@ -35,6 +35,7 @@ export function Root({
   defaultIndex = 0,
   onIndexChange,
   container = null,
+  extensions = [],
   children,
 }: ImageViewRootProps) {
   const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange)
@@ -50,6 +51,11 @@ export function Root({
     )
   }, [])
   const [natural, setNatural] = React.useState<Size | null>(null)
+  const [status, setStatus] = React.useState<ViewerStatus>('idle')
+  // Changing this remounts the <img>, which is the only reliable way to make a
+  // failed request run again — the browser will otherwise serve its cached
+  // failure for the same URL.
+  const [reloadToken, setReloadToken] = React.useState(0)
 
   const tickerRef = React.useRef<Ticker | null>(null)
   if (!tickerRef.current) tickerRef.current = new Ticker()
@@ -146,7 +152,7 @@ export function Root({
       canZoomOut: transform.scale > minScale + 1e-6,
       canPrev: index > 0,
       canNext: index < total - 1,
-      status: 'idle',
+      status,
       zoomTo: (scale, options) => {
         pristineRef.current = false
         const next = clamp(scale, minScale, maxScale)
@@ -179,9 +185,12 @@ export function Root({
         ticker.cancelAll()
         setOpen(false)
       },
-      retry: () => setNatural(null),
+      retry: () => {
+        setStatus('loading')
+        setReloadToken((n) => n + 1)
+      },
     }
-  }, [index, total, open, transform, fitScale, minScale, maxScale, setIndex, setOpen, glideTo, ticker])
+  }, [index, total, open, transform, fitScale, minScale, maxScale, status, setIndex, setOpen, glideTo, ticker])
 
   const internals = React.useMemo<ViewerInternals>(
     () => ({
@@ -195,9 +204,11 @@ export function Root({
       setNatural,
       syncTransform,
       markDirty,
+      setStatus,
+      reloadToken,
       paint,
     }),
-    [ticker, stageSize, setStageSize, natural, syncTransform, markDirty, paint],
+    [ticker, stageSize, setStageSize, natural, syncTransform, markDirty, reloadToken, paint],
   )
 
   // Fit whenever the framing changes underneath us — a new image arrives, the
@@ -225,8 +236,8 @@ export function Root({
   )
 
   const value = React.useMemo<ViewerContextValue>(
-    () => ({ api, images, container, internals, registerTrigger, indexOf, openAt }),
-    [api, images, container, internals, registerTrigger, indexOf, openAt],
+    () => ({ api, images, container, internals, extensions, registerTrigger, indexOf, openAt }),
+    [api, images, container, internals, extensions, registerTrigger, indexOf, openAt],
   )
 
   return <ViewerProvider value={value}>{children}</ViewerProvider>

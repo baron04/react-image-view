@@ -33,6 +33,19 @@ export function decayStep(state: SpringState, friction: number, dt: number): Spr
   return { value: state.value + velocity * dt, velocity }
 }
 
-export function isSettled(state: SpringState, target: number, epsilon = 0.01): boolean {
-  return Math.abs(state.value - target) < epsilon && Math.abs(state.velocity) < epsilon
+/**
+ * Position and velocity need separate thresholds.
+ *
+ * A critically damped spring approaches its target asymptotically, so a tight
+ * epsilon keeps the loop alive long after the motion is visually over. Sharing
+ * one epsilon between a value near 1 (scale) and a velocity in the hundreds
+ * (translation) makes that worse in both directions.
+ */
+export function isSettled(
+  state: SpringState,
+  target: number,
+  valueEpsilon = 0.01,
+  velocityEpsilon = valueEpsilon * 10,
+): boolean {
+  return Math.abs(state.value - target) < valueEpsilon && Math.abs(state.velocity) < velocityEpsilon
 }

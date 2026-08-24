@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 import { useViewerContext } from '../context'
+import { useKeyboard } from '../useKeyboard'
 
 export interface ContentProps extends React.HTMLAttributes<HTMLDialogElement> {
   children?: React.ReactNode
@@ -21,6 +22,9 @@ export const Content = React.forwardRef<HTMLDialogElement, ContentProps>(functio
 ) {
   const ctx = useViewerContext('Content')
   const dialogRef = React.useRef<HTMLDialogElement | null>(null)
+  // Kept in state as well as a ref so the keyboard effect re-runs once the
+  // node actually exists.
+  const [dialogNode, setDialogNode] = React.useState<HTMLDialogElement | null>(null)
   const [mounted, setMounted] = React.useState(false)
 
   // The portal target only exists in the browser.
@@ -35,6 +39,8 @@ export const Content = React.forwardRef<HTMLDialogElement, ContentProps>(functio
     else if (!ctx.api.open && el.open) el.close()
   }, [ctx.api.open])
 
+  useKeyboard(dialogNode, ctx.api, ctx.extensions, ctx.api.open)
+
   if (!mounted || !ctx.api.open) return null
 
   const target = ctx.container ?? document.body
@@ -44,6 +50,7 @@ export const Content = React.forwardRef<HTMLDialogElement, ContentProps>(functio
       {...rest}
       ref={(node) => {
         dialogRef.current = node
+        setDialogNode(node)
         if (typeof forwardedRef === 'function') forwardedRef(node)
         else if (forwardedRef) forwardedRef.current = node
       }}

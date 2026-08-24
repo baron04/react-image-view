@@ -12,6 +12,8 @@ export interface ImageItem {
   downloadUrl?: string
 }
 
+export type ViewerStatus = 'idle' | 'loading' | 'ready' | 'error'
+
 export interface ViewerApi {
   readonly index: number
   readonly total: number
@@ -24,7 +26,7 @@ export interface ViewerApi {
   readonly canZoomOut: boolean
   readonly canPrev: boolean
   readonly canNext: boolean
-  readonly status: 'idle' | 'loading' | 'ready' | 'error'
+  readonly status: ViewerStatus
 
   zoomTo(scale: number, options?: { origin?: { x: number; y: number } }): void
   zoomBy(factor: number): void

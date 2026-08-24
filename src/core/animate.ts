@@ -2,7 +2,27 @@ import type { Bounds, Point, Transform } from './types'
 import { decayStep, isSettled, springStep, type SpringState } from './gesture/spring'
 import type { Ticker } from './ticker'
 
-const SETTLE_STIFFNESS = 170
+/**
+ * Critically damped settling takes roughly 6/sqrt(k) seconds, so this is about
+ * a third of a second — quick enough that a button press feels answered,
+ * slow enough to still read as motion rather than a cut.
+ */
+const SETTLE_STIFFNESS = 340
+
+/**
+ * Per-channel settle thresholds, in the channel's own units.
+ *
+ * Scale sits around 1 while translation runs to the hundreds, so one shared
+ * epsilon would either cut translation off early or leave scale spinning
+ * invisibly — which it did: the image stopped moving after ~500ms while the
+ * controls waited another second to catch up.
+ */
+const SETTLE_EPSILON: Record<keyof Transform, { value: number; velocity: number }> = {
+  scale: { value: 0.002, velocity: 0.02 },
+  x: { value: 0.3, velocity: 3 },
+  y: { value: 0.3, velocity: 3 },
+  rotation: { value: 0.2, velocity: 2 },
+}
 
 /** Spring every channel of a transform to `target` at once. */
 export function animateTransform(
@@ -24,11 +44,9 @@ export function animateTransform(
     let done = true
 
     for (const key of Object.keys(channels) as (keyof Transform)[]) {
-      // Scale lives near 1 while translation lives in the hundreds, so a shared
-      // epsilon would settle one channel long before the other looks still.
-      const scaleFactor = key === 'scale' ? 0.001 : 0.1
+      const eps = SETTLE_EPSILON[key]
       channels[key] = springStep(channels[key], target[key], SETTLE_STIFFNESS, dt)
-      if (!isSettled(channels[key], target[key], scaleFactor)) done = false
+      if (!isSettled(channels[key], target[key], eps.value, eps.velocity)) done = false
     }
 
     if (done) {
@@ -106,7 +124,7 @@ export function animateValue(
   let state: SpringState = { value: from, velocity: 0 }
   return ticker.add((dtMs) => {
     state = springStep(state, to, SETTLE_STIFFNESS, dtMs / 1000)
-    if (isSettled(state, to, 0.1)) {
+    if (isSettled(state, to, 0.3, 3)) {
       onFrame(to)
       onDone?.()
       return false

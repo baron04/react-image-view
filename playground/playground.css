@@ -26,3 +26,11 @@ h1 { font-size: 22px; margin: 0 0 8px; }
 .toolbar button:disabled { opacity: .38; cursor: default; }
 .toolbar button[data-active] { background: var(--riv-accent-surface); color: var(--riv-accent); }
 .toolbar i { width: 1px; height: 20px; background: var(--riv-line); margin: 0 5px; }
+
+.counter { font-family: ui-monospace, monospace; font-size: 12px; color: var(--riv-ink-muted); }
+.nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 76px; border: 0; border-radius: 8px; background: rgba(255,255,255,.72); font-size: 22px; color: var(--riv-ink); cursor: pointer; }
+.nav-prev { left: 10px; } .nav-next { right: 10px; }
+.nav[data-boundary] { display: none; }
+.overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--riv-ink-muted); background: color-mix(in srgb, var(--riv-stage) 82%, transparent); }
+.err { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.err button { height: 32px; padding: 0 14px; border: 1px solid var(--riv-line); border-radius: 6px; background: var(--riv-chrome); font: inherit; font-size: 13px; cursor: pointer; }

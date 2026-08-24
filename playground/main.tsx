@@ -44,20 +44,17 @@ function Readout() {
 }
 
 function Toolbar() {
-  const v = useViewer()
-  const atFit = Math.abs(v.scale - v.fitScale) < 1e-3
-  const atOne = Math.abs(v.scale - 1) < 1e-3
   return (
-    <div className="toolbar">
-      <button onClick={() => v.zoomBy(1 / 1.4)} disabled={!v.canZoomOut}>-</button>
-      <button onClick={() => v.zoomBy(1.4)} disabled={!v.canZoomIn}>+</button>
+    <ImageView.Toolbar className="toolbar">
+      <ImageView.ZoomOut>-</ImageView.ZoomOut>
+      <ImageView.ZoomIn>+</ImageView.ZoomIn>
       <i />
-      <button onClick={() => v.rotate(-90)}>rotL</button>
-      <button onClick={() => v.rotate(90)}>rotR</button>
+      <ImageView.RotateLeft>rotL</ImageView.RotateLeft>
+      <ImageView.RotateRight>rotR</ImageView.RotateRight>
       <i />
-      <button onClick={() => v.fit()} data-active={atFit ? '' : undefined}>适应窗口</button>
-      <button onClick={() => v.actualSize()} data-active={atOne ? '' : undefined}>1:1</button>
-    </div>
+      <ImageView.FitToWindow>适应窗口</ImageView.FitToWindow>
+      <ImageView.ActualSize>1:1</ImageView.ActualSize>
+    </ImageView.Toolbar>
   )
 }
 
@@ -87,15 +84,28 @@ function App() {
 
         <ImageView.Content>
           <div className="shell">
-            <header className="topbar">
-              <button className="ghost" data-testid="close" onClick={() => setOpen(false)}>关闭</button>
+            <ImageView.Header className="topbar">
+              <ImageView.Close className="ghost" data-testid="close">关闭</ImageView.Close>
               <span className="sep" />
-              <span className="title">{images[index]?.name}</span>
+              <ImageView.Title className="title" />
+              <ImageView.Counter className="counter" />
               <span className="spacer" />
               <Readout />
-            </header>
+              <ImageView.Download className="ghost" data-testid="download">下载</ImageView.Download>
+            </ImageView.Header>
             <ImageView.Stage className="stage">
               <ImageView.Image />
+              <ImageView.Prev className="nav nav-prev" data-testid="prev">‹</ImageView.Prev>
+              <ImageView.Next className="nav nav-next" data-testid="next">›</ImageView.Next>
+              <ImageView.Loading className="overlay">载入中…</ImageView.Loading>
+              <ImageView.Error className="overlay">
+                {({ retry }) => (
+                  <div className="err">
+                    <div>无法加载这张图片</div>
+                    <button onClick={retry}>重试</button>
+                  </div>
+                )}
+              </ImageView.Error>
             </ImageView.Stage>
             <Toolbar />
           </div>
