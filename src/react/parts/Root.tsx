@@ -6,6 +6,9 @@ import { IDENTITY, clamp, fitScale as computeFit, maxScale as computeMax, zoomAb
 import { Ticker } from '../../core/ticker'
 import { animateTransform } from '../../core/animate'
 import { prefersReducedMotion, transformFromRect } from '../../core/flip'
+
+/** Exits run quicker than entrances; a slow dismissal feels like a stall. */
+const EXIT_STIFFNESS = 900
 import { paintImage, paintTrack } from '../paint'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
@@ -177,7 +180,15 @@ export function Root({
       zoomTo: (scale, options) => {
         pristineRef.current = false
         const next = clamp(scale, minScale, maxScale)
-        glideTo(zoomAbout(live(), next, options?.origin ?? { x: 0, y: 0 }))
+        const target = zoomAbout(live(), next, options?.origin ?? { x: 0, y: 0 })
+        if (options?.immediate) {
+          ticker.cancelAll()
+          animatingRef.current = false
+          transformRef.current = target
+          paintImage(imageRef.current, target)
+          return
+        }
+        glideTo(target)
       },
       zoomBy: (factor) => {
         pristineRef.current = false
@@ -206,6 +217,7 @@ export function Root({
         if (closingRef.current) return
         const target = getTriggerRect(index)
         const stageEl = imageRef.current?.closest('[data-image-view-stage]')
+        const dialogEl = imageRef.current?.closest('dialog[data-image-view]')
 
         // Nothing to fly back to — an unmatched trigger, a reduced-motion
         // preference, or no image yet. Close outright rather than inventing a
@@ -220,6 +232,9 @@ export function Root({
         animatingRef.current = true
         const to = transformFromRect(target, stageEl.getBoundingClientRect(), natural, transformRef.current.rotation)
         ticker.cancelAll()
+        // 3) Tell the chrome to leave at the same time as the image, rather
+        // than waiting for it to land and then vanishing all at once.
+        dialogEl?.setAttribute('data-closing', '')
         animateTransform(
           ticker,
           transformRef.current,
@@ -231,8 +246,10 @@ export function Root({
           () => {
             closingRef.current = false
             animatingRef.current = false
+            dialogEl?.removeAttribute('data-closing')
             setOpen(false)
           },
+          EXIT_STIFFNESS,
         )
       },
       retry: () => {

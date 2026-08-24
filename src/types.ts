@@ -28,7 +28,12 @@ export interface ViewerApi {
   readonly canNext: boolean
   readonly status: ViewerStatus
 
-  zoomTo(scale: number, options?: { origin?: { x: number; y: number } }): void
+  /**
+   * `immediate` skips the settling animation. Continuous input — a wheel, a
+   * trackpad pinch — must track the hand one to one; starting a spring per
+   * event makes each one cancel the last, and the zoom crawls.
+   */
+  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void
   zoomBy(factor: number): void
   fit(): void
   actualSize(): void

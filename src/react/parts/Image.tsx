@@ -153,6 +153,7 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
                         maxHeight: 'none',
                         transformOrigin: 'center center',
                         userSelect: 'none',
+                        WebkitUserSelect: 'none',
                         willChange: 'transform',
                       }
                     : {
@@ -166,6 +167,7 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
                         height: 'auto',
                         objectFit: 'contain',
                         userSelect: 'none',
+                        WebkitUserSelect: 'none',
                       }
                 }
               />

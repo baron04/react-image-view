@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DISMISS_COMMIT_RATIO,
   HANDOFF_THRESHOLD,
   createState,
   reduce,
@@ -221,14 +222,26 @@ describe('release', () => {
     expect(commands).toContainEqual({ type: 'snapBack' })
   })
 
+  // Expressed against the threshold rather than a fixed pixel count, so
+  // retuning the constant does not fail the test that guards the behaviour.
+  const dismissDistance = STAGE.height * DISMISS_COMMIT_RATIO
+
   it('dismisses on a long pull down', () => {
-    const { commands } = run([down(400, 200), move(400, 200 + 200), up()], ctx)
+    const { commands } = run([down(400, 100), move(400, 100 + dismissDistance + 10), up()], ctx)
     expect(commands).toContainEqual({ type: 'dismiss' })
   })
 
-  it('returns home when the pull down is short', () => {
-    const { commands } = run([down(400, 200), move(400, 200 + 40), up()], ctx)
+  it('holds on when the pull down falls short of the threshold', () => {
+    const { commands } = run([down(400, 100), move(400, 100 + dismissDistance * 0.6), up()], ctx)
     expect(commands).toContainEqual({ type: 'cancelDismiss' })
+  })
+
+  it('dismisses on a fast flick even when the drag is short', () => {
+    const { commands } = run(
+      [down(400, 100), move(400, 160), up({ x: 0, y: 1.2 })],
+      ctx,
+    )
+    expect(commands).toContainEqual({ type: 'dismiss' })
   })
 
   it('flings a released pan', () => {

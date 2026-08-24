@@ -33,8 +33,13 @@ export const PAGE_COMMIT_RATIO = 0.5
 /** …or this flick speed, in px/ms, which commits regardless of distance. */
 export const PAGE_COMMIT_VELOCITY = 0.4
 
-export const DISMISS_COMMIT_RATIO = 0.25
-export const DISMISS_COMMIT_VELOCITY = 0.5
+/**
+ * Pull-to-dismiss is deliberately harder to trigger than a page turn. A short
+ * downward drag is a very common accident while reading, and dismissing on one
+ * loses the reader's place for no reason.
+ */
+export const DISMISS_COMMIT_RATIO = 0.35
+export const DISMISS_COMMIT_VELOCITY = 0.7
 
 export interface ActivePointer {
   id: number

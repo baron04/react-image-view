@@ -6,6 +6,7 @@ import { VelocityTracker } from '../../core/gesture/pointer'
 import { panBounds } from '../../core/gesture/bounds'
 import { animateFling, animateTransform, animateValue } from '../../core/animate'
 import { fitScale as computeFit, maxScale as computeMax, IDENTITY } from '../../core/transform'
+import type { Transform } from '../../core/types'
 import {
   createState,
   reduce,
@@ -14,6 +15,15 @@ import {
   type GestureEvent,
   type GestureState,
 } from '../../core/gesture/machine'
+
+/**
+ * How hard a trackpad pinch bites, per unit of wheel delta.
+ *
+ * Trackpads vary enough between vendors that this wants confirming by hand;
+ * what made the gesture feel dead before was not this number but starting a
+ * settling animation per event, so that each one cancelled the last.
+ */
+const TRACKPAD_ZOOM_RATE = 0.02
 
 export interface StageProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode
@@ -42,6 +52,36 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
   // one flag meant the first finger to lift disabled the second — pinch, lift
   // one finger, and the image stopped responding to the one still down.
   const activePointers = React.useRef(new Set<number>())
+
+  // Touch delivers pointermove faster than the screen refreshes, and painting
+  // per event means several writes the compositor throws away — which is what
+  // a stuttering pinch actually is. Keep the latest and paint once per frame.
+  const pending = React.useRef<{ transform: Transform; trackOffset: number } | null>(null)
+  const rafId = React.useRef<number | null>(null)
+
+  const flush = React.useCallback(() => {
+    rafId.current = null
+    const next = pending.current
+    if (!next) return
+    pending.current = null
+    paintImage(internals.imageRef.current, next.transform)
+    paintTrack(internals.trackRef.current, api.index, next.trackOffset)
+  }, [internals, api.index])
+
+  const schedulePaint = React.useCallback(
+    (transform: Transform, trackOffset: number) => {
+      pending.current = { transform, trackOffset }
+      if (rafId.current === null) rafId.current = requestAnimationFrame(flush)
+    },
+    [flush],
+  )
+
+  React.useEffect(
+    () => () => {
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current)
+    },
+    [],
+  )
 
   // Measure the stage. Every derived quantity — fit scale, pan bounds, the
   // distance a page drag has to cover — is relative to it.
@@ -160,11 +200,18 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
       const result = reduce(gesture.current, event, gctx)
       gesture.current = result.state
 
-      // Paint straight from the ref. Going through state here would cost a
-      // re-render of the whole subtree on every pointermove.
+      // The ref updates now — the reducer reads it on the next event — but the
+      // DOM write waits for the frame.
       internals.transformRef.current = result.state.transform
-      paintImage(internals.imageRef.current, result.state.transform)
-      paintTrack(internals.trackRef.current, api.index, result.state.trackOffset)
+      schedulePaint(result.state.transform, result.state.trackOffset)
+
+      // 6a) Backdrop opacity follows a dismiss drag, so pulling down reads as
+      // "letting go of this" rather than the modal coming apart. Set on the
+      // document so ::backdrop can reach it everywhere.
+      document.documentElement.style.setProperty(
+        '--riv-dismiss',
+        result.state.phase === 'dismissing' ? String(1 - result.state.dismissProgress * 0.75) : '1',
+      )
 
       // Written imperatively for the same reason the transform is: the phase
       // changes mid-drag, when nothing re-renders. Exposing it makes the
@@ -229,16 +276,20 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
       const rect = el.getBoundingClientRect()
       event.preventDefault()
 
+      internals.markDirty()
       const scale = internals.transformRef.current.scale
       // A trackpad pinch is ctrl+wheel with a fine-grained delta; a plain
       // wheel is a mouse, which has no resolution below one notch.
       const factor = event.ctrlKey
-        ? Math.exp(-event.deltaY * 0.01)
+        ? Math.exp(-event.deltaY * TRACKPAD_ZOOM_RATE)
         : event.deltaY < 0
           ? 1.15
           : 1 / 1.15
 
       api.zoomTo(scale * factor, {
+        // Continuous input: follow it directly instead of chasing it with a
+        // spring that the next event will cancel anyway.
+        immediate: true,
         origin: {
           x: event.clientX - rect.left - rect.width / 2,
           y: event.clientY - rect.top - rect.height / 2,
@@ -262,7 +313,16 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
       data-phase="idle"
       // The browser's own panning and zooming would fight ours for the same
       // pointer stream; we take the whole stream and do it all ourselves.
-      style={{ touchAction: 'none', overscrollBehavior: 'contain', ...style }}
+      style={{
+        touchAction: 'none',
+        overscrollBehavior: 'contain',
+        // Without these a drag selects the image or raises the long-press
+        // callout on iOS, both of which fight the gesture.
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        ...style,
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={(e) => endPointer(e, false)}

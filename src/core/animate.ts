@@ -31,6 +31,7 @@ export function animateTransform(
   target: Transform,
   onFrame: (t: Transform) => void,
   onDone?: () => void,
+  stiffness: number = SETTLE_STIFFNESS,
 ): () => void {
   const channels: Record<keyof Transform, SpringState> = {
     scale: { value: from.scale, velocity: 0 },
@@ -45,7 +46,7 @@ export function animateTransform(
 
     for (const key of Object.keys(channels) as (keyof Transform)[]) {
       const eps = SETTLE_EPSILON[key]
-      channels[key] = springStep(channels[key], target[key], SETTLE_STIFFNESS, dt)
+      channels[key] = springStep(channels[key], target[key], stiffness, dt)
       if (!isSettled(channels[key], target[key], eps.value, eps.velocity)) done = false
     }
 
@@ -65,7 +66,15 @@ export function animateTransform(
   })
 }
 
-const FLING_FRICTION = 5
+/**
+ * Glide distance after a flick is v0/friction, so 5 sent a brisk throw over
+ * 400px past where the finger stopped — the image kept going somewhere the
+ * hand had not asked for.
+ */
+const FLING_FRICTION = 9
+
+/** Below this (px/ms) a release is a stop, not a throw. */
+const FLING_MIN_VELOCITY = 0.08
 
 /**
  * Carry a released pan on, then bring it home if it left the bounds.
@@ -82,8 +91,11 @@ export function animateFling(
   onFrame: (t: Transform) => void,
   onDone?: () => void,
 ): () => void {
-  let x: SpringState = { value: from.x, velocity: velocity.x * 1000 }
-  let y: SpringState = { value: from.y, velocity: velocity.y * 1000 }
+  const speed = Math.hypot(velocity.x, velocity.y)
+  const throwing = speed >= FLING_MIN_VELOCITY
+
+  let x: SpringState = { value: from.x, velocity: throwing ? velocity.x * 1000 : 0 }
+  let y: SpringState = { value: from.y, velocity: throwing ? velocity.y * 1000 : 0 }
 
   return ticker.add((dtMs) => {
     const dt = dtMs / 1000
