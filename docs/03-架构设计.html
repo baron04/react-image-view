@@ -1,0 +1,349 @@
+<title>react-img-view 架构设计</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@600&family=Noto+Sans+SC:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F5F7F8; --surface:#FFFFFF; --surface-2:#EDF1F3; --surface-3:#E4EAEE;
+  --ink:#111820; --ink-2:#4A5560; --ink-3:#78838D;
+  --line:#DBE2E7; --line-strong:#C3CED6;
+  --accent:#0B5D7A; --accent-soft:#DFEFF5; --accent-ink:#0B5D7A;
+  --good:#1C7A55; --good-bg:#DFF0E8;
+  --warn:#8A6408; --warn-bg:#F6EBD2;
+  --bad:#A03A2E;  --bad-bg:#F6E1DD;
+  --code-bg:#F2F5F7; --code-ink:#1B2733; --code-cmt:#7E8B96; --code-key:#0B5D7A;
+  --shadow:0 1px 2px rgba(17,24,32,.05), 0 8px 24px -12px rgba(17,24,32,.18);
+  --display:"Newsreader","Noto Serif SC",Georgia,serif;
+  --body:"IBM Plex Sans","Noto Sans SC",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1114; --surface:#151B20; --surface-2:#1C242A; --surface-3:#242E35;
+  --ink:#E4EBF0; --ink-2:#98A6B1; --ink-3:#79868F;
+  --line:#28323A; --line-strong:#3A4750;
+  --accent:#58B6D6; --accent-soft:#10333F; --accent-ink:#7FCBE6;
+  --good:#57C193; --good-bg:#123328; --warn:#D9AC46; --warn-bg:#33290F;
+  --bad:#E5806F; --bad-bg:#3A1D18;
+  --code-bg:#10171C; --code-ink:#D3DDE4; --code-cmt:#6B7A85; --code-key:#7FCBE6;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --bg:#0D1114; --surface:#151B20; --surface-2:#1C242A; --surface-3:#242E35;
+  --ink:#E4EBF0; --ink-2:#98A6B1; --ink-3:#79868F;
+  --line:#28323A; --line-strong:#3A4750;
+  --accent:#58B6D6; --accent-soft:#10333F; --accent-ink:#7FCBE6;
+  --good:#57C193; --good-bg:#123328; --warn:#D9AC46; --warn-bg:#33290F;
+  --bad:#E5806F; --bad-bg:#3A1D18;
+  --code-bg:#10171C; --code-ink:#D3DDE4; --code-cmt:#6B7A85; --code-key:#7FCBE6;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1020px; margin:0 auto; padding:0 24px 96px;}
+.prose{max-width:70ch;}
+.masthead{padding:72px 0 40px; border-bottom:1px solid var(--line);}
+.kicker{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-ink); margin:0 0 18px;}
+h1{font-family:var(--display); font-weight:600; font-size:clamp(38px,6vw,58px); line-height:1.08; letter-spacing:-.015em; margin:0 0 20px; text-wrap:balance;}
+.standfirst{font-size:19px; line-height:1.6; color:var(--ink-2); margin:0; max-width:60ch;}
+.byline{font-family:var(--mono); font-size:12px; color:var(--ink-3); margin-top:28px; display:flex; flex-wrap:wrap; gap:6px 18px;}
+section{padding-top:56px;}
+.eyebrow{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); margin:0 0 10px; padding-bottom:8px; border-bottom:1px solid var(--line);}
+h2{font-family:var(--display); font-weight:600; font-size:clamp(26px,3.4vw,34px); line-height:1.2; margin:0 0 18px; text-wrap:balance;}
+h3{font-size:17px; font-weight:600; margin:34px 0 10px;}
+h4{font-size:14px; font-weight:600; margin:24px 0 8px; color:var(--ink);}
+p{margin:0 0 16px;}
+strong{font-weight:600; color:var(--ink);}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-2); padding:.12em .38em; border-radius:4px;}
+pre{margin:20px 0; padding:20px 22px; background:var(--code-bg); border:1px solid var(--line); border-radius:6px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.72; color:var(--code-ink); tab-size:2;}
+pre code{background:none; padding:0; font-size:inherit;}
+.c{color:var(--code-cmt); font-style:normal;}
+.k{color:var(--code-key);}
+.tier{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:2px; padding:22px 26px; margin-bottom:16px;}
+.tier-h{display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; margin-bottom:6px;}
+.tier-n{font-family:var(--mono); font-size:11px; font-weight:600; color:var(--accent-ink); letter-spacing:.08em;}
+.tier-h h3{margin:0; font-size:17px;}
+.tier p{font-size:14.5px; color:var(--ink-2); margin:0 0 10px;}
+.tier pre{margin:14px 0 0;}
+.scroller{overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:2px; background:var(--surface);}
+table{border-collapse:collapse; width:100%; min-width:620px; font-size:14px;}
+thead th{font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); text-align:left; padding:12px 14px; background:var(--surface-2); border-bottom:1px solid var(--line-strong); white-space:nowrap;}
+tbody td{padding:10px 14px; border-bottom:1px solid var(--line); vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.grp td{background:var(--surface-2); font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding:8px 14px;}
+.name{font-family:var(--mono); font-size:13px; white-space:nowrap;}
+.note{color:var(--ink-2); font-size:13.5px; line-height:1.5;}
+.chip{display:inline-block; font-family:var(--mono); font-size:10.5px; font-weight:500; padding:2px 7px; border-radius:2px; white-space:nowrap;}
+.chip.ok{background:var(--good-bg); color:var(--good);}
+.chip.mid{background:var(--warn-bg); color:var(--warn);}
+.chip.no{background:var(--bad-bg); color:var(--bad);}
+.chip.n{background:var(--surface-3); color:var(--ink-2);}
+ul.plain{padding-left:20px; line-height:1.75;} ul.plain li{margin-bottom:9px;} ul.plain li::marker{color:var(--ink-3);}
+.callout{background:var(--accent-soft); border:1px solid var(--line); border-radius:2px; padding:20px 24px; margin:24px 0;}
+.callout p:last-child{margin-bottom:0;}
+.footnote{margin-top:56px; padding-top:24px; border-top:1px solid var(--line); font-size:13px; color:var(--ink-3); line-height:1.7;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+
+<div class="wrap">
+<header class="masthead">
+  <p class="kicker">react-img-view · 第三阶段</p>
+  <h1>架构设计</h1>
+  <p class="standfirst">公开 API 的三层形态、组合件清单、手势状态机的完整规则，以及目录结构。粒度是「能直接照着写」，不是示意。</p>
+  <p class="byline"><span>2026-08-24</span><span>承接决策书的十条技术决策</span></p>
+</header>
+
+<section>
+  <p class="eyebrow">API 形态</p>
+  <h2>三层，一层比一层往下</h2>
+  <div class="prose"><p>不做「简单版」和「专业版」两个割裂的 API。<strong>三层是同一套东西的不同装配程度</strong>——上层就是下层拼出来的，用户往下走不需要重学。</p></div>
+
+  <div class="tier">
+    <div class="tier-h"><span class="tier-n">L1</span><h3>单图，一行接入</h3><span class="chip n">覆盖 70% 场景</span></div>
+    <p>包一层就完事。子元素原样渲染，我们只往上挂事件和 ref——所以 <code>next/image</code>、<code>&lt;picture&gt;</code>、任何组件都能当触发器。</p>
+<pre><code><span class="c">// 文档附件里最常见的用法</span>
+&lt;ImageView src="/contract.jpg" alt="采购合同扫描件"&gt;
+  &lt;img src="/contract-thumb.jpg" alt="采购合同扫描件" /&gt;
+&lt;/ImageView&gt;
+
+<span class="c">// next/image 一样可以</span>
+&lt;ImageView src={full} alt={name}&gt;
+  &lt;Image src={thumb} alt={name} width={120} height={160} /&gt;
+&lt;/ImageView&gt;</code></pre>
+  </div>
+
+  <div class="tier">
+    <div class="tier-h"><span class="tier-n">L2</span><h3>多图，共用一个预览器</h3></div>
+    <p>触发器散落在哪里都行，<code>Root</code> 只负责建立上下文。<code>index</code> 由触发器自己注册顺序决定，不用手写。</p>
+<pre><code>&lt;ImageView.Root&gt;
+  {files.map((f) =&gt; (
+    &lt;ImageView.Trigger key={f.id} src={f.url} alt={f.name} name={f.name}&gt;
+      &lt;img src={f.thumb} alt={f.name} /&gt;
+    &lt;/ImageView.Trigger&gt;
+  ))}
+&lt;/ImageView.Root&gt;
+
+<span class="c">// 受控：后台表格里点「查看」按钮打开第 3 张</span>
+&lt;ImageView.Root
+  images={files}
+  open={open}
+  index={index}
+  onOpenChange={setOpen}
+  onIndexChange={setIndex}
+/&gt;</code></pre>
+  </div>
+
+  <div class="tier">
+    <div class="tier-h"><span class="tier-n">L3</span><h3>完全组合，自己拼界面</h3><span class="chip n">headless</span></div>
+    <p>L1 和 L2 的默认界面就是下面这段拼出来的。想改就把这段抄走改——<strong>shadcn registry 给的正是这段源码</strong>。</p>
+<pre><code>&lt;ImageView.Root images={files} open={open} onOpenChange={setOpen}&gt;
+  &lt;ImageView.Content&gt;              <span class="c">// &lt;dialog&gt; + showModal</span>
+    &lt;ImageView.Header&gt;
+      &lt;ImageView.Close&gt;关闭&lt;/ImageView.Close&gt;
+      &lt;ImageView.Title /&gt;            <span class="c">// 当前图的 name</span>
+      &lt;ImageView.Download /&gt;
+    &lt;/ImageView.Header&gt;
+
+    &lt;ImageView.Stage&gt;                <span class="c">// 手势区，touch-action:none</span>
+      &lt;ImageView.Prev /&gt;
+      &lt;ImageView.Image /&gt;
+      &lt;ImageView.Next /&gt;
+      &lt;ImageView.Loading /&gt;
+      &lt;ImageView.Error /&gt;
+    &lt;/ImageView.Stage&gt;
+
+    &lt;ImageView.Toolbar&gt;
+      &lt;ImageView.ZoomOut /&gt;  &lt;ImageView.ZoomIn /&gt;
+      &lt;ImageView.RotateLeft /&gt;  &lt;ImageView.RotateRight /&gt;
+      &lt;ImageView.FitToWindow /&gt;  &lt;ImageView.ActualSize /&gt;
+      &lt;MyOwnButton /&gt;              <span class="c">// 加按钮就是写 JSX</span>
+    &lt;/ImageView.Toolbar&gt;
+  &lt;/ImageView.Content&gt;
+&lt;/ImageView.Root&gt;</code></pre>
+  </div>
+
+  <div class="callout prose">
+    <p><strong>这就是「组合即插件系统」的兑现。</strong>加一个按钮不需要学插件 API，不需要注册生命周期，就是往 <code>Toolbar</code> 里塞 JSX。对比 YARL：加个按钮要写一个 plugin、实现它的 module 契约、再塞进 <code>plugins</code> 数组。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">组合件</p>
+  <h2>全部 parts</h2>
+  <div class="scroller">
+    <table>
+      <thead><tr><th>Part</th><th>渲染</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="3">结构</td></tr>
+        <tr><td class="name">Root</td><td class="note">无</td><td class="note">上下文、状态、触发器注册表。不产生 DOM</td></tr>
+        <tr><td class="name">Trigger</td><td class="note"><span class="chip ok">asChild</span></td><td class="note">把子元素变成触发器；登记 index 与 DOM rect（FLIP 用）</td></tr>
+        <tr><td class="name">Content</td><td class="name">&lt;dialog&gt;</td><td class="note">top layer、焦点陷阱、ESC、<code>::backdrop</code></td></tr>
+        <tr><td class="name">Header / Toolbar</td><td class="name">&lt;div&gt;</td><td class="note">纯容器，仅提供布局挂点</td></tr>
+        <tr><td class="name">Stage</td><td class="name">&lt;div&gt;</td><td class="note">手势宿主。绑定 pointer 事件、<code>touch-action:none</code>、尺寸观测</td></tr>
+        <tr><td class="name">Image</td><td class="name">&lt;img&gt;</td><td class="note">应用 transform；decode 后再提交；EXIF 方向校正</td></tr>
+        <tr class="grp"><td colspan="3">控件 · 全部支持 asChild</td></tr>
+        <tr><td class="name">Close</td><td class="name">&lt;button&gt;</td><td class="note">关闭</td></tr>
+        <tr><td class="name">Prev / Next</td><td class="name">&lt;button&gt;</td><td class="note">翻页；到边界时 <code>data-boundary</code>，默认样式隐藏</td></tr>
+        <tr><td class="name">ZoomIn / ZoomOut</td><td class="name">&lt;button&gt;</td><td class="note">按档缩放；到上下限 <code>disabled</code></td></tr>
+        <tr><td class="name">RotateLeft / RotateRight</td><td class="name">&lt;button&gt;</td><td class="note">±90°</td></tr>
+        <tr><td class="name">FitToWindow</td><td class="name">&lt;button&gt;</td><td class="note">缩放到贴合；<code>data-active</code> 当 scale===fitScale</td></tr>
+        <tr><td class="name">ActualSize</td><td class="name">&lt;button&gt;</td><td class="note">缩放到 1:1；<code>data-active</code> 当 scale===1</td></tr>
+        <tr><td class="name">Download</td><td class="name">&lt;a&gt;</td><td class="note">原文件下载</td></tr>
+        <tr class="grp"><td colspan="3">状态 · 条件渲染</td></tr>
+        <tr><td class="name">Title</td><td class="name">&lt;div&gt;</td><td class="note">当前图 <code>name</code>，无则回退 <code>alt</code></td></tr>
+        <tr><td class="name">Counter</td><td class="name">&lt;div&gt;</td><td class="note"><span class="chip mid">默认不渲染</span> 需显式放入</td></tr>
+        <tr><td class="name">Loading / Error</td><td class="name">&lt;div&gt;</td><td class="note">仅在对应状态渲染；Error 接 <code>retry</code></td></tr>
+        <tr><td class="name">Thumbnails</td><td class="name">&lt;div&gt;</td><td class="note"><span class="chip mid">P1</span> 需显式放入</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p>两条贯穿全表的规则。<strong>一，所有控件都支持 <code>asChild</code></strong>——想用自己设计系统的 Button，套上去即可，我们只贡献行为和 <code>data-*</code>。<strong>二，状态一律走 <code>data-*</code> 属性，不走 className</strong>：<code>data-active</code>、<code>data-boundary</code>、<code>data-state="open|closed"</code>、<code>data-loading</code>。Tailwind 用 <code>data-[active]:bg-accent</code> 接，CSS 用属性选择器接，两边都不用猜我们的类名。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">状态</p>
+  <h2>什么受控，什么不受控</h2>
+  <div class="scroller">
+    <table>
+      <thead><tr><th>状态</th><th>受控</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td class="name">open</td><td><span class="chip ok">可受控</span></td><td class="note"><code>open</code> / <code>defaultOpen</code> / <code>onOpenChange</code></td></tr>
+        <tr><td class="name">index</td><td><span class="chip ok">可受控</span></td><td class="note"><code>index</code> / <code>defaultIndex</code> / <code>onIndexChange</code></td></tr>
+        <tr><td class="name">scale · rotation · offset</td><td><span class="chip no">仅内部</span></td><td class="note">高频变化，受控会逼用户处理每帧。只读暴露 + 命令式修改</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose"><p>视图状态不做受控是刻意的：它在手势期间每帧都变，做成受控 prop 等于把 rAF 循环推给用户。需要读或改的场景由 <code>useViewer()</code> 覆盖，而且那是命令式的，不会引发重渲染风暴。</p></div>
+<pre><code><span class="k">const</span> v = useViewer()
+
+v.scale        <span class="c">// 只读快照</span>
+v.rotation
+v.canZoomIn
+v.index
+v.total
+
+v.zoomTo(2, { origin: 'center' })
+v.fit()
+v.actualSize()
+v.rotate(90)
+v.go(3)
+v.next()
+v.prev()
+v.close()</code></pre>
+</section>
+
+<section>
+  <p class="eyebrow">核心</p>
+  <h2>手势状态机</h2>
+  <div class="prose">
+    <p>这是全项目最难、也最值钱的一块。三层各自独立，按优先级消费同一串指针事件——<strong>关键不在分层本身，在层与层之间的交接规则</strong>。</p>
+  </div>
+<pre><code>idle
+ ├─ 1 指按下 ──────────────▶ tracking      <span class="c">// 意图未定</span>
+ └─ 2 指按下 ──────────────▶ pinching
+
+tracking                                   <span class="c">// 用首个超阈值的方向定性</span>
+ ├─ scale &gt; fit                    ──────▶ panning
+ ├─ scale = fit &amp;&amp; |dx| &gt; 8px     ──────▶ paging
+ └─ scale = fit &amp;&amp; |dy| &gt; 8px     ──────▶ dismissing
+
+panning
+ └─ 该方向已到边界 &amp;&amp; 超出量 &gt; 40px ─────▶ paging   <span class="c">// ← 边缘接力</span>
+
+pinching  ──釋放──▶ 越界则回弹 ──▶ idle
+paging    ──釋放──▶ 按速度/距离判定翻页或回弹 ──▶ idle
+dismissing──釋放──▶ 按速度/距离判定关闭或回弹 ──▶ idle</code></pre>
+
+  <div class="callout">
+    <h4 style="margin-top:0;">边缘接力：这一条就是竞品缺的东西</h4>
+<pre style="margin-bottom:0;"><code><span class="c">// panning 每帧</span>
+<span class="k">const</span> remaining = boundsX.remainingIn(direction)   <span class="c">// 该方向还能平移多少</span>
+
+<span class="k">if</span> (remaining &gt; 0) {
+  applyPan(dx)                                   <span class="c">// 正常平移</span>
+  overshoot = 0
+} <span class="k">else</span> {
+  overshoot += dx                                <span class="c">// 已顶到边，开始累计</span>
+  <span class="k">if</span> (Math.abs(overshoot) &gt; HANDOFF) {
+    handoffTo('paging', { initialDelta: overshoot })   <span class="c">// 交棒，不中断手指</span>
+  } <span class="k">else</span> {
+    applyRubberBand(overshoot)                   <span class="c">// 交棒前给阻尼反馈</span>
+  }
+}</code></pre>
+  </div>
+
+  <div class="prose">
+    <p>三个细节决定手感成败：</p>
+    <ul class="plain">
+      <li><strong>交接不能中断手指。</strong>用户的手一直没抬，从「拖动图片」变成「翻页」必须是连续的，中间出现任何停顿或跳变都会被感知为卡顿。所以 <code>overshoot</code> 要作为初始位移传给 paging，而不是从 0 重新开始。</li>
+      <li><strong>交棒前先给橡皮筋阻尼。</strong>顶到边之后那 40px 要有阻力反馈，用户才知道「到头了，再拖就翻页」。直接交棒会让翻页显得突然。</li>
+      <li><strong>翻页后复位到 fit。</strong>下一张图的构图和上一张无关，保留缩放没有意义——这条在设计稿里已经定了。</li>
+    </ul>
+    <p>另外两条独立规则：<strong>下拉关闭只在 <code>scale === fitScale</code> 时激活</strong>，否则和平移打架；<strong>缩放上限动态算</strong>，等于原始像素 ÷ 当前渲染像素，让「放到 100%」永远可达且不越界——这是决策书里为 react-photo-view 那个浏览器崩溃 issue 定的对策。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">目录</p>
+  <h2>结构</h2>
+<pre><code>src/
+  core/                  <span class="c">// 零 React 依赖，纯 TS，独立单测</span>
+    gesture/
+      machine.ts         <span class="c">// 上面那张状态机</span>
+      pointer.ts         <span class="c">// 指针追踪 + 速度采样窗口</span>
+      bounds.ts          <span class="c">// 边界计算 + 橡皮筋</span>
+      spring.ts          <span class="c">// 临界阻尼弹簧 / 指数衰减惯性</span>
+    transform.ts         <span class="c">// scale·rotate·translate 与 fit 计算</span>
+    image.ts             <span class="c">// decode() · EXIF 方向 · 尺寸探测</span>
+
+  react/
+    context.tsx
+    useViewer.ts
+    useGesture.ts        <span class="c">// core/gesture 的 React 绑定</span>
+    parts/               <span class="c">// 上面那张表</span>
+
+  preset/                <span class="c">// 组装好的默认界面 = registry 源码</span>
+  styles.css             <span class="c">// 可选预设样式，全部走 CSS 变量</span>
+
+<span class="c">// 导出</span>
+react-img-view              → 预设 + 全部 parts
+react-img-view/styles.css   → 可选样式</code></pre>
+  <div class="prose">
+    <p><code>core/</code> 一行 React 都不 import。这既是决策书里「保留将来抽包的可能但现在不抽」的兑现，也有当下的实惠：<strong>状态机可以脱离 DOM 渲染器做单测</strong>——喂一串合成的指针事件进去，断言状态迁移和最终 transform，不需要 jsdom，也不需要真机。手感的调参靠真机，但正确性靠这层单测兜住。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">扩展点</p>
+  <h2>组合解决不了的那一小类</h2>
+  <div class="prose"><p>加按钮靠组合。但「拦截手势」「抢键盘」这类要接入状态机内部的能力，组合做不到。给一个受控的小口子，<strong>只有两个钩子，没有生命周期</strong>：</p></div>
+<pre><code><span class="k">type</span> Extension = {
+  name: <span class="k">string</span>
+  onKeyDown?(e: KeyboardEvent, api: ViewerApi): <span class="k">boolean</span> | <span class="k">void</span>
+  onGesture?(phase: GesturePhase, s: GestureState, api: ViewerApi): <span class="k">boolean</span> | <span class="k">void</span>
+}
+<span class="c">// 返回 true = 已消费，停止后续处理</span>
+
+&lt;ImageView.Root extensions={[measureTool]} /&gt;</code></pre>
+  <div class="prose"><p>刻意不做的：没有 <code>onMount</code> / <code>onUnmount</code>，没有插件间通信，没有渲染注入。<strong>需要渲染东西就用组合，扩展点只管行为。</strong>边界一模糊，这就会长成 YARL 那套插件系统。</p></div>
+</section>
+
+<section>
+  <p class="eyebrow">要先想清楚的</p>
+  <h2>三个还没定的问题</h2>
+  <div class="prose">
+    <ul class="plain">
+      <li><strong><code>&lt;dialog&gt;</code> 渲染在原地还是 Portal？</strong>原生 top layer 让定位不受祖先 <code>transform</code> 影响，所以原地渲染在视觉上没问题；但它仍会继承祖先的 <code>font</code>、<code>color</code> 等可继承属性。原地更简单、SSR 更干净，我倾向原地 + 文档里写清楚这个继承行为。<em>需要你拍板的点：后台系统里常有全局 <code>* { font-family }</code> 覆盖，原地渲染会被波及。</em></li>
+      <li><strong>触发器怎么拿到 <code>index</code>。</strong>按挂载顺序自动登记最省事，但 React 并发渲染下顺序不保证稳定。备选是要求显式传 <code>index</code>，啰嗦但确定。倾向：<strong>自动登记为主，显式 <code>index</code> 可覆盖</strong>。</li>
+      <li><strong>预设样式用 CSS 还是 Tailwind。</strong>npm 包附 <code>styles.css</code>（不依赖 Tailwind，谁都能用），registry 给 Tailwind 版源码。两份要保持同步，是一笔持续成本——但这正是同时吃到「装包即用」和「拷贝即改」两种分发的代价。</li>
+    </ul>
+  </div>
+</section>
+
+<p class="footnote">
+  本文承接决策书的十条技术决策与界面定稿，只补 API 与代码结构，不重复已定内容。<br>
+  代码为设计意图的伪代码，签名可直接用，实现细节（速度采样窗口大小、阻尼系数、HANDOFF 阈值）需真机调参后确定，此处的 8px / 40px 是起始值不是结论。
+</p>
+</div>

@@ -1,0 +1,437 @@
+<title>又一个灯箱值得做吗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+
+<style>
+:root{
+  --bg:#F5F7F8; --surface:#FFFFFF; --surface-2:#EDF1F3; --surface-3:#E4EAEE;
+  --ink:#111820; --ink-2:#4A5560; --ink-3:#78838D;
+  --line:#DBE2E7; --line-strong:#C3CED6;
+  --accent:#0B5D7A; --accent-soft:#DFEFF5; --accent-ink:#0B5D7A;
+  --good:#1C7A55; --good-bg:#DFF0E8;
+  --warn:#8A6408; --warn-bg:#F6EBD2;
+  --bad:#A03A2E;  --bad-bg:#F6E1DD;
+  --shadow:0 1px 2px rgba(17,24,32,.05), 0 8px 24px -12px rgba(17,24,32,.18);
+  --display:"Newsreader","Noto Serif SC",Georgia,serif;
+  --body:"IBM Plex Sans","Noto Sans SC",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1114; --surface:#151B20; --surface-2:#1C242A; --surface-3:#242E35;
+    --ink:#E4EBF0; --ink-2:#98A6B1; --ink-3:#79868F;
+    --line:#28323A; --line-strong:#3A4750;
+    --accent:#58B6D6; --accent-soft:#10333F; --accent-ink:#7FCBE6;
+    --good:#57C193; --good-bg:#123328;
+    --warn:#D9AC46; --warn-bg:#33290F;
+    --bad:#E5806F;  --bad-bg:#3A1D18;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1114; --surface:#151B20; --surface-2:#1C242A; --surface-3:#242E35;
+  --ink:#E4EBF0; --ink-2:#98A6B1; --ink-3:#79868F;
+  --line:#28323A; --line-strong:#3A4750;
+  --accent:#58B6D6; --accent-soft:#10333F; --accent-ink:#7FCBE6;
+  --good:#57C193; --good-bg:#123328;
+  --warn:#D9AC46; --warn-bg:#33290F;
+  --bad:#E5806F;  --bad-bg:#3A1D18;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--body); font-size:16px; line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px; margin:0 auto; padding:0 24px 96px;}
+.prose{max-width:70ch;}
+
+/* ---------- masthead ---------- */
+.masthead{padding:72px 0 40px; border-bottom:1px solid var(--line);}
+.kicker{
+  font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--accent-ink); margin:0 0 18px;
+}
+h1{
+  font-family:var(--display); font-weight:600; font-size:clamp(38px,6vw,60px);
+  line-height:1.08; letter-spacing:-.015em; margin:0 0 20px; text-wrap:balance;
+}
+.standfirst{font-size:19px; line-height:1.6; color:var(--ink-2); margin:0; max-width:60ch;}
+.byline{
+  font-family:var(--mono); font-size:12px; color:var(--ink-3); margin-top:28px;
+  display:flex; flex-wrap:wrap; gap:6px 18px;
+}
+
+/* ---------- sections ---------- */
+section{padding-top:56px;}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-3); margin:0 0 10px;
+  padding-bottom:8px; border-bottom:1px solid var(--line);
+}
+h2{
+  font-family:var(--display); font-weight:600; font-size:clamp(26px,3.4vw,34px);
+  line-height:1.2; letter-spacing:-.01em; margin:0 0 18px; text-wrap:balance;
+}
+h3{
+  font-family:var(--body); font-weight:600; font-size:17px; line-height:1.4;
+  margin:34px 0 10px; color:var(--ink);
+}
+p{margin:0 0 16px;}
+strong{font-weight:600; color:var(--ink);}
+code{
+  font-family:var(--mono); font-size:.88em; background:var(--surface-2);
+  padding:.12em .38em; border-radius:4px; color:var(--ink);
+}
+a{color:var(--accent-ink);}
+
+/* ---------- verdict ---------- */
+.verdict{
+  background:var(--surface); border:1px solid var(--line); border-radius:2px;
+  padding:30px 32px; margin-top:36px; box-shadow:var(--shadow);
+  border-left:3px solid var(--accent);
+}
+.verdict p{margin:0 0 14px; font-size:17px;}
+.verdict p:last-child{margin-bottom:0;}
+
+.stats{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:1px; background:var(--line); border:1px solid var(--line);
+  margin-top:36px; border-radius:2px; overflow:hidden;
+}
+.stat{background:var(--surface); padding:22px 20px;}
+.stat .n{
+  font-family:var(--mono); font-weight:600; font-size:30px; line-height:1.1;
+  letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--ink);
+}
+.stat .n .u{font-size:16px; color:var(--ink-2); font-weight:500;}
+.stat .l{font-size:13px; color:var(--ink-2); margin-top:8px; line-height:1.45;}
+.stat.up .n{color:var(--good);}
+.stat.down .n{color:var(--bad);}
+
+/* ---------- tables ---------- */
+.scroller{overflow-x:auto; margin:26px 0; border:1px solid var(--line); border-radius:2px; background:var(--surface);}
+table{border-collapse:collapse; width:100%; min-width:820px; font-size:14px;}
+thead th{
+  font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-3); text-align:left;
+  padding:12px 14px; background:var(--surface-2); border-bottom:1px solid var(--line-strong);
+  white-space:nowrap;
+}
+tbody td{padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.group td{
+  background:var(--surface-2); font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding:8px 14px;
+}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap;}
+.name{font-weight:500; white-space:nowrap;}
+.note{color:var(--ink-2); font-size:13.5px; line-height:1.5;}
+tr.hero td{background:var(--accent-soft);}
+
+.chip{
+  display:inline-block; font-family:var(--mono); font-size:10.5px; font-weight:500;
+  letter-spacing:.04em; padding:2px 7px; border-radius:2px; white-space:nowrap;
+}
+.chip.ok{background:var(--good-bg); color:var(--good);}
+.chip.mid{background:var(--warn-bg); color:var(--warn);}
+.chip.no{background:var(--bad-bg); color:var(--bad);}
+.chip.neutral{background:var(--surface-3); color:var(--ink-2);}
+
+/* ---------- gap cards ---------- */
+.gaps{display:grid; gap:16px; margin-top:28px;}
+@media(min-width:760px){.gaps{grid-template-columns:repeat(3,1fr);}}
+.gap{
+  background:var(--surface); border:1px solid var(--line); border-radius:2px;
+  padding:22px; display:flex; flex-direction:column; gap:10px;
+}
+.gap .tag{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--accent-ink);
+}
+.gap h4{font-family:var(--body); font-size:16px; font-weight:600; margin:0; line-height:1.35;}
+.gap p{font-size:14px; color:var(--ink-2); margin:0; line-height:1.6;}
+.gap .ev{
+  font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
+  border-top:1px dashed var(--line-strong); padding-top:10px; margin-top:auto; line-height:1.5;
+}
+
+/* ---------- routes ---------- */
+.route{
+  background:var(--surface); border:1px solid var(--line); border-radius:2px;
+  padding:24px 26px; margin-bottom:16px;
+}
+.route.pick{border-color:var(--accent); border-left:3px solid var(--accent);}
+.route-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+.route-head h3{margin:0; font-size:18px;}
+.route p{font-size:15px; color:var(--ink-2); margin:0 0 12px;}
+.route ul{margin:0; padding-left:20px; font-size:14.5px; color:var(--ink-2); line-height:1.7;}
+.route li{margin-bottom:4px;}
+.route li::marker{color:var(--accent);}
+
+ul.plain{padding-left:20px; line-height:1.75;}
+ul.plain li{margin-bottom:8px;}
+ul.plain li::marker{color:var(--ink-3);}
+
+.footnote{
+  margin-top:56px; padding-top:24px; border-top:1px solid var(--line);
+  font-size:13px; color:var(--ink-3); line-height:1.7;
+}
+.footnote code{background:transparent; padding:0;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="kicker">开源竞品调研 · React 图片预览</p>
+  <h1>又一个灯箱值得做吗</h1>
+  <p class="standfirst">对 19 个图片预览开源库的下载量、维护状态、许可证与未修缺陷做了一轮取数。结论是：市场正在高速增长，但这个品类拿不到 star——除非换一个做法。</p>
+  <p class="byline"><span>数据采集 2026-08-24</span><span>来源 GitHub API / npm registry API</span><span>下载量口径：周</span></p>
+</header>
+
+<section>
+  <p class="eyebrow">结论先行</p>
+  <h2>市场值得进，但"再做一个灯箱"不值得</h2>
+
+  <div class="stats">
+    <div class="stat up">
+      <div class="n">2.6–3.7<span class="u">×</span></div>
+      <div class="l">头部 React 预览库过去一年的下载量增幅。品类在膨胀，不是零和。</div>
+    </div>
+    <div class="stat down">
+      <div class="n">420<span class="u">:1</span></div>
+      <div class="l">yet-another-react-lightbox 的周下载 / star 比。装了就忘，没人为灯箱点星。</div>
+    </div>
+    <div class="stat down">
+      <div class="n">~300<span class="u">/年</span></div>
+      <div class="l">该品类冠军的 star 增速。四年 1,304 star，这就是天花板量级。</div>
+    </div>
+    <div class="stat up">
+      <div class="n">1<span class="u">★</span></div>
+      <div class="l">全网唯一一个 headless React 灯箱的 star 数。这个位置是空的。</div>
+    </div>
+  </div>
+
+  <div class="verdict prose">
+    <p><strong>如果目标是 star：这是最差的品类之一。</strong>基础 UI 件是"选一次、忘掉"的东西，开发者不会为它兴奋。现任冠军四年只攒了 1,304 star，而周下载 54.7 万。</p>
+    <p><strong>如果目标是"做出真被用的东西 + 技术声誉"：值得，但必须换切入点。</strong>正面做通用灯箱要对上一个 open issue 常年为 0、文档站完备、支持 React 19 的强维护者，赢面很小。真正空着的是三个位置：宽松许可证的高完成度方案、headless 架构、以及底层手势内核。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">市场</p>
+  <h2>增长全部流向"活着的"库</h2>
+  <div class="prose">
+    <p>把四个库的月下载量拉出来对比，会看到一个很干净的分化：维护中的库一年涨了 2.6–3.7 倍，而 2023 年就归档的 <code>react-image-lightbox</code> 几乎纹丝不动。</p>
+  </div>
+
+  <div class="scroller">
+    <table>
+      <thead><tr>
+        <th>库</th><th>2025-08 月下载</th><th>2026-07 月下载</th><th>倍数</th><th>状态</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="name">react-medium-image-zoom</td><td class="num">1,009,108</td><td class="num">3,717,576</td><td class="num">3.7×</td><td><span class="chip ok">活跃</span></td></tr>
+        <tr><td class="name">react-photo-view</td><td class="num">140,779</td><td class="num">377,652</td><td class="num">2.7×</td><td><span class="chip mid">半停更</span></td></tr>
+        <tr><td class="name">yet-another-react-lightbox</td><td class="num">784,782</td><td class="num">2,028,338</td><td class="num">2.6×</td><td><span class="chip ok">活跃</span></td></tr>
+        <tr><td class="name">react-image-lightbox</td><td class="num">471,253</td><td class="num">519,245</td><td class="num">1.1×</td><td><span class="chip no">2023 归档</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose">
+    <p>这个分化说明增量来自<strong>新建的项目</strong>，而不是存量项目换库。新项目每天都在选型，而且相当一部分选型动作发生在 AI 生成脚手架里。<strong>这是新入场者唯一的机会窗口——分配正在进行中，不是已经分完了。</strong>反过来说，归档库那 51.9 万月下载是纯遗留惯性，撬不动。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">竞品全景</p>
+  <h2>19 个库，按周下载量排</h2>
+
+  <div class="scroller">
+    <table>
+      <thead><tr>
+        <th>库</th><th>Star</th><th>周下载</th><th>最近提交</th><th>Open issues</th><th>许可证</th><th>判断</th>
+      </tr></thead>
+      <tbody>
+        <tr class="group"><td colspan="7">底层 / 组件库内置 —— 比灯箱本身更大的市场</td></tr>
+        <tr><td class="name">rc-image <span class="chip neutral">antd</span></td><td class="num">—</td><td class="num">2,489,663</td><td class="num">活跃</td><td class="num">—</td><td><span class="chip ok">MIT</span></td><td class="note">antd 内置，随 antd 分发，无法正面竞争</td></tr>
+        <tr class="hero"><td class="name">react-zoom-pan-pinch</td><td class="num">1,912</td><td class="num">2,229,254</td><td class="num">2026-08</td><td class="num">132</td><td><span class="chip ok">MIT</span></td><td class="note"><strong>最弱的守门人</strong>：下载量最大、issue 积压最多、pinch 与惯性长期有 bug</td></tr>
+
+        <tr class="group"><td colspan="7">React 专用</td></tr>
+        <tr><td class="name">react-medium-image-zoom</td><td class="num">2,117</td><td class="num">927,874</td><td class="num">2026-08</td><td class="num">1</td><td><span class="chip ok">BSD-3</span></td><td class="note">只做"点击放大单图"，不是画廊，场景不重叠</td></tr>
+        <tr class="hero"><td class="name">yet-another-react-lightbox</td><td class="num">1,304</td><td class="num">547,112</td><td class="num">2026-08</td><td class="num">1</td><td><span class="chip ok">MIT</span></td><td class="note"><strong>现任冠军</strong>：零依赖、React 19、10 个插件、文档站完备</td></tr>
+        <tr><td class="name">react-image-gallery</td><td class="num">3,942</td><td class="num">340,867</td><td class="num">2026-05</td><td class="num">14</td><td><span class="chip ok">MIT</span></td><td class="note">偏轮播，手势与缩放弱</td></tr>
+        <tr><td class="name">react-image-lightbox</td><td class="num">1,278</td><td class="num">110,586</td><td class="num">2023-01</td><td class="num">—</td><td><span class="chip ok">MIT</span></td><td class="note"><span class="chip no">已归档</span> 11 万周下载的僵尸，迁移需求真实存在</td></tr>
+        <tr><td class="name">react-photo-album</td><td class="num">782</td><td class="num">104,257</td><td class="num">2026-08</td><td class="num">1</td><td><span class="chip ok">MIT</span></td><td class="note">YARL 同作者的排版组件，二者组合是事实标准</td></tr>
+        <tr class="hero"><td class="name">react-photo-view</td><td class="num">1,893</td><td class="num">97,436</td><td class="num">2026-01</td><td class="num">64</td><td><span class="chip ok">Apache-2.0</span></td><td class="note"><strong>手感最好但已半停更</strong>：物理回弹 / 双指定点缩放业界最佳，7 个月无提交</td></tr>
+        <tr><td class="name">react-photoswipe-gallery</td><td class="num">—</td><td class="num">54,390</td><td class="num">—</td><td class="num">—</td><td><span class="chip ok">MIT</span></td><td class="note">PhotoSwipe 的 React 包装层</td></tr>
+        <tr><td class="name">react-images</td><td class="num">—</td><td class="num">33,454</td><td class="num">—</td><td class="num">—</td><td><span class="chip ok">MIT</span></td><td class="note">早已停止演进</td></tr>
+        <tr><td class="name">react-inner-image-zoom</td><td class="num">337</td><td class="num">32,754</td><td class="num">2025-04</td><td class="num">17</td><td><span class="chip ok">MIT</span></td><td class="note"><span class="chip no">已归档</span> 电商放大镜场景</td></tr>
+        <tr><td class="name">react-viewer</td><td class="num">768</td><td class="num">26,153</td><td class="num">2026-08</td><td class="num">61</td><td><span class="chip ok">MIT</span></td><td class="note">API 老派，issue 积压重</td></tr>
+        <tr><td class="name">fslightbox-react</td><td class="num">170</td><td class="num">23,179</td><td class="num">2026-08</td><td class="num">43</td><td><span class="chip mid">MIT + 付费版</span></td><td class="note">免费版功能阉割，靠 Pro 变现</td></tr>
+        <tr><td class="name">react-spring-lightbox</td><td class="num">247</td><td class="num">6,647</td><td class="num">2026-07</td><td class="num">21</td><td><span class="chip ok">MIT</span></td><td class="note">依赖 react-spring，体量小</td></tr>
+        <tr><td class="name">@hanakla/react-lightbox</td><td class="num">1</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td><span class="chip neutral">—</span></td><td class="note"><strong>唯一的 headless 尝试，1 star</strong>——赛道空置</td></tr>
+
+        <tr class="group"><td colspan="7">Vanilla（React 项目仍会通过包装层用到）</td></tr>
+        <tr><td class="name">photoswipe</td><td class="num">25,240</td><td class="num">503,113</td><td class="num">2025-12</td><td class="num">170</td><td><span class="chip ok">MIT</span></td><td class="note">2011 年积累的 star，非当代品类基准</td></tr>
+        <tr><td class="name">medium-zoom</td><td class="num">3,941</td><td class="num">378,350</td><td class="num">2025-12</td><td class="num">49</td><td><span class="chip ok">MIT</span></td><td class="note">单图放大，非画廊</td></tr>
+        <tr><td class="name">viewerjs</td><td class="num">8,233</td><td class="num">117,648</td><td class="num">2026-08</td><td class="num">37</td><td><span class="chip ok">MIT</span></td><td class="note">功能全但 API 命令式，React 集成别扭</td></tr>
+        <tr class="hero"><td class="name">@fancyapps/ui (Fancybox)</td><td class="num">1,081</td><td class="num">90,895</td><td class="num">2026-04</td><td class="num">29</td><td><span class="chip no">商业许可</span></td><td class="note"><strong>功能最全的一档，但要付费</strong></td></tr>
+        <tr class="hero"><td class="name">lightGallery</td><td class="num">7,048</td><td class="num">89,406</td><td class="num">2026-08</td><td class="num">64</td><td><span class="chip no">GPLv3 / 商用</span></td><td class="note"><strong>GPL 传染，商业项目不能白用</strong></td></tr>
+        <tr><td class="name">glightbox</td><td class="num">2,519</td><td class="num">61,471</td><td class="num">2025-12</td><td class="num">44</td><td><span class="chip ok">MIT</span></td><td class="note">无 React 绑定</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">缺陷取证</p>
+  <h2>三个头部各自的硬伤</h2>
+
+  <h3>yet-another-react-lightbox —— 强，但有两处结构性缺口</h3>
+  <div class="prose">
+    <p>必须先承认它做得好：零运行时依赖、11.7 kB gzip、React 16.8→19 全支持、按插件分包（<code>./plugins/zoom</code> 等 10 个子路径导出）、<code>sideEffects</code> 标注正确、open issue 只有 1 条（还是 Renovate 的 Dependency Dashboard）。这是一个被认真运营的项目。</p>
+    <p>但它的 Discussions 里，两条讨论热度明显高于其余：</p>
+    <ul class="plain">
+      <li><strong>不支持旋转</strong>——"Image rotation" 是票数最高的讨论（7 赞 / 12 回复），至今官方插件列表里没有。而 react-photo-view 通过 <code>overlayRender</code> 暴露 <code>rotate</code>，早就能做。</li>
+      <li><strong>无障碍是一条 19 回复的长贴</strong>——热度最高的讨论之一，说明 a11y 上存在被反复追问的空白。</li>
+      <li><strong>"Zoom blocks swipe until fully zoomed out"</strong>——放大后必须完全缩回才能滑到下一张。这是手势状态机分层没做好的典型症状，在手机上是每天都会碰到的体验缺陷。</li>
+      <li>另有"拖动缺少惯性"、"嵌在 Dialog 里有问题"、"Android 上与地图同屏闪烁"等未解决讨论。</li>
+    </ul>
+    <p>另外一处不在 issue 里但对现代项目很关键：它的定制走 CSS 变量 + class 覆盖，<strong>不是可组合的 parts</strong>。任何有设计系统的团队要让它匹配自己的 token，都得跟它的样式表打一架。</p>
+  </div>
+
+  <h3>react-photo-view —— 手感最好的那个，正在失修</h3>
+  <div class="prose">
+    <p>7.5 kB gzip，边缘回弹、双指定点缩放、开合动画衔接，移动端手感公认第一。问题全在维护上：<strong>最近提交停在 2026-01-30，64 条 open issue 里躺着的是硬伤</strong>——大尺寸图导致浏览器崩溃、iOS 双指缩小回弹抖动、连续 ESC 关闭后状态异常、无法编程式打开、不支持返回键关闭、文档站（vercel.app）曾经打不开。它的 issue 区中英混杂，实际是单人项目，bus factor = 1。</p>
+    <p>值得注意的是它的 <strong>star 效率是 YARL 的 8 倍</strong>：97k 周下载换来 1,893 star（51:1），而 YARL 是 420:1。原因大概率是中文社区传播 + README 里那张手势 GIF 太有说服力。<strong>这是本次调研里对"怎么拿 star"最有用的一条情报。</strong></p>
+  </div>
+
+  <h3>react-zoom-pan-pinch —— 下载量最大，守得最松</h3>
+  <div class="prose">
+    <p>223 万周下载，是所有灯箱加起来还多的量级，但 <strong>132 条 open issue</strong>，且都是核心能力上的：3.6.1 版本 pinch 直接失效、macOS 双指无法平移、大图缩放卡顿、不支持旋转、Shadow DOM 下不可用、无 CSP nonce 支持、限位与 resize 交互不正确。热度第一的 issue 是 2023 年的"👋 谁在用"，路线图贴停在 2023 年。</p>
+    <p>换句话说：<strong>真正被大量使用、又真正没被照顾好的，是底下那层"手势 + 变换"内核，不是上面那层灯箱 UI。</strong></p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">机会</p>
+  <h2>三个空位</h2>
+
+  <div class="gaps">
+    <div class="gap">
+      <div class="tag">许可证</div>
+      <h4>功能最全的两个都不能白用</h4>
+      <p>Fancybox 是商业许可，lightGallery 是 GPLv3 或买断。它们才是"缩略图轨 + 深链 + 全屏 + 混合媒体 + 物理手势"这一档完成度的代表。这一档里没有 MIT 的 React 原生方案。</p>
+      <div class="ev">证据：@fancyapps/ui = "SEE LICENSE IN LICENSE.md"；lightgallery npm license = GPLv3。合计 18 万周下载在找出路。</div>
+    </div>
+    <div class="gap">
+      <div class="tag">架构</div>
+      <h4>headless 赛道完全空置</h4>
+      <p>生态早就转向 headless + 复制粘贴（Radix Dialog 7,227 万周下载，vaul 4,065 万）。但灯箱这一格里，唯一的 headless 尝试只有 1 star。所有现存方案都是"给你一套样式，你来覆盖"。</p>
+      <div class="ev">证据：@hanakla/react-lightbox = 1 star。YARL / react-photo-view 均为带样式表的成品组件。</div>
+    </div>
+    <div class="gap">
+      <div class="tag">底层</div>
+      <h4>手势内核没人做对</h4>
+      <p>react-zoom-pan-pinch 用 223 万周下载证明了需求，用 132 条 issue 证明了没做好。做一个正确的 pinch / pan / 惯性 / 回弹 / 边界内核，受众远不止图片预览——地图、图表、PDF、白板都要。</p>
+      <div class="ev">证据：pinch 失效、mac 双指、大图卡顿、Shadow DOM、CSP nonce 均为长期未修 issue。</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">如果我们来做</p>
+  <h2>三条路线</h2>
+
+  <div class="route pick">
+    <div class="route-head">
+      <h3>路线 A：分层——手势内核 + headless viewer + 可拷贝皮肤</h3>
+      <span class="chip ok">推荐</span>
+    </div>
+    <p>不做"第 21 个灯箱"，做一个三层的东西，每一层都能独立被人用。这样即使上层灯箱打不过 YARL，下层内核仍然吃得到 react-zoom-pan-pinch 那 223 万下载的盘子。</p>
+    <ul>
+      <li><strong>底层｜手势与变换内核</strong>：纯 Pointer Events 状态机，pinch / pan / wheel / 双击 / 惯性 / rubber-band 回弹 / 边界约束；支持 Shadow DOM、CSP nonce、SSR。这一层单独发包，直接对标 react-zoom-pan-pinch 的未修清单。</li>
+      <li><strong>中层｜headless 组合式组件</strong>：<code>&lt;Viewer.Root&gt; / .Slide / .Toolbar / .Thumbs</code>，零样式，Radix 式 <code>asChild</code>，受控与非受控双支持。设计系统团队直接套自己的 token，不用跟样式表打架。</li>
+      <li><strong>上层｜shadcn registry 皮肤</strong>：<code>npx shadcn add image-viewer</code> 一行拷进项目，用户拿到的是可改的源码而不是黑盒。这是当下最有效的分发路径。</li>
+      <li><strong>差异化功能</strong>（全部是竞品明确缺的）：旋转；<strong>放大态下仍可滑动切图</strong>（分层状态机解掉 YARL 那个缺陷）；惯性与回弹；URL / History 深链；View Transitions API 做缩略图→大图 morph；真无障碍（焦点陷阱 / <code>aria-roledescription</code> / 屏幕阅读器播报 / prefers-reduced-motion）；EXIF 方向；超大图分块渲染（解掉 react-photo-view 崩浏览器）。</li>
+    </ul>
+  </div>
+
+  <div class="route">
+    <div class="route-head"><h3>路线 B：接管 react-photo-view 的生态位</h3><span class="chip mid">风险中</span></div>
+    <p>它手感最好、star 效率最高、但停更 7 个月且积压 64 条 issue。把这些硬伤修对并持续维护，能直接继承它那 9.7 万周下载的迁移需求。</p>
+    <ul>
+      <li>成本最低、验证最快，因为需求已经被它证明过了。</li>
+      <li>风险是原作者随时可能回来——一次提交就能让这条路线失去意义。</li>
+      <li>更稳的变体：先给它提 PR，从贡献者做起，同时把内核抽成独立包。</li>
+    </ul>
+  </div>
+
+  <div class="route">
+    <div class="route-head"><h3>路线 C：不发库，只发一个 shadcn block</h3><span class="chip neutral">成本最低</span></div>
+    <p>把预览组件做成 registry 里的一段可拷贝源码，投放到 awesome-shadcn-ui 等聚合入口。</p>
+    <ul>
+      <li>传播最快、维护负担最小，但 star 上限也最低，且几乎不产生技术壁垒。</li>
+      <li>适合当作路线 A 的第一步：先用 block 验证审美和手感，再往下沉内核。</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">期望管理</p>
+  <h2>容易拿 star 吗：不容易，说清楚为什么</h2>
+  <div class="prose">
+    <p>直说结论：<strong>这个品类的 star 转化率极低。</strong>看这三组比值——</p>
+  </div>
+
+  <div class="scroller">
+    <table>
+      <thead><tr><th>库</th><th>周下载</th><th>Star</th><th>下载 : Star</th><th>Star 增速</th></tr></thead>
+      <tbody>
+        <tr><td class="name">react-zoom-pan-pinch</td><td class="num">2,229,254</td><td class="num">1,912</td><td class="num">1,166 : 1</td><td class="num">—</td></tr>
+        <tr><td class="name">react-medium-image-zoom</td><td class="num">927,874</td><td class="num">2,117</td><td class="num">438 : 1</td><td class="num">—</td></tr>
+        <tr><td class="name">yet-another-react-lightbox</td><td class="num">547,112</td><td class="num">1,304</td><td class="num">420 : 1</td><td class="num">≈305 / 年</td></tr>
+        <tr class="hero"><td class="name">react-photo-view</td><td class="num">97,436</td><td class="num">1,893</td><td class="num">51 : 1</td><td class="num">≈237 / 年</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose">
+    <p>每 400 次周下载才换来 1 个 star，因为基础 UI 件是装完就忘的东西。<strong>现实预期：第一年 200–800 star 算好结果，两三年做到 2k 就已经是这个品类的冠军量级。</strong>如果目标是一年冲几千 star，应该换品类，不是换做法。</p>
+    <p>但 react-photo-view 的 51:1 说明 star 效率可以差出 8 倍，杠杆在这三处：</p>
+    <ul class="plain">
+      <li><strong>用架构定位，而不是用功能定位。</strong>开发者会为"headless / 手势内核"点赞，不会为"又一个灯箱"点赞。README 第一句话决定这件事。</li>
+      <li><strong>做一张能自证的 GIF。</strong>手势物理感和 View Transitions 的 morph 是天然的传播素材——react-photo-view 那张 GIF 就是它 star 效率的来源。</li>
+      <li><strong>吃分发渠道，而不是等搜索。</strong>shadcn registry、awesome-* 列表、中文技术社区。中文社区对这个品类的 star 贡献被 react-photo-view 验证过。</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">下一步</p>
+  <h2>建议的讨论顺序</h2>
+  <div class="prose">
+    <p>调研到此为止。接下来要定的是三件事，建议按这个顺序：</p>
+    <ul class="plain">
+      <li><strong>先定路线</strong>（A / B / C），因为它决定了后面所有取舍——尤其是"要不要把手势内核单独发包"这个分层决策。</li>
+      <li><strong>再定功能边界</strong>：旋转、放大态滑动、深链、a11y、超大图这五项是差异化核心；缩略图轨、幻灯片、下载、分享、视频这些是补齐项，可以后置。</li>
+      <li><strong>最后定架构</strong>：状态机怎么分层（这直接决定能不能解掉 YARL 那个"放大后不能滑动"的缺陷）、headless 的 parts 怎么切、包怎么拆。</li>
+    </ul>
+  </div>
+</section>
+
+<p class="footnote">
+  数据于 2026-08-24 通过 <code>api.github.com/repos</code>、<code>api.npmjs.org/downloads</code>、<code>registry.npmjs.org</code> 与 <code>bundlephobia.com/api/size</code> 实时取得。<br>
+  部分条目的 star 数缺失，是因为对应仓库地址未能确认（react-photoswipe-gallery、react-images、rc-image），表中以 — 标注，未做估算。<br>
+  YARL 的 Discussions 热度数据来自其 GitHub Discussions 列表页（按 top 排序）；其中"无障碍"贴的具体诉求与维护者答复未逐条核实，此处仅以"19 条回复"这一热度事实作为存在争议的依据。<br>
+  star 增速为总 star 数 ÷ 仓库存续年数的粗略均值（YARL 建于 2022-05-18，react-photo-view 建于 2018-09-03），非近期真实增速——GitHub 的 stargazers 时间序列接口需要鉴权，本次未取。
+</p>
+
+</div>

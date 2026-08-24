@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #3D4E8F; } a:hover { color: #2C3A6E; }
+    .spec * { box-sizing: border-box; }
+    .spec svg { display: block; }
+    .lbl { font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:10px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:#969CAC; }
+    .mono { font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+    .sw { width:100%; height:44px; border-radius:5px; border:1px solid rgba(20,26,32,.09); }
+    .ico { display:flex; flex-direction:column; align-items:center; gap:9px; padding:14px 6px; border:1px solid #E5E8EE; border-radius:7px; background:#FFFFFF; }
+    .ico-n { font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:9.5px; color:#969CAC; letter-spacing:.02em; }
+    .st { display:flex; flex-direction:column; align-items:center; gap:10px; }
+    .st-n { font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:10px; color:#969CAC; letter-spacing:.04em; }
+    .btn32 { display:flex; align-items:center; justify-content:center; height:32px; min-width:32px; padding:0 7px; border-radius:6px; color:#3C4354; }
+    .cap { font-size:12.5px; color:#8A90A0; line-height:1.6; }
+  </style>
+</helmet>
+
+<div class="spec" style="width:1040px; height:1300px; background:#F6F7FA; font-family:'IBM Plex Sans','Noto Sans SC',system-ui,sans-serif; color:#14171F; padding:44px 48px; display:flex; flex-direction:column; gap:36px;">
+
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div class="lbl">react-img-view · 视觉规范</div>
+    <div style="font-size:30px; font-weight:600; letter-spacing:-.015em; line-height:1.15;">安静的仪表，不抢图片</div>
+    <div style="font-size:14.5px; line-height:1.65; color:#565E70; max-width:64ch;">审阅型预览器的界面不该影响使用者对图片本身的判断。中性色全部低彩度、强调色只有一个且只用于状态与焦点、图片周围不放任何有色元素——看错颜色的代价，在核验凭证的场景里是真实的。<strong style="color:#14171F;">能移除的一律移除：屏幕上每多一个元素，都是在跟被审阅的那张图争注意力。</strong></div>
+  </div>
+
+  <div style="height:1px; background:#E3E6EC;"></div>
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div class="lbl">色彩 · 浅色</div>
+    <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:12px;">
+      <div><div class="sw" style="background:#FFFFFF;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#FFFFFF</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">chrome 栏底</div></div>
+      <div><div class="sw" style="background:#F2F4F8;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#F2F4F8</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">舞台</div></div>
+      <div><div class="sw" style="background:#DEE1E8;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#DEE1E8</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">分隔线</div></div>
+      <div><div class="sw" style="background:#ECEEF3;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#ECEEF3</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">悬停</div></div>
+      <div><div class="sw" style="background:#14171F;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#14171F</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">主文字</div></div>
+      <div><div class="sw" style="background:#565E70;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#565E70</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">次文字</div></div>
+      <div><div class="sw" style="background:#3D4E8F;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#3D4E8F</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">强调色</div></div>
+    </div>
+
+    <div class="lbl" style="margin-top:10px;">色彩 · 暗色</div>
+    <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:12px;">
+      <div><div class="sw" style="background:#1B1D24;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#1B1D24</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">chrome 栏底</div></div>
+      <div><div class="sw" style="background:#121419;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#121419</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">舞台</div></div>
+      <div><div class="sw" style="background:#2A2E3A;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#2A2E3A</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">分隔线</div></div>
+      <div><div class="sw" style="background:#282C38;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#282C38</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">悬停</div></div>
+      <div><div class="sw" style="background:#E5E7EE;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#E5E7EE</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">主文字</div></div>
+      <div><div class="sw" style="background:#959BAE;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#959BAE</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">次文字</div></div>
+      <div><div class="sw" style="background:#8E9BDB;"></div><div class="mono" style="font-size:10.5px; margin-top:7px;">#8E9BDB</div><div style="font-size:11px; color:#8A90A0; margin-top:1px;">强调色</div></div>
+    </div>
+    <div class="cap">暗色舞台是 <span class="mono">#121419</span> 而不是纯黑——纯黑与浅色的 <span class="mono">#F2F4F8</span> 明度差过大，同一个组件会像两套设计。</div>
+  </div>
+
+  <div style="height:1px; background:#E3E6EC;"></div>
+
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div class="lbl">字体</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px;">
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="font-size:22px; font-weight:600;">IBM Plex Sans</div>
+        <div class="cap" style="color:#565E70;">界面文字，中文回退 Noto Sans SC。<br>文件名 13.5px / 500 · 按钮 13px / 400</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="mono" style="font-size:22px; font-weight:500;">IBM Plex Mono</div>
+        <div class="cap" style="color:#565E70;">仅用于数字，以及 1:1 图标内的字形。<br>开 <span class="mono">tabular-nums</span>，数字变化时宽度不跳。</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:1px; background:#E3E6EC;"></div>
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div class="lbl">图标 · 20px 网格 · 1.5px 描边 · 圆头圆角</div>
+    <div style="display:grid; grid-template-columns:repeat(9,1fr); gap:10px;">
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg><span class="ico-n">close</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg><span class="ico-n">prev</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4.5L13 10l-5.5 5.5"/></svg><span class="ico-n">next</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round"><circle cx="8.7" cy="8.7" r="5.4"/><path d="M12.7 12.7L16.8 16.8M6.4 8.7h4.6"/></svg><span class="ico-n">zoom-out</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round"><circle cx="8.7" cy="8.7" r="5.4"/><path d="M12.7 12.7L16.8 16.8M6.4 8.7h4.6M8.7 6.4v4.6"/></svg><span class="ico-n">zoom-in</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 10a6.4 6.4 0 1 1 1.9 4.5"/><path d="M3.2 6.2v3.9h3.9"/></svg><span class="ico-n">rotate-l</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 10a6.4 6.4 0 1 0-1.9 4.5"/><path d="M16.8 6.2v3.9h-3.9"/></svg><span class="ico-n">rotate-r</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4"/></svg><span class="ico-n">fit</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="14" height="14" rx="2.6"/><text x="10" y="12.45" text-anchor="middle" font-family="'IBM Plex Mono',ui-monospace,monospace" font-size="6.4" font-weight="600" fill="currentColor" stroke="none" letter-spacing="-.15">1:1</text></svg><span class="ico-n">actual</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5v8.5M6.6 8.8L10 12.2l3.4-3.4M4 14.2v2.3h12v-2.3"/></svg><span class="ico-n">download</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 10a6.4 6.4 0 1 1-1.9-4.5"/><path d="M16.8 2.6v3.9h-3.9"/></svg><span class="ico-n">retry</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="4.6" cy="10" r="1.5" fill="#2B3242"/><circle cx="10" cy="10" r="1.5" fill="#2B3242"/><circle cx="15.4" cy="10" r="1.5" fill="#2B3242"/></svg><span class="ico-n">more</span></div>
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2B3242" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4.2L17.5 16.5h-15z"/><path d="M10 9v3.2M10 14.4v.1"/></svg><span class="ico-n">alert</span></div>
+    </div>
+    <div class="cap">全套 13 个，同一套 20px 网格、1.5px 描边。「原始尺寸」是<strong style="color:#14171F;">带字形的图标</strong>——字形在描边框里，外轮廓重量和邻居一致，可读性又不靠记忆。</div>
+  </div>
+
+  <div style="height:1px; background:#E3E6EC;"></div>
+
+  <div style="display:flex; flex-direction:column; gap:18px;">
+    <div class="lbl">按钮状态</div>
+    <div style="display:flex; gap:34px; align-items:flex-start;">
+      <div class="st"><div class="btn32"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4"/></svg></div><span class="st-n">默认</span></div>
+      <div class="st"><div class="btn32" style="background:#ECEEF3; color:#14171F;"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4"/></svg></div><span class="st-n">悬停</span></div>
+      <div class="st"><div class="btn32" style="background:#E0E3EB; color:#14171F;"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4"/></svg></div><span class="st-n">按下</span></div>
+      <div class="st"><div class="btn32" style="background:#E9EBF5; color:#3D4E8F;"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4"/></svg></div><span class="st-n">激活</span></div>
+      <div class="st"><div class="btn32" style="color:#B2B7C4;"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4"/></svg></div><span class="st-n">禁用</span></div>
+      <div class="st"><div class="btn32" style="box-shadow:0 0 0 2px #F6F7FA, 0 0 0 4px #3D4E8F;"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4"/></svg></div><span class="st-n">键盘焦点</span></div>
+    </div>
+    <div class="cap">键盘焦点环独立于悬停——这批用户大量用键盘。2px 底色描边打底再 2px 强调色，深浅两种底上都看得见。</div>
+  </div>
+
+  <div style="height:1px; background:#E3E6EC;"></div>
+
+  <div style="display:flex; flex-direction:column; gap:18px;">
+    <div class="lbl">工具栏 · 七个控件</div>
+    <div style="display:flex; align-items:center; gap:28px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:4px; height:44px; padding:0 7px; background:#FFFFFF; border:1px solid #E2E5EC; border-radius:11px; box-shadow:0 2px 4px rgba(20,26,32,.05), 0 14px 34px -16px rgba(20,26,32,.28);">
+        <div class="btn32"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8.7" cy="8.7" r="5.4"/><path d="M12.7 12.7L16.8 16.8M6.4 8.7h4.6"/></svg></div>
+        <div class="btn32"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8.7" cy="8.7" r="5.4"/><path d="M12.7 12.7L16.8 16.8M6.4 8.7h4.6M8.7 6.4v4.6"/></svg></div>
+        <div style="width:1px; height:22px; background:#E5E8EE; margin:0 4px;"></div>
+        <div class="btn32"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 10a6.4 6.4 0 1 1 1.9 4.5"/><path d="M3.2 6.2v3.9h3.9"/></svg></div>
+        <div class="btn32"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 10a6.4 6.4 0 1 0-1.9 4.5"/><path d="M16.8 6.2v3.9h-3.9"/></svg></div>
+        <div style="width:1px; height:22px; background:#E5E8EE; margin:0 4px;"></div>
+        <div class="btn32" style="background:#E9EBF5; color:#3D4E8F;"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4"/></svg></div>
+        <div class="btn32"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="14" height="14" rx="2.6"/><text x="10" y="12.45" text-anchor="middle" font-family="'IBM Plex Mono',ui-monospace,monospace" font-size="6.4" font-weight="600" fill="currentColor" stroke="none" letter-spacing="-.15">1:1</text></svg></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:7px; font-size:12.5px; color:#565E70; line-height:1.55;">
+        <div><span class="mono" style="color:#3D4E8F;">缩放</span> — 减 / 加</div>
+        <div><span class="mono" style="color:#3D4E8F;">方向</span> — 左转 / 右转</div>
+        <div><span class="mono" style="color:#3D4E8F;">视图</span> — 适应窗口 / 1:1，两个独立按钮</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:16px; margin-top:2px;">
+      <div style="flex:1; padding:16px 18px; background:#FFFFFF; border:1px solid #E5E8EE; border-radius:8px;">
+        <div style="font-size:13px; font-weight:600; margin-bottom:7px;">为什么 1:1 是带字形的图标</div>
+        <div class="cap" style="margin-bottom:14px;">纯文字会成为一排图标里唯一的异类；纯图形（像素网格之类）没有约定俗成的画法，只能靠记。<strong style="color:#14171F;">字形放进描边框</strong>两头都占：外轮廓和邻居同重量，内容仍然直接可读——和「适应窗口」的四角框还是同一套语言。</div>
+        <div style="font-size:13px; font-weight:600; margin-bottom:7px;">为什么不是分段控件</div>
+        <div class="cap">分段控件表示「必选其一」，但缩放有第三种状态：停在 173% 时<strong style="color:#14171F;">两个都不该亮</strong>。分段控件会把这个状态空间描述错。两个能同时不激活的独立按钮才是对的。</div>
+      </div>
+      <div style="flex:1; padding:16px 18px; background:#FFFFFF; border:1px solid #E5E8EE; border-radius:8px;">
+        <div style="font-size:13px; font-weight:600; margin-bottom:7px;">为什么不显示百分比</div>
+        <div class="cap">人真正在意的只有两个状态：看全貌、看原始像素。这两个由按钮激活态回答。中间的 <span class="mono">173%</span> 是个没人会据此行动的数字。分辨率移进 <span class="mono">1:1</span> 的 tooltip：<span class="mono" style="color:#565E70;">原始尺寸 3024 × 4032</span>。</div>
+      </div>
+    </div>
+
+    <div style="font-size:12.5px; color:#565E70; line-height:1.65; max-width:82ch; margin-top:2px;">分工原则：<strong style="color:#14171F;">顶栏管文件，工具栏管视图。</strong>文件名和下载属于文件，放顶栏；缩放、旋转、适应窗口属于「这一眼怎么看」，放工具栏。下载因此只出现一次——飞书把它同时放在两处，操作重心被劈成两半。</div>
+
+    <div style="display:flex; gap:26px; margin-top:4px; font-size:12px; color:#8A90A0; flex-wrap:wrap;">
+      <div><span class="mono">48px</span> 顶栏高</div>
+      <div><span class="mono">44px</span> 工具栏高</div>
+      <div><span class="mono">32px</span> 按钮高</div>
+      <div><span class="mono">11px</span> 工具栏圆角</div>
+      <div><span class="mono">6px</span> 按钮圆角</div>
+      <div><span class="mono">44px</span> 移动端最小点击区</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

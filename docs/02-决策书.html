@@ -1,0 +1,444 @@
+<title>react-img-view 决策书</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+
+<style>
+:root{
+  --bg:#F5F7F8; --surface:#FFFFFF; --surface-2:#EDF1F3; --surface-3:#E4EAEE;
+  --ink:#111820; --ink-2:#4A5560; --ink-3:#78838D;
+  --line:#DBE2E7; --line-strong:#C3CED6;
+  --accent:#0B5D7A; --accent-soft:#DFEFF5; --accent-ink:#0B5D7A;
+  --good:#1C7A55; --good-bg:#DFF0E8;
+  --warn:#8A6408; --warn-bg:#F6EBD2;
+  --bad:#A03A2E;  --bad-bg:#F6E1DD;
+  --shadow:0 1px 2px rgba(17,24,32,.05), 0 8px 24px -12px rgba(17,24,32,.18);
+  --display:"Newsreader","Noto Serif SC",Georgia,serif;
+  --body:"IBM Plex Sans","Noto Sans SC",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1114; --surface:#151B20; --surface-2:#1C242A; --surface-3:#242E35;
+    --ink:#E4EBF0; --ink-2:#98A6B1; --ink-3:#79868F;
+    --line:#28323A; --line-strong:#3A4750;
+    --accent:#58B6D6; --accent-soft:#10333F; --accent-ink:#7FCBE6;
+    --good:#57C193; --good-bg:#123328;
+    --warn:#D9AC46; --warn-bg:#33290F;
+    --bad:#E5806F;  --bad-bg:#3A1D18;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1114; --surface:#151B20; --surface-2:#1C242A; --surface-3:#242E35;
+  --ink:#E4EBF0; --ink-2:#98A6B1; --ink-3:#79868F;
+  --line:#28323A; --line-strong:#3A4750;
+  --accent:#58B6D6; --accent-soft:#10333F; --accent-ink:#7FCBE6;
+  --good:#57C193; --good-bg:#123328;
+  --warn:#D9AC46; --warn-bg:#33290F;
+  --bad:#E5806F;  --bad-bg:#3A1D18;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1000px; margin:0 auto; padding:0 24px 96px;}
+.prose{max-width:70ch;}
+.masthead{padding:72px 0 40px; border-bottom:1px solid var(--line);}
+.kicker{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-ink); margin:0 0 18px;}
+h1{font-family:var(--display); font-weight:600; font-size:clamp(38px,6vw,58px); line-height:1.08; letter-spacing:-.015em; margin:0 0 20px; text-wrap:balance;}
+.standfirst{font-size:19px; line-height:1.6; color:var(--ink-2); margin:0; max-width:60ch;}
+.byline{font-family:var(--mono); font-size:12px; color:var(--ink-3); margin-top:28px; display:flex; flex-wrap:wrap; gap:6px 18px;}
+section{padding-top:56px;}
+.eyebrow{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); margin:0 0 10px; padding-bottom:8px; border-bottom:1px solid var(--line);}
+h2{font-family:var(--display); font-weight:600; font-size:clamp(26px,3.4vw,34px); line-height:1.2; letter-spacing:-.01em; margin:0 0 18px; text-wrap:balance;}
+h3{font-family:var(--body); font-weight:600; font-size:17px; line-height:1.4; margin:34px 0 10px;}
+p{margin:0 0 16px;}
+strong{font-weight:600; color:var(--ink);}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-2); padding:.12em .38em; border-radius:4px;}
+a{color:var(--accent-ink);}
+
+.cols{display:grid; gap:16px; margin:26px 0;}
+@media(min-width:740px){.cols{grid-template-columns:1fr 1fr;}}
+.col{background:var(--surface); border:1px solid var(--line); border-radius:2px; padding:22px 24px;}
+.col.keep{border-top:3px solid var(--good);}
+.col.fix{border-top:3px solid var(--bad);}
+.col h4{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; margin:0 0 14px; color:var(--ink-3);}
+.col ol{margin:0; padding-left:20px; font-size:14.5px; line-height:1.65; color:var(--ink-2);}
+.col li{margin-bottom:11px;}
+.col li strong{display:block; color:var(--ink); font-weight:600; margin-bottom:2px;}
+.col.keep li::marker{color:var(--good); font-family:var(--mono); font-size:12px;}
+.col.fix li::marker{color:var(--bad); font-family:var(--mono); font-size:12px;}
+
+.dec{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:2px; padding:22px 26px; margin-bottom:14px;}
+.dec-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+.dec-n{font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent-ink); letter-spacing:.05em;}
+.dec-head h3{margin:0; font-size:17px;}
+.dec p{font-size:14.5px; color:var(--ink-2); margin:0 0 10px;}
+.dec p:last-child{margin-bottom:0;}
+.dec .lbl{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-right:8px;}
+.dec ul{margin:0 0 10px; padding-left:20px; font-size:14.5px; color:var(--ink-2); line-height:1.65;}
+.dec li::marker{color:var(--accent);}
+
+.scroller{overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:2px; background:var(--surface);}
+table{border-collapse:collapse; width:100%; min-width:640px; font-size:14px;}
+thead th{font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); text-align:left; padding:12px 14px; background:var(--surface-2); border-bottom:1px solid var(--line-strong); white-space:nowrap;}
+tbody td{padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap;}
+.name{font-weight:500; white-space:nowrap;}
+.note{color:var(--ink-2); font-size:13.5px; line-height:1.5;}
+.chip{display:inline-block; font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.04em; padding:2px 7px; border-radius:2px; white-space:nowrap;}
+.chip.ok{background:var(--good-bg); color:var(--good);}
+.chip.mid{background:var(--warn-bg); color:var(--warn);}
+.chip.no{background:var(--bad-bg); color:var(--bad);}
+.chip.neutral{background:var(--surface-3); color:var(--ink-2);}
+
+.scope{display:grid; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:2px; margin:26px 0;}
+@media(min-width:760px){.scope{grid-template-columns:repeat(3,1fr);}}
+.tier{background:var(--surface); padding:22px;}
+.tier .t{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:4px;}
+.tier.p0 .t{color:var(--bad);} .tier.p1 .t{color:var(--warn);} .tier.p2 .t{color:var(--ink-3);}
+.tier .sub{font-size:12.5px; color:var(--ink-3); margin-bottom:14px;}
+.tier ul{margin:0; padding-left:18px; font-size:14px; color:var(--ink-2); line-height:1.7;}
+.tier li{margin-bottom:5px;}
+
+ul.plain{padding-left:20px; line-height:1.75;}
+ul.plain li{margin-bottom:9px;}
+ul.plain li::marker{color:var(--ink-3);}
+.ask{background:var(--accent-soft); border:1px solid var(--line); border-radius:2px; padding:24px 26px; margin-top:26px;}
+.ask h3{margin-top:0;}
+.ask ol{margin:0; padding-left:20px; line-height:1.75; font-size:15px;}
+.ask li{margin-bottom:9px;}
+.ask li::marker{font-family:var(--mono); color:var(--accent-ink);}
+.footnote{margin-top:56px; padding-top:24px; border-top:1px solid var(--line); font-size:13px; color:var(--ink-3); line-height:1.7;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="kicker">react-img-view · 开工前</p>
+  <h1>决策书</h1>
+  <p class="standfirst">飞书附件预览的交互拆解、功能优先级，以及编码前必须钉死的十个技术决策——每一条都附了实测的浏览器支持数据和已知风险。</p>
+  <p class="byline"><span>2026-08-24</span><span>浏览器数据源 caniuse</span><span>参考样本 飞书多维表格附件预览</span></p>
+</header>
+
+<section>
+  <p class="eyebrow">交互拆解</p>
+  <h2>飞书那三张图告诉我们什么</h2>
+  <div class="prose">
+    <p>先把它的结构拆开：<strong>顶栏是实体栏</strong>（不是浮层），左侧 <code>✕ Close</code> 带文字标签、竖线分隔，然后是文件类型色标 + 文件名 + 次级色的文件大小；右侧两个描边按钮。<strong>舞台在浅色模式下是浅冷灰而不是黑遮罩</strong>，暗色模式下是纯黑。图片 contain 居中，四周留白很足，无阴影无边框。翻页按钮是浮在舞台边缘的圆形按钮。底部是一个独立的胶囊工具栏，五个线性图标——缩小、放大、旋转、1:1、下载——悬停出深色带箭头的 tooltip。</p>
+  </div>
+
+  <div class="cols">
+    <div class="col keep">
+      <h4>值得学的</h4>
+      <ol>
+        <li><strong>浅色模式用浅灰舞台，不用黑遮罩</strong>它"不像传统 lightbox"、显得现代，主要就来自这一个决定。黑遮罩是 2010 年代的语言。</li>
+        <li><strong>顶栏承载文件元信息</strong>文件名、大小、类型色标。让预览有"文件感"而不只是"图片感"。</li>
+        <li><strong>加载态里顶栏和翻页按钮先在位</strong>只有舞台是空的。元信息先于图片可用，布局不跳动。</li>
+        <li><strong>到边界时翻页按钮隐藏而非禁用</strong>比灰掉的禁用态干净，也少一次无效点击。</li>
+        <li><strong>tooltip 统一深色带箭头</strong>纯图标工具栏必须配的东西，它做到位了。</li>
+      </ol>
+    </div>
+    <div class="col fix">
+      <h4>我们要改掉的</h4>
+      <ol>
+        <li><strong>没有计数器</strong>多图时不知道总共几张、当前第几张。成本极低而信息价值极高，这是它最明显的漏洞。</li>
+        <li><strong>下载按钮出现两次</strong>顶栏一个 Download，底部工具栏又一个下载图标。功能重复，操作重心分裂在屏幕上下两端。</li>
+        <li><strong>没有缩放比例反馈</strong>放大后不知道当前几倍，也不知道离上限还有多远。</li>
+        <li><strong>大屏上图片太小</strong>留白过多且没有"适应窗口"的默认放大策略，4K 屏上浪费严重。</li>
+        <li><strong>两个模式明度差过大</strong>浅色浅灰、暗色纯黑，同一个组件像两套设计。</li>
+        <li><strong>五个图标全靠 tooltip 认</strong>1:1 这种图标离开 tooltip 基本无法识别。</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">你问的问题</p>
+  <h2>缩略图要不要做：要，但默认自动</h2>
+  <div class="prose">
+    <p>飞书不做缩略图是<strong>对它的场景正确</strong>——多维表格一条记录挂 1 到 3 个附件，一条缩略图轨是纯浪费。但我们是通用组件，场景里包含相册、商品图、文档配图，图一多，没有缩略图轨就是硬伤：用户既不知道有几张，也无法跳转。</p>
+    <p>所以拆成两件事，不要混为一谈：</p>
+    <ul class="plain">
+      <li><strong>计数器进 P0。</strong>就是 <code>3 / 12</code> 这么一行字，实现成本接近零，解决"有几张、我在哪"。飞书缺这个是它的失误，不是它的取舍。</li>
+      <li><strong>缩略图轨进 P1，默认 <code>auto</code>。</strong>单图不渲染，多图才出现；提供 <code>always</code> / <code>never</code> 强制。窄屏默认隐藏——移动端一条缩略图轨要吃掉 15% 的屏幕高度，不划算。</li>
+    </ul>
+    <p>这样单图场景的用户拿到的是飞书那种干净界面，相册场景的用户不用自己造轮子。默认值替用户做了对的决定，这是好 API 的标志。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">场景定位</p>
+  <h2>审阅型，不是欣赏型</h2>
+  <div class="prose">
+    <p>主场景定为<strong>文档附件</strong>与<strong>后台管理系统的图片字段</strong>。这两个看起来是两件事，实际是同一类——用户打开图片<strong>不是为了欣赏，是为了核验</strong>：这张凭证的编号是多少、这份扫描件的字看不看得清、这张截图有没有被压糊、这是不是用户该传的那份材料。</p>
+    <p>这个定性把整个产品的取向定死了，而且和相册类产品几乎处处相反：</p>
+  </div>
+
+  <div class="scroller">
+    <table>
+      <thead><tr><th></th><th>审阅型（我们）</th><th>欣赏型（相册 / 社交）</th></tr></thead>
+      <tbody>
+        <tr><td class="name">用户目标</td><td class="note">看清细节、核对、留存</td><td class="note">沉浸、浏览、分享</td></tr>
+        <tr><td class="name">工具栏</td><td class="note"><strong>常驻可见</strong></td><td class="note">自动淡出</td></tr>
+        <tr><td class="name">缩放</td><td class="note"><strong>要档位、要比例数字</strong></td><td class="note">连续无级即可</td></tr>
+        <tr><td class="name">1:1 原始尺寸</td><td class="note"><strong>核心功能</strong></td><td class="note">几乎无用</td></tr>
+        <tr><td class="name">文件元信息</td><td class="note"><strong>必需</strong>（名称 / 大小 / 类型）</td><td class="note">可有可无</td></tr>
+        <tr><td class="name">主要输入</td><td class="note"><strong>鼠标 + 键盘</strong></td><td class="note">触摸手势</td></tr>
+        <tr><td class="name">旋转</td><td class="note"><strong>高频</strong>（手机拍的凭证是歪的）</td><td class="note">低频</td></tr>
+        <tr><td class="name">幻灯片播放</td><td class="note">没人要</td><td class="note">常用</td></tr>
+        <tr><td class="name">图片张数</td><td class="note">通常 1–5 张</td><td class="note">几十上百张</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p>这条定位修正了我之前的一处偏向：我原本把重心押在移动端手势上（因为那是竞品最弱的地方），但你的主场景是<strong>桌面端审阅</strong>。手势仍然是 P0——它是技术护城河，也是移动端的基础——但<strong>桌面端的键盘与精确控制必须提到同等地位</strong>，不能只顾手感。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">对照组修正</p>
+  <h2>我们真正的竞品不是灯箱库</h2>
+  <div class="prose">
+    <p>同一个方法错误还波及了竞品分析。前一份市场调研把 YARL、react-photo-view、PhotoSwipe、lightGallery 放在一起比——<strong>那是欣赏型画廊的对照组</strong>。但一个要在后台管理系统里加图片预览的开发者，手上已经有 antd 了，他不会去装一个灯箱库。</p>
+    <p>数据是明摆着的：</p>
+  </div>
+
+  <div class="scroller">
+    <table>
+      <thead><tr><th>库</th><th>周下载</th><th>形态</th><th>和我们的关系</th></tr></thead>
+      <tbody>
+        <tr><td class="name">rc-image <span class="chip neutral">antd 内置</span></td><td class="num">2,489,663</td><td class="note">组件库自带预览</td><td class="note"><strong>真正的默认选项</strong>——用户不需要做任何决定就得到它</td></tr>
+        <tr><td class="name">viewerjs</td><td class="num">117,648</td><td class="note">审阅型 vanilla</td><td class="note">同类型，功能对照的基准</td></tr>
+        <tr><td class="name">react-viewer</td><td class="num">26,153</td><td class="note">审阅型 React</td><td class="note">唯一的同形态 React 竞品，已失修</td></tr>
+        <tr><td class="name">yet-another-react-lightbox</td><td class="num">547,112</td><td class="note">欣赏型画廊</td><td class="note">不同形态，之前被我当成主要对手</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose">
+    <p>rc-image 的 249 万周下载不是靠它做得多好，是靠它<strong>零决策成本</strong>。这把 README 的第一个问题从「为什么选我们而不选 YARL」换成了一个难得多的问题：</p>
+    <p style="font-size:17px; font-weight:600; color:var(--ink); border-left:3px solid var(--accent); padding-left:16px; margin:22px 0;">我已经在用 antd 了，为什么还要多装一个包？</p>
+    <p>答不上这个问题，项目就没有存在理由。目前能站住的答案有三条，都要在 v1 里真的做到，而不只是写在 README 上：</p>
+    <ul class="plain">
+      <li><strong>不绑定组件库。</strong>antd 的预览只服务 antd 用户；arco、semi、MUI、shadcn、无组件库的项目各自重复造轮子。我们是那个横跨所有人的选项。</li>
+      <li><strong>手势质量。</strong>rc-image 的移动端手势是能用级别，没有惯性、没有回弹、缩放态不能滑动切图。这是最难被追平的一条。</li>
+      <li><strong>可定制到底。</strong>headless + 可拷贝源码，对上 rc-image「只能改几个 props」的天花板。</li>
+    </ul>
+    <p>相应地，功能上有一条隐含要求：<strong>凡是 antd 预览有的，我们不能缺</strong>（缩放、旋转、翻页、键盘、镜像翻转）。缺一样就给了用户不迁移的理由。镜像翻转因此要补进 P1——之前整个漏掉了，因为我对照的是灯箱库，而灯箱库都没有这个功能。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">功能范围</p>
+  <h2>三档优先级</h2>
+  <div class="scope">
+    <div class="tier p0">
+      <div class="t">P0 · v1 必须有</div>
+      <div class="sub">审阅场景缺一不可</div>
+      <ul>
+        <li>点击缩略图开合动画</li>
+        <li>滚轮 / 双击 / 按钮缩放</li>
+        <li><strong>1:1 与「适应窗口」成对</strong></li>
+        <li><strong>缩放比例显示 + 档位菜单</strong></li>
+        <li><strong>顶栏文件元信息插槽</strong></li>
+        <li><strong>下载</strong></li>
+        <li><strong>旋转 + EXIF 方向自动校正</strong></li>
+        <li><strong>完整键盘快捷键</strong></li>
+        <li>缩放态拖拽平移 + 边界回弹</li>
+        <li>移动端双指缩放、拖拽</li>
+        <li>缩放态下仍可滑动切图</li>
+        <li>下拉关闭 · 计数器 · ESC</li>
+        <li>加载 / 失败 / 空状态</li>
+        <li>暗色模式</li>
+        <li>完整 a11y</li>
+      </ul>
+    </div>
+    <div class="tier p1">
+      <div class="t">P1 · v1.x</div>
+      <div class="sub">有用户要了再做</div>
+      <ul>
+        <li>缩略图轨（auto，优先级已下调）</li>
+        <li>URL / History 深链</li>
+        <li>响应式 srcset 分辨率切换</li>
+        <li>分享</li>
+        <li>批量下载</li>
+        <li>放大镜（局部悬停放大）</li>
+        <li><strong>水平 / 垂直镜像翻转</strong>（对齐 antd）</li>
+      </ul>
+    </div>
+    <div class="tier p2">
+      <div class="t">P2 · 看情况</div>
+      <div class="sub">可能永远不做</div>
+      <ul>
+        <li>视频 / PDF 混合媒体</li>
+        <li>超大图 canvas 分块渲染</li>
+        <li>图片对比（前后滑块）</li>
+        <li>标注 / 批注 · 裁剪</li>
+        <li>全屏 API</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h3>明确不做</h3>
+    <p>非目标和目标一样重要，这几条<strong>写进 README，不接需求</strong>：</p>
+    <ul class="plain">
+      <li><strong>幻灯片自动播放。</strong>审阅场景没有这个动作——没人会让凭证自动轮播。YARL 和 lightGallery 都带这个功能，我们明确不跟。</li>
+      <li><strong>不做图片编辑。</strong>裁剪、标注、批注属于另一个产品，一旦沾上边界就守不住了。</li>
+      <li><strong>不做画廊布局。</strong>瀑布流、网格排版交给 react-photo-album 那类组件，我们只负责「点开之后」。</li>
+    </ul>
+    <h3>为什么 1:1 必须配一个「适应窗口」</h3>
+    <p>飞书只有 1:1，没有适应窗口——放大之后没有一键回到初始状态的按钮，只能一直点缩小。<strong>这两个是一对，必须成对出现</strong>：1:1 回答「原始像素下清不清楚」，适应窗口回答「让我重新看全貌」。审阅动作就是在这两个状态之间来回切。</p>
+    <h3>键盘快捷键分两档，不要假装都是通用的</h3>
+    <p>这一节原本写的是「直接复用 Preview / Figma / Photoshop 那套」——<strong>那是拿错了对照组</strong>：那几个是专业创作工具，它们的用户和审单据的后台用户不是同一批人，肌肉记忆不通用。按真实认知成本分两档：</p>
+  </div>
+
+  <div class="scroller">
+    <table>
+      <thead><tr><th>档位</th><th>按键</th><th>动作</th><th>依据</th></tr></thead>
+      <tbody>
+        <tr><td class="name"><span class="chip ok">核心</span></td><td class="name">← / →</td><td class="note">上一张 / 下一张</td><td class="note">所有图片预览都这样，无需学习</td></tr>
+        <tr><td class="name"><span class="chip ok">核心</span></td><td class="name">Esc</td><td class="note">关闭</td><td class="note">同上</td></tr>
+        <tr><td class="name"><span class="chip ok">核心</span></td><td class="name">+ / −</td><td class="note">放大 / 缩小</td><td class="note">浏览器自身就是这个键</td></tr>
+        <tr><td class="name"><span class="chip mid">进阶</span></td><td class="name">0</td><td class="note">适应窗口</td><td class="note">借自专业工具，靠 tooltip 发现</td></tr>
+        <tr><td class="name"><span class="chip mid">进阶</span></td><td class="name">1</td><td class="note">原始尺寸</td><td class="note">同上</td></tr>
+        <tr><td class="name"><span class="chip mid">进阶</span></td><td class="name">R / ⇧R</td><td class="note">右转 / 左转</td><td class="note">同上</td></tr>
+        <tr><td class="name"><span class="chip no">已删</span></td><td class="name">空格 + 拖</td><td class="note">平移</td><td class="note"><strong>错的。</strong>专业工具需要它是因为默认拖拽被框选占用了；这里默认拖拽<strong>本来就是平移</strong>，加个修饰键纯属多余</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p>核心档三个键必须有，进阶档三个键做出来但不在界面上宣传——tooltip 里带着，会用的人自然会用，不会用的人靠按钮也能完成全部操作。<strong>没有任何功能只能通过进阶快捷键抵达。</strong></p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">技术决策</p>
+  <h2>十条，附实测数据</h2>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">01</span><h3>弹层用原生 <code>&lt;dialog&gt;</code>，不用 Portal 手搓</h3><span class="chip ok">支持率 96.11%</span></div>
+    <p><span class="lbl">理由</span><code>showModal()</code> 免费给到四样东西：top layer（永远在最上层，彻底退出 z-index 战争）、焦点陷阱、ESC 关闭、<code>::backdrop</code>。手搓 Portal 这四样每一样都是坑。</p>
+    <p><span class="lbl">额外收益</span>YARL 有一条"在 Dialog 里用 lightbox"的未解决讨论——原生 top layer 天然支持嵌套弹层，这个问题在我们这里不存在。</p>
+    <p><span class="lbl">风险</span>iOS Safari 15.4–16 的 <code>showModal()</code> 有边缘 bug，需要早期真机验证并准备降级路径。</p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">02</span><h3>手势三层状态机 + 边缘接力</h3><span class="chip neutral">核心竞争力</span></div>
+    <p><span class="lbl">模型</span>三层各自独立，按优先级消费同一串指针事件：</p>
+    <ul>
+      <li><strong>Pager</strong>（横向翻页）· <strong>Pan</strong>（缩放态平移）· <strong>Pinch/Wheel</strong>（缩放）</li>
+    </ul>
+    <p><span class="lbl">关键规则</span>缩放态下横向拖动<strong>先给 Pan 消费</strong>；当图片在该方向已经顶到边界，把剩余位移<strong>移交给 Pager</strong>。微信、飞书的移动端图片预览都是这个行为（iOS 照片同理，但同形态的对照是前两者），也正是 YARL 那条"Zoom blocks swipe until fully zoomed out"缺的东西。下拉关闭只在 <code>scale === 1</code> 时激活，避免和平移打架。</p>
+    <p><span class="lbl">基础</span>Pointer Events（96.08%，Safari 13+）+ <code>setPointerCapture</code> + 舞台 <code>touch-action: none</code>。不碰 touch events。</p>
+    <p><span class="lbl">风险</span><strong>这是全项目最大的隐性成本。</strong>手感调参（阈值、阻尼、速度采样窗口）没有捷径，预留 30% 工时，且必须在真机上调。</p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">03</span><h3>不引入动画库，自己写弹簧</h3></div>
+    <p><span class="lbl">理由</span>framer-motion 周下载 4,397 万，但作为核心依赖体积太大。惯性用速度采样 + 指数衰减，回弹用临界阻尼弹簧，<code>transform: translate3d + scale</code> 在 rAF 里批量提交，全程不触发 layout。自己写大约 200 行，换来零依赖。</p>
+    <p><span class="lbl">对标</span>react-photo-view 7.5 kB gzip、YARL 11.7 kB。我们的目标：核心 &lt; 10 kB，零运行时依赖。</p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">04</span><h3>开合动画用 FLIP 兜底，View Transitions 作为可选项</h3><span class="chip mid">VT 仅 90.20%</span></div>
+    <p><span class="lbl">数据</span>View Transitions（同文档）Chrome 111、Safari 18、<strong>Firefox 要到 144</strong>，全球 90.20%。低于我们其他所有底座技术。</p>
+    <p><span class="lbl">决策</span>默认走 FLIP（<code>getBoundingClientRect</code> 反算 transform），全浏览器一致且完全可控；View Transitions 做成 <code>transition="view-transition"</code> 的 opt-in。<strong>不把观感一致性押在 90% 上。</strong></p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">05</span><h3>缩放上限动态计算，不写死 maxScale</h3><span class="chip no">竞品崩溃点</span></div>
+    <p><span class="lbl">病根</span>react-photo-view 有一条"预览某些图片导致浏览器崩溃"的未修 issue。根因是 CSS transform 放大 <code>&lt;img&gt;</code> 时浏览器要按放大后的尺寸重新栅格化，显存直接爆掉。它还有一条相反的 issue：大图被 <code>maxScale: 6</code> 卡住，放到头都不到原始尺寸。<strong>写死上限两头都错。</strong></p>
+    <p><span class="lbl">对策</span>上限 = 图片原始像素 ÷ 当前渲染像素，让"放到 100%"永远可达且不越界；<code>will-change: transform</code> 只在手势期间挂载，手势结束立刻摘掉（长期挂着会持续占显存）；切图前先 <code>img.decode()</code> 再提交，消除白闪。</p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">06</span><h3>滚动锁定：<code>overscroll-behavior</code> + iOS 兜底</h3><span class="chip ok">95.54%</span></div>
+    <p><span class="lbl">注意</span><code>showModal()</code> 会让背景 inert，但<strong>不会锁滚动</strong>。<code>overscroll-behavior: contain</code> 挡住滚动链，iOS 仍需记录 <code>scrollY</code> + <code>position: fixed</code> 的老办法兜底。这是个人人踩、人人重写的坑，我们一次做对。</p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">07</span><h3>无障碍当 P0 做，不当补丁</h3><span class="chip neutral">对手的空白</span></div>
+    <p><span class="lbl">机会</span>YARL 的无障碍讨论有 19 条回复，是它热度最高的帖子之一——说明这块被反复追问。</p>
+    <p><span class="lbl">清单</span><code>&lt;dialog&gt;</code> 给了焦点和 ESC 的基础；再加 <code>aria-roledescription="carousel"</code>、切图时 <code>aria-live="polite"</code> 播报"第 3 张，共 12 张"、缩略图 <code>alt</code> 透传到大图、<code>prefers-reduced-motion</code> 下关掉 morph 与惯性、所有工具栏按钮有 <code>aria-label</code> 而不只有 tooltip。</p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">08</span><h3>组合式 API，不做插件生命周期</h3></div>
+    <p><span class="lbl">决策</span>compound components 就是插件系统：加按钮 = 往 <code>&lt;Viewer.Toolbar&gt;</code> 里塞 JSX，零学习成本。只为"需要接入核心状态机"的能力（拦截手势、抢键盘）留一个受控扩展点：<code>useViewer()</code> 暴露状态与命令 + 可选 <code>extensions</code> 数组。<strong>不做生命周期、不做 context 契约。</strong></p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">09</span><h3>触发器用 <code>asChild</code>，不强制我们的 <code>&lt;img&gt;</code></h3></div>
+    <p><span class="lbl">理由</span>Next.js 用户的缩略图是 <code>next/image</code>，Nuxt 有自己的，还有人用 <code>&lt;picture&gt;</code>。触发器必须是"转发 ref 和事件的透明包装"，而不是"我们渲染一个 img"。YARL 和 react-photo-view 在这里都有摩擦，这是低成本高回报的差异点。</p>
+    <p><span class="lbl">配套</span>整个组件 <code>"use client"</code>；缩略图本身仍可以是服务端渲染的，因为我们不接管它的渲染。</p>
+  </div>
+
+  <div class="dec">
+    <div class="dec-head"><span class="dec-n">10</span><h3>一个 npm 包 + 一个 shadcn registry，不分包</h3></div>
+    <p><span class="lbl">结构</span><code>react-img-view</code>（headless 核心，零样式）· <code>react-img-view/styles.css</code>（可选预设，CSS 变量暴露 token）· shadcn registry 里的 Tailwind 可拷贝源码。手势内核写成内部模块 <code>src/core/gesture</code>（纯 TS、零 React 依赖、独立单测），<strong>保留将来抽包的可能但现在不抽</strong>。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">底座数据</p>
+  <h2>我们依赖的浏览器能力</h2>
+  <div class="scroller">
+    <table>
+      <thead><tr><th>能力</th><th>全球支持</th><th>Chrome</th><th>Safari</th><th>Firefox</th><th>iOS Safari</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td class="name">&lt;dialog&gt;</td><td class="num">96.11%</td><td class="num">37</td><td class="num">15.4</td><td class="num">98</td><td class="num">15.4</td><td class="note">弹层地基</td></tr>
+        <tr><td class="name">Pointer Events</td><td class="num">96.08%</td><td class="num">55</td><td class="num">13</td><td class="num">59</td><td class="num">13.2</td><td class="note">手势输入</td></tr>
+        <tr><td class="name">IntersectionObserver</td><td class="num">95.95%</td><td class="num">58</td><td class="num">12.1</td><td class="num">55</td><td class="num">12.2</td><td class="note">预加载策略</td></tr>
+        <tr><td class="name">ResizeObserver</td><td class="num">95.66%</td><td class="num">64</td><td class="num">13.1</td><td class="num">69</td><td class="num">13.4</td><td class="note">舞台尺寸重算</td></tr>
+        <tr><td class="name">overscroll-behavior</td><td class="num">95.54%</td><td class="num">65</td><td class="num">16.0</td><td class="num">59</td><td class="num">16.0</td><td class="note">滚动锁定</td></tr>
+        <tr><td class="name">:focus-visible</td><td class="num">94.73%</td><td class="num">86</td><td class="num">15.4</td><td class="num">4</td><td class="num">15.4</td><td class="note">键盘焦点样式</td></tr>
+        <tr><td class="name">:has()</td><td class="num">94.07%</td><td class="num">105</td><td class="num">15.4</td><td class="num">121</td><td class="num">15.4</td><td class="note">样式（可降级）</td></tr>
+        <tr><td class="name">Container Queries</td><td class="num">94.05%</td><td class="num">106</td><td class="num">16.0</td><td class="num">110</td><td class="num">16.0</td><td class="note">工具栏自适应</td></tr>
+        <tr><td class="name">View Transitions</td><td class="num">90.20%</td><td class="num">111</td><td class="num">18.0</td><td class="num">144</td><td class="num">18.0</td><td class="note"><span class="chip mid">仅 opt-in</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p>结论：<strong>除 View Transitions 外，所有底座都在 94% 以上</strong>，可以直接当基线用，不需要 polyfill。基线定为 Safari 16 / iOS 16（对应 overscroll-behavior 与 Container Queries 的门槛），往下降级但不保证动效完整。</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">风险</p>
+  <h2>三个可能翻车的地方</h2>
+  <div class="prose">
+    <ul class="plain">
+      <li><strong>手感调参没有捷径。</strong>边缘接力的阈值、阻尼系数、速度采样窗口，只能在真机上反复试。这是全项目最大的隐性成本，也是最难被别人抄走的护城河——两面性。<em>缓解：第一周就搭起真机调试链路，不要等到最后。</em></li>
+      <li><strong>iOS Safari 是最大未知数。</strong><code>&lt;dialog&gt;</code> + <code>touch-action: none</code> + <code>position: fixed</code> 滚动锁 + 双指手势，这四样在 iOS 上的组合行为必须尽早验证。<em>缓解：技术验证阶段先做一个只有手势和弹层的最小原型，在真 iPhone 上跑通再动其他。</em></li>
+      <li><strong>超大图分块渲染可能做不完。</strong>已经放进 P2 了，但如果早期用户就拿 8000×8000 的图来测，压力会提前到来。<em>缓解：P0 阶段先做"上限保护 + 优雅降级"，保证不崩，不保证丝滑。</em></li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">下一步</p>
+  <h2>还需要你提供的</h2>
+  <div class="ask">
+    <h3>截图（有就发，没有我按标准做法处理）</h3>
+    <ol>
+      <li><strong>放大后的状态</strong>——想看工具栏有没有变化、光标形态、拖到边界时怎么处理。</li>
+      <li><strong>多图状态</strong>——右箭头长什么样、切换时有没有过渡、有没有任何位置指示。</li>
+      <li><strong>移动端 / 窄屏</strong>——如果飞书有 H5 版。桌面端布局推导不出移动端，而移动端手势正是我们的核心差异点。</li>
+    </ol>
+    <h3 style="margin-top:22px;">一个比截图更重要的问题</h3>
+    <p style="margin-bottom:0; font-size:15px;"><strong>你自己最想把它用在什么场景？</strong>相册、电商商品图、文档附件、后台管理系统的图片字段——这四个场景的 P0 取舍差别很大。比如电商要放大镜和 1:1，相册要缩略图轨和幻灯片，后台要文件元信息和批量下载。定了主场景，功能优先级才有依据，不然容易做成什么都有一点、什么都不够好。</p>
+  </div>
+</section>
+
+<p class="footnote">
+  浏览器支持数据于 2026-08-24 取自 caniuse 官方数据集（<code>Fyrd/caniuse</code> features-json），百分比为「完全支持 + 部分支持」之和。<br>
+  竞品缺陷引用自其 GitHub 公开 issue 与 discussion，详见前一份市场调研。<br>
+  飞书交互拆解基于三张静态截图（加载中 / 默认 / 暗色），动效、手势行为、移动端表现均未观察到，相关判断仅覆盖静态结构。
+</p>
+
+</div>
