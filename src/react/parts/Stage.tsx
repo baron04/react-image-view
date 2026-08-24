@@ -215,21 +215,40 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
     }
   }
 
-  const onWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    const gctx = gestureContext()
-    const rect = hostRef.current?.getBoundingClientRect()
-    if (!rect) return
-    event.preventDefault()
-    // Trackpad pinch arrives as a wheel event with ctrlKey set; a plain wheel
-    // is a mouse, which wants coarser steps.
-    const factor = event.ctrlKey ? 1 - event.deltaY * 0.01 : event.deltaY < 0 ? 1.15 : 1 / 1.15
-    api.zoomTo(gctx.transform.scale * factor, {
-      origin: {
-        x: event.clientX - rect.left - rect.width / 2,
-        y: event.clientY - rect.top - rect.height / 2,
-      },
-    })
-  }
+  // Wheel is bound natively rather than through React.
+  //
+  // React registers wheel listeners as passive, where preventDefault is
+  // ignored — so a trackpad pinch (which arrives as ctrl+wheel) fell through
+  // to the browser and zoomed the whole page instead of the image. Only a
+  // non-passive listener can claim it.
+  React.useEffect(() => {
+    const el = hostRef.current
+    if (!el) return
+
+    const onWheel = (event: WheelEvent) => {
+      const rect = el.getBoundingClientRect()
+      event.preventDefault()
+
+      const scale = internals.transformRef.current.scale
+      // A trackpad pinch is ctrl+wheel with a fine-grained delta; a plain
+      // wheel is a mouse, which has no resolution below one notch.
+      const factor = event.ctrlKey
+        ? Math.exp(-event.deltaY * 0.01)
+        : event.deltaY < 0
+          ? 1.15
+          : 1 / 1.15
+
+      api.zoomTo(scale * factor, {
+        origin: {
+          x: event.clientX - rect.left - rect.width / 2,
+          y: event.clientY - rect.top - rect.height / 2,
+        },
+      })
+    }
+
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [api, internals])
 
   return (
     <div
@@ -248,7 +267,6 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
       onPointerMove={onPointerMove}
       onPointerUp={(e) => endPointer(e, false)}
       onPointerCancel={(e) => endPointer(e, true)}
-      onWheel={onWheel}
     >
       {children}
     </div>
