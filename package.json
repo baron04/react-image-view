@@ -1,6 +1,6 @@
 {
   "name": "react-img-view",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Composable, headless image viewer for React. Built for reviewing documents and admin image fields.",
   "homepage": "https://baron04.github.io/react-img-view",
   "repository": {
