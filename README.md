@@ -1,11 +1,14 @@
 # react-img-view
 
-A composable, headless image viewer for React — built for reviewing
-document attachments and admin image fields, not photo galleries.
+A composable, headless **React image viewer** / image preview / lightbox
+component — built for reviewing document attachments and admin image
+fields, not photo galleries. Zoom, pan, pinch, rotate, fit-to-window and
+1:1, keyboard shortcuts, and touch gestures, with no styling you can't
+replace.
 
-**[Documentation](https://baron04.github.io/react-img-view)** ·
-[Quick Start](https://baron04.github.io/react-img-view/docs/quick-start) ·
-[API Reference](https://baron04.github.io/react-img-view/docs/api-reference)
+**[Documentation](https://baron04.github.io/react-img-view/)** ·
+[Quick Start](https://baron04.github.io/react-img-view/quick-start/) ·
+[API Reference](https://baron04.github.io/react-img-view/api-reference/)
 
 ```bash
 npm install react-img-view
@@ -22,7 +25,7 @@ import 'react-img-view/styles.css';
 
 One line for a single image, one component for a shared gallery, full
 composition when you need it — see the
-[docs](https://baron04.github.io/react-img-view/docs/quick-start) for all
+[docs](https://baron04.github.io/react-img-view/quick-start/) for all
 three.
 
 ![Zoom, rotate, fit, and page through attachments](media/demo.gif)
@@ -34,8 +37,8 @@ swipe-anything-to-dismiss. Reviewing a document attachment is a different
 job: the toolbar stays visible, there's a dedicated **1:1** control, pinch
 zoom hands off to the next slide mid-gesture instead of stuttering, and
 swipe-to-dismiss only responds to touch so a mouse drag never closes the
-viewer by accident. The [market research and decisions](docs/) behind that
-positioning are in this repo, not just asserted.
+viewer by accident. The reasoning behind every default is written up in
+[Design & Registry](https://baron04.github.io/react-img-view/design-and-registry/).
 
 ## Two ways to get the look
 
@@ -50,9 +53,8 @@ editable source — same design, same tokens, your choice of distribution.
 | `src/` | The package — `core/` is framework-agnostic gesture math and the state machine (zero React dependency, unit tested); `react/` and `preset/` are the React layer. |
 | `docs-site/` | The documentation site (Astro Starlight — plain markdown/MDX to static HTML, no server, deployed to GitHub Pages). |
 | `registry/` | The shadcn registry source; `registry.json` is the manifest. |
-| `design/` | The visual design canvas the preset's tokens and icons are drawn from. |
-| `docs/` | Long-form design records: market research, the decisions doc (why every default is what it is), and the architecture notes. |
 | `playground/` | A Vite app for developing against `src/` directly — real browser testing, not just unit tests. |
+| `e2e/` | Playwright smoke tests driven with real pointer events. |
 
 ## Developing
 

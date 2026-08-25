@@ -39,10 +39,12 @@ export {
   DefaultContent,
 }
 
-export { useViewer } from './react/context'
+export { useViewer, useLabels } from './react/context'
+export { defaultLabels } from './labels'
 export { Slot, composeRefs } from './react/slot'
 export type {
   ImageItem, ViewerApi, ViewerStatus, Extension, ImageViewRootProps, GestureHookPhase,
+  ViewerLabels,
 } from './types'
 export type { ControlProps, DownloadProps } from './react/parts/controls'
 export type { CounterProps, ErrorProps, RegionProps, StatusProps, TitleProps } from './react/parts/containers'

@@ -4,6 +4,19 @@ import { ImageView, useViewer } from '../src'
 import '../src/styles.css'
 import './playground.css'
 
+/**
+ * Real photographs by default, via Lorem Picsum with a fixed seed per slide
+ * so the same image comes back every run. `?offline=1` swaps in the locally
+ * generated sheets below — the e2e suite uses it, because a CI run that fails
+ * when a third-party image host has a bad minute is a flaky test, not a
+ * useful signal.
+ */
+const OFFLINE = new URLSearchParams(location.search).has('offline')
+
+function photo(seed: string, w: number, h: number): string {
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`
+}
+
 /** Generated locally so the playground never needs the network. */
 function sheet(seed: number, w: number, h: number): string {
   const rows = Array.from({ length: 14 }, (_, i) => {
@@ -22,12 +35,21 @@ function sheet(seed: number, w: number, h: number): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
+/**
+ * Deliberately mixed aspect ratios and sizes — portrait, wide, and one much
+ * larger than the stage — because that is what exercises fit-to-window, the
+ * 1:1 control, and the pan bounds. A set of identically-sized images makes
+ * the viewer look correct when it isn't.
+ */
 const files = [
-  { name: '采购合同_扫描件_第1页.jpg', src: sheet(1, 1400, 1900), w: 1400, h: 1900 },
-  { name: '发票_2026Q3.jpg', src: sheet(2, 2400, 1400), w: 2400, h: 1400 },
-  { name: '资质证明.jpg', src: sheet(3, 1000, 1400), w: 1000, h: 1400 },
-  { name: '验收单.jpg', src: sheet(4, 3200, 2400), w: 3200, h: 2400 },
-]
+  { name: 'site-survey-north-elevation.jpg', seed: 'riv-survey', w: 1400, h: 1900 },
+  { name: 'damage-report-wide.jpg', seed: 'riv-damage', w: 2400, h: 1400 },
+  { name: 'serial-plate-closeup.jpg', seed: 'riv-plate', w: 1000, h: 1400 },
+  { name: 'delivery-condition.jpg', seed: 'riv-delivery', w: 3200, h: 2400 },
+].map((f, i) => ({
+  ...f,
+  src: OFFLINE ? sheet(i + 1, f.w, f.h) : photo(f.seed, f.w, f.h),
+}))
 
 const images = files.map((f) => ({ src: f.src, name: f.name, alt: f.name, width: f.w, height: f.h }))
 
@@ -52,7 +74,7 @@ function Toolbar() {
       <ImageView.RotateLeft>rotL</ImageView.RotateLeft>
       <ImageView.RotateRight>rotR</ImageView.RotateRight>
       <i />
-      <ImageView.FitToWindow>适应窗口</ImageView.FitToWindow>
+      <ImageView.FitToWindow>fit</ImageView.FitToWindow>
       <ImageView.ActualSize>1:1</ImageView.ActualSize>
     </ImageView.Toolbar>
   )
@@ -66,10 +88,10 @@ function Toolbar() {
 function DefaultDemo() {
   return (
     <section className="demo">
-      <h2>默认预设 · L2</h2>
+      <h2>Default preset · L2</h2>
       <p className="hint">
         <code>&lt;ImageView.Root images={'{'}images{'}'}&gt;</code>
-        ，不写 <code>Content</code>，自动得到设计稿里的默认界面。
+         with no <code>Content</code> written — the reviewed default UI is supplied automatically.
       </p>
       <ImageView.Root images={images}>
         <div className="grid">
@@ -95,10 +117,10 @@ function DefaultDemo() {
 function ThumbnailsDemo() {
   return (
     <section className="demo">
-      <h2>缩略图轨 · 可选</h2>
+      <h2>Thumbnail strip · optional</h2>
       <p className="hint">
         <code>&lt;ImageView.Root images={'{'}images{'}'}&gt;&lt;ImageView.DefaultContent thumbnails /&gt;&lt;/ImageView.Root&gt;</code>
-        。窄屏下默认隐藏（<code>mode=&quot;auto&quot;</code>），除非传 <code>thumbnails=&quot;always&quot;</code>。
+        . Hidden on narrow screens by default (<code>mode=&quot;auto&quot;</code>) unless passed <code>thumbnails=&quot;always&quot;</code>.
       </p>
       <ImageView.Root images={images}>
         <div className="grid">
@@ -125,9 +147,9 @@ function SingleDemo() {
   const solo = images[0]!
   return (
     <section className="demo">
-      <h2>单图 · L1</h2>
+      <h2>Single image · L1</h2>
       <p className="hint">
-        <code>&lt;ImageView src alt&gt;</code>，一行接入，无需 Root/Trigger。
+        <code>&lt;ImageView src alt&gt;</code> — one line, no Root/Trigger needed.
       </p>
       <div className="grid" style={{ maxWidth: 200 }}>
         <ImageView src={solo.src} alt={solo.alt} name={solo.name} width={solo.width} height={solo.height}>
@@ -147,8 +169,8 @@ function AdvancedDemo() {
 
   return (
     <section className="demo">
-      <h2>完全组合 · L3</h2>
-      <p className="hint">自己拼界面，用于验证行为与调试。放大后拖到边缘继续拖，应当接力翻页且中途不停顿。</p>
+      <h2>Full composition · L3</h2>
+      <p className="hint">Assemble the UI yourself; used here to verify behaviour. Zoom in, then drag past the edge — it should hand off to the next slide without stopping.</p>
       <ImageView.Root
         images={images}
         open={open}
@@ -170,24 +192,24 @@ function AdvancedDemo() {
         <ImageView.Content>
           <div className="shell">
             <ImageView.Header className="topbar">
-              <ImageView.Close className="ghost" data-testid="close">关闭</ImageView.Close>
+              <ImageView.Close className="ghost" data-testid="close">Close</ImageView.Close>
               <span className="sep" />
               <ImageView.Title className="title" />
               <ImageView.Counter className="counter" />
               <span className="spacer" />
               <Readout />
-              <ImageView.Download className="ghost" data-testid="download">下载</ImageView.Download>
+              <ImageView.Download className="ghost" data-testid="download">Download</ImageView.Download>
             </ImageView.Header>
             <ImageView.Stage className="stage">
               <ImageView.Image />
               <ImageView.Prev className="nav nav-prev" data-testid="prev">‹</ImageView.Prev>
               <ImageView.Next className="nav nav-next" data-testid="next">›</ImageView.Next>
-              <ImageView.Loading className="overlay">载入中…</ImageView.Loading>
+              <ImageView.Loading className="overlay">Loading…</ImageView.Loading>
               <ImageView.Error className="overlay">
                 {({ retry }) => (
                   <div className="err">
-                    <div>无法加载这张图片</div>
-                    <button onClick={retry}>重试</button>
+                    <div>This image couldn&apos;t be loaded</div>
+                    <button onClick={retry}>Retry</button>
                   </div>
                 )}
               </ImageView.Error>

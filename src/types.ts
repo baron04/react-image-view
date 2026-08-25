@@ -45,6 +45,41 @@ export interface ViewerApi {
   retry(): void
 }
 
+/**
+ * Every user-facing string the library can render, in one place.
+ *
+ * These are English by default and overridable as a whole or field by field,
+ * because a component that hardcodes one language is unusable in an app
+ * written in another — and most of these are `aria-label`s, so getting them
+ * wrong is an accessibility bug, not a cosmetic one: a screen reader
+ * announces them verbatim regardless of the page's `lang`.
+ *
+ * Passed to `Root` as `labels`; read anywhere below it with `useLabels()`.
+ */
+export interface ViewerLabels {
+  /** `aria-label` on the modal itself. */
+  viewer: string
+  close: string
+  prev: string
+  next: string
+  zoomIn: string
+  zoomOut: string
+  rotateLeft: string
+  rotateRight: string
+  fitToWindow: string
+  actualSize: string
+  download: string
+  retry: string
+  /** `aria-label` on the thumbnail strip. */
+  thumbnails: string
+  /** Builds the `aria-label` for one thumbnail with no name of its own. */
+  thumbnailAt(index: number): string
+  /** Shown by the default error state. */
+  errorTitle: string
+  errorHint: string
+  loading: string
+}
+
 export type GestureHookPhase = 'start' | 'move' | 'end'
 
 /**
@@ -78,5 +113,10 @@ export interface ImageViewRootProps {
    */
   container?: HTMLElement | null
   extensions?: Extension[]
+  /**
+   * Override any user-facing string. Merged over the English defaults, so
+   * passing one field leaves the rest alone.
+   */
+  labels?: Partial<ViewerLabels>
   children?: React.ReactNode
 }

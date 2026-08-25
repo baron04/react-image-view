@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { Extension, ImageItem, ViewerApi, ViewerStatus } from '../types'
+import type { Extension, ImageItem, ViewerApi, ViewerLabels, ViewerStatus } from '../types'
 import type { ThumbnailFit } from '../core/flip'
 import type { Size, SlideSize, Transform } from '../core/types'
 import type { Ticker } from '../core/ticker'
@@ -59,6 +59,8 @@ export interface ViewerContextValue {
   container: HTMLElement | null
   internals: ViewerInternals
   extensions: Extension[]
+  /** Fully resolved — the caller's overrides already merged over the defaults. */
+  labels: ViewerLabels
   registerTrigger(reg: TriggerRegistration): () => void
   indexOf(id: string): number
   /**
@@ -85,4 +87,13 @@ export function useViewerContext(part: string): ViewerContextValue {
 /** Read-only handle plus commands. Safe to call from anywhere inside Root. */
 export function useViewer(): ViewerApi {
   return useViewerContext('useViewer').api
+}
+
+/**
+ * The resolved label set. Use it in custom controls so they localise from the
+ * same `labels` prop the built-in ones do, rather than growing a second,
+ * unrelated place the host app has to translate.
+ */
+export function useLabels(): ViewerLabels {
+  return useViewerContext('useLabels').labels
 }

@@ -8,6 +8,7 @@ import { Ticker } from '../../core/ticker'
 import { animateFlipFrame, animateTransform } from '../../core/animate'
 import { NO_CROP, fittedFlipFrame, flipFrameFromRect, prefersReducedMotion } from '../../core/flip'
 import { tuning } from '../../core/tuning'
+import { mergeLabels } from '../../labels'
 import { paintCrop, paintImage, paintTrack } from '../paint'
 import { Content } from './Content'
 import { DefaultContent } from '../../preset/DefaultContent'
@@ -44,6 +45,7 @@ export function Root({
   onIndexChange,
   container = null,
   extensions = [],
+  labels: labelsProp,
   children,
 }: ImageViewRootProps) {
   const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange)
@@ -58,6 +60,7 @@ export function Root({
       prev.width === next.width && prev.height === next.height ? prev : next,
     )
   }, [])
+  const labels = React.useMemo(() => mergeLabels(labelsProp), [labelsProp])
   const [natural, setNaturalState] = React.useState<SlideSize | null>(null)
   // Image.tsx calls this on every layout pass that touches the current slide,
   // not only when the size actually changed — republishing a same-valued but
@@ -506,8 +509,8 @@ export function Root({
   // read.
   const value = React.useMemo<ViewerContextValue>(
     // eslint-disable-next-line react-hooks/refs -- see comment above
-    () => ({ api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerGeometry, openAt }),
-    [api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerGeometry, openAt],
+    () => ({ api, images, container, internals, extensions, labels, registerTrigger, indexOf, getTriggerGeometry, openAt }),
+    [api, images, container, internals, extensions, labels, registerTrigger, indexOf, getTriggerGeometry, openAt],
   )
 
   // L2 falls out of L3 rather than being a separate path: if the caller

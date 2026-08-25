@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { Root } from '../react/parts/Root'
 import { Trigger } from '../react/parts/Trigger'
-import type { ImageItem } from '../types'
+import type { ImageItem, ViewerLabels } from '../types'
 
 export interface SingleImageProps extends ImageItem {
   children: React.ReactElement
-  /** Forwarded to Root — see ImageViewRootProps for what it does. */
+  /** Forwarded to Root — see ImageViewRootProps for what they do. */
   container?: HTMLElement | null
+  labels?: Partial<ViewerLabels>
 }
 
 /**
@@ -16,9 +17,9 @@ export interface SingleImageProps extends ImageItem {
  * `ImageView.Root` directly only matters once there is more than one image or
  * the default UI needs replacing.
  */
-export function SingleImage({ children, container, ...item }: SingleImageProps) {
+export function SingleImage({ children, container, labels, ...item }: SingleImageProps) {
   return (
-    <Root images={[item]} container={container}>
+    <Root images={[item]} container={container} labels={labels}>
       <Trigger index={0} {...item}>
         {children}
       </Trigger>

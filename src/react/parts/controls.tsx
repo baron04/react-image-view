@@ -49,17 +49,24 @@ const Control = React.forwardRef<HTMLButtonElement, BaseProps>(function Control(
   )
 })
 
-function useApi() {
-  return useViewerContext('Control').api
+/**
+ * Both halves of the context every control needs. `aria-label` comes from
+ * `labels` rather than a literal so the whole set localises from `Root`'s
+ * one `labels` prop — an untranslated `aria-label` is an accessibility bug,
+ * since a screen reader reads it out whatever the page's `lang` says.
+ */
+function useControl() {
+  const ctx = useViewerContext('Control')
+  return { api: ctx.api, labels: ctx.labels }
 }
 
 export const Close = React.forwardRef<HTMLButtonElement, ControlProps>(function Close(props, ref) {
-  const api = useApi()
-  return <Control ref={ref} part="close" action={api.close} aria-label="关闭" {...props} />
+  const { api, labels } = useControl()
+  return <Control ref={ref} part="close" action={api.close} aria-label={labels.close} {...props} />
 })
 
 export const Prev = React.forwardRef<HTMLButtonElement, ControlProps>(function Prev(props, ref) {
-  const api = useApi()
+  const { api, labels } = useControl()
   return (
     <Control
       ref={ref}
@@ -67,14 +74,14 @@ export const Prev = React.forwardRef<HTMLButtonElement, ControlProps>(function P
       action={api.prev}
       disabled={!api.canPrev}
       boundary={!api.canPrev}
-      aria-label="上一张"
+      aria-label={labels.prev}
       {...props}
     />
   )
 })
 
 export const Next = React.forwardRef<HTMLButtonElement, ControlProps>(function Next(props, ref) {
-  const api = useApi()
+  const { api, labels } = useControl()
   return (
     <Control
       ref={ref}
@@ -82,38 +89,56 @@ export const Next = React.forwardRef<HTMLButtonElement, ControlProps>(function N
       action={api.next}
       disabled={!api.canNext}
       boundary={!api.canNext}
-      aria-label="下一张"
+      aria-label={labels.next}
       {...props}
     />
   )
 })
 
 export const ZoomIn = React.forwardRef<HTMLButtonElement, ControlProps>(function ZoomIn(props, ref) {
-  const api = useApi()
+  const { api, labels } = useControl()
   return (
-    <Control ref={ref} part="zoom-in" action={() => api.zoomBy(1.4)} disabled={!api.canZoomIn} aria-label="放大" {...props} />
+    <Control
+      ref={ref}
+      part="zoom-in"
+      action={() => api.zoomBy(1.4)}
+      disabled={!api.canZoomIn}
+      aria-label={labels.zoomIn}
+      {...props}
+    />
   )
 })
 
 export const ZoomOut = React.forwardRef<HTMLButtonElement, ControlProps>(function ZoomOut(props, ref) {
-  const api = useApi()
+  const { api, labels } = useControl()
   return (
-    <Control ref={ref} part="zoom-out" action={() => api.zoomBy(1 / 1.4)} disabled={!api.canZoomOut} aria-label="缩小" {...props} />
+    <Control
+      ref={ref}
+      part="zoom-out"
+      action={() => api.zoomBy(1 / 1.4)}
+      disabled={!api.canZoomOut}
+      aria-label={labels.zoomOut}
+      {...props}
+    />
   )
 })
 
 export const RotateLeft = React.forwardRef<HTMLButtonElement, ControlProps>(function RotateLeft(props, ref) {
-  const api = useApi()
-  return <Control ref={ref} part="rotate-left" action={() => api.rotate(-90)} aria-label="向左旋转" {...props} />
+  const { api, labels } = useControl()
+  return (
+    <Control ref={ref} part="rotate-left" action={() => api.rotate(-90)} aria-label={labels.rotateLeft} {...props} />
+  )
 })
 
 export const RotateRight = React.forwardRef<HTMLButtonElement, ControlProps>(function RotateRight(props, ref) {
-  const api = useApi()
-  return <Control ref={ref} part="rotate-right" action={() => api.rotate(90)} aria-label="向右旋转" {...props} />
+  const { api, labels } = useControl()
+  return (
+    <Control ref={ref} part="rotate-right" action={() => api.rotate(90)} aria-label={labels.rotateRight} {...props} />
+  )
 })
 
 export const FitToWindow = React.forwardRef<HTMLButtonElement, ControlProps>(function FitToWindow(props, ref) {
-  const api = useApi()
+  const { api, labels } = useControl()
   return (
     <Control
       ref={ref}
@@ -123,21 +148,21 @@ export const FitToWindow = React.forwardRef<HTMLButtonElement, ControlProps>(fun
       // they are separate buttons and not a segmented control: a segmented
       // control claims one of its options is always chosen.
       active={Math.abs(api.scale - api.fitScale) < 1e-3}
-      aria-label="适应窗口"
+      aria-label={labels.fitToWindow}
       {...props}
     />
   )
 })
 
 export const ActualSize = React.forwardRef<HTMLButtonElement, ControlProps>(function ActualSize(props, ref) {
-  const api = useApi()
+  const { api, labels } = useControl()
   return (
     <Control
       ref={ref}
       part="actual-size"
       action={api.actualSize}
       active={Math.abs(api.scale - 1) < 1e-3}
-      aria-label="原始尺寸"
+      aria-label={labels.actualSize}
       {...props}
     />
   )
@@ -151,7 +176,7 @@ export const Download = React.forwardRef<HTMLAnchorElement, DownloadProps>(funct
   { asChild, children, ...rest },
   ref,
 ) {
-  const { images, api } = useViewerContext('Download')
+  const { images, api, labels } = useViewerContext('Download')
   const current = images[api.index]
   const Comp: React.ElementType = asChild ? Slot : 'a'
   return (
@@ -164,7 +189,7 @@ export const Download = React.forwardRef<HTMLAnchorElement, DownloadProps>(funct
       // applies same-origin, so a cross-origin URL still opens — worth knowing
       // before filing it as a bug.
       download={current?.name ?? ''}
-      aria-label="下载"
+      aria-label={labels.download}
     >
       {children}
     </Comp>

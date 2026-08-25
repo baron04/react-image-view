@@ -24,7 +24,7 @@ export const Thumbnails = React.forwardRef<HTMLDivElement, ThumbnailsProps>(func
   { mode = 'auto', ...rest },
   forwardedRef,
 ) {
-  const { images, api } = useViewerContext('Thumbnails')
+  const { images, api, labels } = useViewerContext('Thumbnails')
   const stripRef = React.useRef<HTMLDivElement | null>(null)
   const activeRef = React.useRef<HTMLButtonElement | null>(null)
 
@@ -45,7 +45,7 @@ export const Thumbnails = React.forwardRef<HTMLDivElement, ThumbnailsProps>(func
       data-image-view-thumbnails=""
       data-mode={mode}
       role="tablist"
-      aria-label="所有图片"
+      aria-label={labels.thumbnails}
     >
       {images.map((item, i) => {
         const active = i === api.index
@@ -58,7 +58,7 @@ export const Thumbnails = React.forwardRef<HTMLDivElement, ThumbnailsProps>(func
             data-active={active ? '' : undefined}
             role="tab"
             aria-selected={active}
-            aria-label={item.name ?? item.alt ?? `第 ${i + 1} 张`}
+            aria-label={item.name ?? item.alt ?? labels.thumbnailAt(i)}
             onClick={() => api.go(i)}
           >
             <img src={item.src} alt="" draggable={false} />

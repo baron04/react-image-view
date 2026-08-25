@@ -56,7 +56,7 @@ export const Content = React.forwardRef<HTMLDialogElement, ContentProps>(functio
       }}
       data-image-view=""
       data-state={ctx.api.open ? 'open' : 'closed'}
-      aria-label="图片预览"
+      aria-label={ctx.labels.viewer}
       onCancel={(event) => {
         // Escape reaches us as `cancel`; route it through the same path as the
         // close button so a controlled `open` stays authoritative.

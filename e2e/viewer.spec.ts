@@ -18,13 +18,13 @@ function currentTransform(page: import('@playwright/test').Page) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?offline=1')
 })
 
 test('L2: opens on the clicked thumbnail, shows its title', async ({ page }) => {
   await page.click('[data-testid="default-thumb-0"]')
   await expect(page.locator('dialog[data-image-view]')).toHaveAttribute('data-state', 'open')
-  await expect(page.locator('[data-image-view-title]')).toHaveText('采购合同_扫描件_第1页.jpg')
+  await expect(page.locator('[data-image-view-title]')).toHaveText('site-survey-north-elevation.jpg')
 })
 
 test('toolbar buttons respond to a real pointer click', async ({ page }) => {
@@ -50,10 +50,10 @@ test('next/prev page through the set and update the title', async ({ page }) => 
   await page.waitForSelector('dialog[data-image-view]')
 
   await page.click('[data-image-view-control="next"]')
-  await expect(page.locator('[data-image-view-title]')).toHaveText('发票_2026Q3.jpg')
+  await expect(page.locator('[data-image-view-title]')).toHaveText('damage-report-wide.jpg')
 
   await page.click('[data-image-view-control="prev"]')
-  await expect(page.locator('[data-image-view-title]')).toHaveText('采购合同_扫描件_第1页.jpg')
+  await expect(page.locator('[data-image-view-title]')).toHaveText('site-survey-north-elevation.jpg')
 })
 
 test('close unmounts the dialog', async ({ page }) => {
@@ -69,10 +69,26 @@ test('keyboard: arrow keys page, Escape closes', async ({ page }) => {
   await page.waitForSelector('dialog[data-image-view]')
 
   await page.keyboard.press('ArrowRight')
-  await expect(page.locator('[data-image-view-title]')).toHaveText('发票_2026Q3.jpg')
+  await expect(page.locator('[data-image-view-title]')).toHaveText('damage-report-wide.jpg')
 
   await page.keyboard.press('Escape')
   await expect(page.locator('dialog[data-image-view]')).toHaveCount(0)
+})
+
+test('ships English labels by default, on visible text and aria-labels alike', async ({ page }) => {
+  await page.click('[data-testid="default-thumb-0"]')
+  await page.waitForSelector('dialog[data-image-view]')
+
+  await expect(page.locator('dialog[data-image-view]')).toHaveAttribute('aria-label', 'Image viewer')
+  await expect(page.locator('[data-image-view-control="zoom-in"]')).toHaveAttribute(
+    'aria-label',
+    'Zoom in',
+  )
+
+  // The whole modal, not just the labels: a stray CJK character anywhere in
+  // the default UI means another hardcoded string slipped back in.
+  const text = await page.locator('dialog[data-image-view]').innerText()
+  expect(text).not.toMatch(/[一-鿿]/)
 })
 
 test('L1: single-image entry point opens and closes', async ({ page }) => {
