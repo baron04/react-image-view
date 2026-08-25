@@ -224,7 +224,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
 
       runCommands(result.commands, gctx)
     },
-    [gestureContext, internals, runCommands],
+    [gestureContext, internals, runCommands, schedulePaint],
   )
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {

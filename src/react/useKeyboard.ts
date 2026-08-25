@@ -17,9 +17,14 @@ export function useKeyboard(
   enabled: boolean,
 ): void {
   const apiRef = React.useRef(api)
-  apiRef.current = api
   const extRef = React.useRef(extensions)
-  extRef.current = extensions
+  // A passive effect, not written during render: nothing reads either ref
+  // before a keydown fires, which is always well after mount, so there is no
+  // timing reason to pay for a layout effect here.
+  React.useEffect(() => {
+    apiRef.current = api
+    extRef.current = extensions
+  })
 
   React.useEffect(() => {
     if (!node || !enabled) return

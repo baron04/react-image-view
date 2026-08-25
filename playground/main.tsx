@@ -98,7 +98,7 @@ function ThumbnailsDemo() {
       <h2>缩略图轨 · 可选</h2>
       <p className="hint">
         <code>&lt;ImageView.Root images={'{'}images{'}'}&gt;&lt;ImageView.DefaultContent thumbnails /&gt;&lt;/ImageView.Root&gt;</code>
-        。窄屏下默认隐藏（<code>mode="auto"</code>），除非传 <code>thumbnails="always"</code>。
+        。窄屏下默认隐藏（<code>mode=&quot;auto&quot;</code>），除非传 <code>thumbnails=&quot;always&quot;</code>。
       </p>
       <ImageView.Root images={images}>
         <div className="grid">

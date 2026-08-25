@@ -1,12 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import {
-  ImageView,
-  useViewer,
-  type ImageItem,
-  type ViewerApi,
-} from 'react-img-view'
+import { ImageView, type ImageItem } from 'react-img-view'
 
 /**
  * The default react-img-view UI, restyled with Tailwind for editing in

@@ -54,9 +54,14 @@ export const Trigger = React.forwardRef<HTMLElement, TriggerProps>(function Trig
         item,
         getGeometry: () => readGeometry(nodeRef.current),
       }),
+    // `ctx.registerTrigger`, not `ctx` itself: `ctx` is a new object on
+    // nearly every Root render (its `api` carries the live transform), and
+    // depending on it re-ran this effect — re-registering, which now bumps
+    // registryVersion — on every one of those, not just on a real change to
+    // what's being registered.
     // `item` is spread from props; re-registering on every field would thrash.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ctx, id, item.src, item.alt, item.name],
+    [ctx.registerTrigger, id, item.src, item.alt, item.name],
   )
 
   return (
