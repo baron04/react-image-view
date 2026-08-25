@@ -18,19 +18,19 @@ preset (works anywhere) and a copy-paste Tailwind block (for shadcn projects).
 pnpm registry:build
 ```
 
-Writes `public/r/image-view.json` and `public/r/registry.json` (gitignored —
-regenerate on demand; they have nowhere to be served from until the docs
-site ships and can host `public/`).
+Writes `docs-site/public/r/image-view.json` and `.../registry.json`
+directly into the docs site's static assets — that's a real, committed
+destination now, not a gitignored scratch output: Astro copies `public/`
+verbatim into `dist/` at build time, so these files are served at
+exactly the URL below once the site deploys. Re-run this after any change
+to `image-view.tsx` or the `cssVars` in `registry.json`; nothing does it
+automatically.
 
-## Installing (once hosted)
+## Installing
 
 ```bash
-npx shadcn@latest add https://<docs-site>/r/image-view.json
+npx shadcn@latest add https://baron04.github.io/react-img-view/r/image-view.json
 ```
-
-Until then, the file is plain source — copy `image-view/image-view.tsx`
-into your project by hand and `npm install react-img-view
-tailwindcss-animate`.
 
 ## Keeping this in sync with styles.css
 

@@ -1,0 +1,198 @@
+---
+title: API Reference
+description: Every part, every prop, exactly as shipped — pulled from the same types.ts consumers import.
+---
+
+## `ImageView`
+
+Callable (the L1 entry point) with every part attached as a static —
+`ImageView.Root`, `ImageView.Trigger`, and so on. `Root`, `Trigger`, etc.
+are also available as named exports if you'd rather not import the whole
+namespace.
+
+## `<ImageView src alt>`
+
+L1. Props are `ImageItem` (below) plus `children: ReactElement` (the
+trigger element) and `container?: HTMLElement | null` (forwarded to
+`Root`).
+
+## `<ImageView.Root>`
+
+| Prop | Type | Default | |
+|---|---|---|---|
+| `images` | `ImageItem[]` | triggers' own registration order | Omit it and list `Trigger`s as children instead. |
+| `open` / `defaultOpen` | `boolean` | `defaultOpen = false` | Controlled / uncontrolled. |
+| `onOpenChange` | `(open: boolean) => void` | — | |
+| `index` / `defaultIndex` | `number` | `defaultIndex = 0` | |
+| `onIndexChange` | `(index: number) => void` | — | |
+| `container` | `HTMLElement \| null` | `document.body` | Portal target — see [Installation](../installation/) for when to point this at a themed ancestor instead. |
+| `extensions` | `Extension[]` | `[]` | See [Extensions](#extension) below. |
+
+### `ImageItem`
+
+```ts
+interface ImageItem {
+  src: string;
+  alt?: string;
+  /** Shown by Title; falls back to alt, then the filename. */
+  name?: string;
+  /** Skips a measurement round-trip and stops the layout jumping on load. */
+  width?: number;
+  height?: number;
+  /** Defaults to src. Set when the download should serve a different file. */
+  downloadUrl?: string;
+}
+```
+
+## `<ImageView.Trigger>`
+
+`ImageItem` plus:
+
+| Prop | Type | |
+|---|---|---|
+| `index` | `number` | Position in the set. Registration order is used when omitted — pass it explicitly for virtualised lists or anything where mount order and visual order can diverge. |
+| `disabled` | `boolean` | |
+| `asChild` | — | Always on: `Trigger` renders its child, never an element of its own. |
+
+## `<ImageView.Content>`
+
+The `<dialog>`, portalled. Renders nothing extra — pass children to compose
+your own layout (L3), or omit it entirely and let `Root` supply
+`DefaultContent` (L2).
+
+## Layout regions
+
+`Header`, `Toolbar`, `Footer` — plain positioning containers, all
+`asChild`-capable `<div>`s with no behaviour of their own.
+
+## `<ImageView.Stage>`
+
+The gesture surface. `Image`, `Prev`/`Next`, `Loading`, `Error` are meant to
+live inside it — the toolbar's `position: absolute` in the preset is
+anchored to the stage specifically so anything placed below it (a caption,
+`Thumbnails`) doesn't push the toolbar out from under the picture.
+
+## `<ImageView.Image>`
+
+Renders the current slide and its immediate neighbours (so a page turn
+never waits on a mount mid-gesture). `overscan?: number` controls how many
+slides stay mounted either side of the current one (default `1`).
+
+## Status
+
+| Part | Renders when |
+|---|---|
+| `<ImageView.Loading>` | `status === 'loading'` |
+| `<ImageView.Error>` | `status === 'error'`. Children may be a render function: `{({ retry }) => …}`. |
+| `<ImageView.Title>` | Always — current image's `name`, falling back to `alt`. |
+| `<ImageView.Counter>` | Always, once rendered — not in `DefaultContent` by default. `"3 / 8"`, or a render function `{({ index, total }) => …}`. |
+
+## Controls
+
+Every control below is a `<button>` (or `<a>` for `Download`) accepting
+`asChild`, standard button/anchor props, and publishing `data-active` /
+`data-boundary` / `disabled` where relevant.
+
+| Component | `data-image-view-control` | Behaviour |
+|---|---|---|
+| `Close` | `close` | `api.close()` |
+| `Prev` / `Next` | `prev` / `next` | `api.prev()` / `api.next()`; `data-boundary` and `disabled` at either end of the set |
+| `ZoomIn` / `ZoomOut` | `zoom-in` / `zoom-out` | `api.zoomBy(1.4)` / `api.zoomBy(1/1.4)`; `disabled` at the zoom ceiling/floor |
+| `RotateLeft` / `RotateRight` | `rotate-left` / `rotate-right` | `api.rotate(∓90)` |
+| `FitToWindow` | `fit` | `api.fit()`; `data-active` when `scale === fitScale` |
+| `ActualSize` | `actual-size` | `api.actualSize()`; `data-active` when `scale === 1` |
+| `Download` | `download` | An `<a>` with `href`/`download` set from the current image |
+
+`FitToWindow` and `ActualSize` are deliberately two buttons, not a
+segmented control — a segmented control asserts one option is always
+selected, but a mid-zoom image has neither active. See
+[Design & Registry](../design-and-registry/) for the fuller reasoning.
+
+## `<ImageView.Thumbnails>`
+
+Opt-in — never rendered by `DefaultContent` automatically.
+
+| Prop | Type | Default |
+|---|---|---|
+| `mode` | `'auto' \| 'always' \| 'never'` | `'auto'` |
+
+`auto` renders nothing for a single image, and hides under a 640px
+viewport via CSS regardless of image count (a strip costs roughly 15% of a
+phone's height for little benefit at that scale). `always` overrides both.
+
+## `<ImageView.DefaultContent>`
+
+What `Root` renders automatically when you don't supply your own
+`Content`. Also usable explicitly, e.g. to turn on `counter`/`thumbnails`
+without writing the rest of L3 by hand:
+
+| Prop | Type | Default |
+|---|---|---|
+| `counter` | `boolean` | `false` |
+| `thumbnails` | `boolean \| 'auto' \| 'always' \| 'never'` | `false` — `true` means `'auto'` |
+| `errorTitle` | `string` | `"无法加载这张图片"` |
+| `errorHint` | `string` | (a Chinese sentence about corrupted files / unsupported encodings) |
+
+## `useViewer()`
+
+Returns the live `ViewerApi` — safe to call from any component inside
+`Root`.
+
+```ts
+interface ViewerApi {
+  readonly index: number;
+  readonly total: number;
+  readonly open: boolean;
+  readonly transform: Transform; // { scale, x, y, rotation }
+  readonly scale: number;
+  readonly rotation: number;
+  readonly fitScale: number;
+  readonly canZoomIn: boolean;
+  readonly canZoomOut: boolean;
+  readonly canPrev: boolean;
+  readonly canNext: boolean;
+  readonly status: 'idle' | 'loading' | 'ready' | 'error';
+
+  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void;
+  zoomBy(factor: number): void;
+  fit(): void;
+  actualSize(): void;
+  rotate(degrees: number): void;
+  go(index: number): void;
+  next(): void;
+  prev(): void;
+  close(): void;
+  retry(): void;
+}
+```
+
+`scale`/`rotation`/pan position are deliberately **not** controllable props
+— they change every frame during a gesture, and making them controlled
+would push a 60fps render loop onto every consumer. Read them from
+`useViewer()`; drive them with the methods above.
+
+## `Extension`
+
+The escape hatch for behaviour composition can't reach — intercepting a
+gesture, claiming a keystroke. Two hooks, no lifecycle: anything that needs
+to *render* belongs in the tree as a child instead.
+
+```ts
+interface Extension {
+  name: string;
+  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void;
+  onGesture?(phase: 'start' | 'move' | 'end', api: ViewerApi): boolean | void;
+}
+```
+
+Return `true` to mark the event consumed. Pass an array via `Root`'s
+`extensions` prop.
+
+## `core`
+
+The gesture math and state machine, exported for anyone building past what
+the React layer offers — `core.tuning` (every constant that shapes how the
+viewer feels, in one documented place), `core.fitScale`, `core.maxScale`,
+the reducer in `core` gesture machine, and the animation drivers. Zero React
+dependency; see the [architecture notes](https://github.com/baron04/react-img-view/blob/main/docs/03-架构设计.html)
+for why it's kept that way.

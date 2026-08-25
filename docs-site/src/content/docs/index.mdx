@@ -1,0 +1,98 @@
+---
+title: react-img-view
+description: A composable, headless image viewer for React — built for reviewing document attachments and admin image fields, not photo galleries.
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+{/* Plain relative hrefs, not root-relative. Verified by building and
+    inspecting dist/*.html: Starlight's base-path rewrite only reaches its
+    own generated sidebar/pagination nav — neither a literal markdown link
+    nor a component's href prop gets touched by it, so anything root-relative
+    written here ships without /react-img-view. A relative path needs no
+    rewriting at all: it resolves against the page's own (already correct)
+    URL by ordinary browser rules. */}
+
+## What this is
+
+A React image viewer for the case that shows up in every admin panel and
+document workflow: someone clicks a thumbnail, needs to actually read the
+thing — check a figure on an invoice, confirm a signature, read small print
+on a scanned contract — and clicks away again. Not a photo gallery.
+
+That distinction drives every default in this library. The toolbar is
+always visible rather than fading out. There's a dedicated **1:1** control
+because "is this legible at full resolution" is a real question here.
+Pinch-zoom pans smoothly and a drag that runs out of room hands off to the
+next slide mid-gesture, without a stutter. Swipe-to-dismiss only responds to
+touch and pen — a mouse dragged downward should never close the viewer, no
+matter how it happened.
+
+<CardGrid>
+	<LinkCard
+		title="Installation"
+		description="Add the package and, optionally, its preset styles."
+		href="installation/"
+	/>
+	<LinkCard
+		title="Quick Start"
+		description="One line for a single image, one component for a shared gallery."
+		href="quick-start/"
+	/>
+	<LinkCard
+		title="API Reference"
+		description="Every part, every prop, exactly as shipped."
+		href="api-reference/"
+	/>
+</CardGrid>
+
+## Three ways in, same underlying tree
+
+```tsx
+// L1 — one image, one line
+<ImageView src={full} alt={name}>
+  <img src={thumb} alt={name} />
+</ImageView>
+
+// L2 — several images sharing one viewer, default UI
+<ImageView.Root images={files}>
+  {files.map((f) => (
+    <ImageView.Trigger key={f.src} {...f}>
+      <img src={f.src} alt={f.alt} />
+    </ImageView.Trigger>
+  ))}
+</ImageView.Root>
+
+// L3 — full composition, your own layout
+<ImageView.Root images={files}>
+  {/* triggers */}
+  <ImageView.Content>
+    <ImageView.Header>…</ImageView.Header>
+    <ImageView.Stage>
+      <ImageView.Image />
+    </ImageView.Stage>
+    <ImageView.Toolbar>…</ImageView.Toolbar>
+  </ImageView.Content>
+</ImageView.Root>
+```
+
+L1 and L2 are not a separate, simplified implementation — `Root` detects
+whether you've already placed a `<ImageView.Content>` among its children,
+and appends the same reviewed default UI itself when you haven't. There is
+no second design to fall out of sync with the one L3 composes by hand.
+
+## Why not a gallery library
+
+Most React image viewers — `yet-another-react-lightbox`, `react-photo-view`,
+PhotoSwipe — are built for browsing: fading chrome, slideshow autoplay,
+swipe-anything-to-dismiss. Reviewing a document is a different job with
+different defaults, and retrofitting a gallery library for it usually means
+fighting its opinions. See [the design decisions](design-and-registry/)
+for the fuller reasoning, including why several gallery conventions were
+deliberately left out.
+
+## What it isn't
+
+No image editing, no built-in gallery/grid layout (pair it with something
+like `react-photo-album` for that), no autoplay slideshow. Reviewing an
+image is the whole scope.

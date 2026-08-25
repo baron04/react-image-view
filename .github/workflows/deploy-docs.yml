@@ -1,0 +1,71 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs-site/**"
+      - "registry.json"
+      - "registry/**"
+      - ".github/workflows/deploy-docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            docs-site/pnpm-lock.yaml
+
+      - name: Install package dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Regenerated here rather than trusted from the commit, so the served
+      # registry JSON can never drift from registry.json / image-view.tsx —
+      # the same guarantee the CSS preset gets by being part of `pnpm build`.
+      - name: Build the shadcn registry
+        run: pnpm registry:build
+
+      - name: Install docs-site dependencies
+        working-directory: docs-site
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: docs-site
+        env:
+          GITHUB_PAGES: "true"
+        run: pnpm build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs-site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

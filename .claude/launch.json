@@ -1,6 +1,34 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "playground", "runtimeExecutable": "pnpm", "runtimeArgs": ["vite"], "port": 5180 }
+    {
+      "name": "playground",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "vite"
+      ],
+      "port": 5180
+    },
+    {
+      "name": "docs-site",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--dir",
+        "docs-site",
+        "dev",
+        "--port",
+        "3100"
+      ],
+      "port": 3100
+    },
+    {
+      "name": "docs-site-preview",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd docs-site && GITHUB_PAGES=true pnpm exec astro preview --port 3101"
+      ],
+      "port": 3101
+    }
   ]
 }
