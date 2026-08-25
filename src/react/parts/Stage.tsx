@@ -228,6 +228,15 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
   )
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    // The toolbar and the prev/next arrows are rendered inside the stage (so
+    // they can be anchored to it), which makes them pointerdown targets here
+    // too. Capturing the pointer for a gesture on every one of those swallows
+    // the click the button is about to receive — the browser's click
+    // synthesis needs pointerup to land on the same element pointerdown did,
+    // and setPointerCapture redirects it to the stage instead. A control
+    // click isn't a gesture, so let it through untouched.
+    if ((event.target as HTMLElement).closest('[data-image-view-control]')) return
+
     // Capture so the gesture survives the pointer leaving the element — letting
     // a drag die at the edge of the stage is a common and very annoying bug.
     // It throws if the pointer is already gone, which is not worth losing the
