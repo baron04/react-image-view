@@ -1,6 +1,6 @@
 {
   "name": "react-img-view",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Composable, headless image viewer for React. Built for reviewing documents and admin image fields.",
   "homepage": "https://baron04.github.io/react-img-view",
   "repository": {
@@ -11,6 +11,10 @@
     "url": "https://github.com/baron04/react-img-view/issues"
   },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "author": "baron04",
   "type": "module",
   "sideEffects": [
