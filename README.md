@@ -25,6 +25,8 @@ composition when you need it — see the
 [docs](https://baron04.github.io/react-img-view/docs/quick-start) for all
 three.
 
+![Zoom, rotate, fit, and page through attachments](media/demo.gif)
+
 ## Why
 
 Most React image viewers are built for browsing — fading chrome, autoplay,
