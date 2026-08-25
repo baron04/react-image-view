@@ -1,0 +1,43 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "react-img-view",
+  "homepage": "https://github.com/baron04/react-img-view",
+  "items": [
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "image-view",
+      "type": "registry:block",
+      "title": "Image Preview",
+      "description": "The default react-img-view UI, restyled with Tailwind for editing in place. Behaviour (gestures, modal, keyboard, the open/close animation) comes from the react-img-view package; only presentation is copied into your project.",
+      "dependencies": ["react-img-view", "tailwindcss-animate"],
+      "files": [
+        {
+          "path": "registry/image-view/image-view.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "cssVars": {
+        "light": {
+          "riv-chrome": "#ffffff",
+          "riv-stage": "#f2f4f8",
+          "riv-line": "#dee1e8",
+          "riv-ink": "#14171f",
+          "riv-ink-muted": "#565e70",
+          "riv-hover": "#eceef4",
+          "riv-accent": "#3d4e8f",
+          "riv-accent-surface": "#e9ebf5"
+        },
+        "dark": {
+          "riv-chrome": "#1b1d24",
+          "riv-stage": "#121419",
+          "riv-line": "#2a2e3a",
+          "riv-ink": "#e5e7ee",
+          "riv-ink-muted": "#959bae",
+          "riv-hover": "#262a35",
+          "riv-accent": "#8e9bdb",
+          "riv-accent-surface": "#242840"
+        }
+      }
+    }
+  ]
+}
