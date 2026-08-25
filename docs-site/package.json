@@ -13,5 +13,6 @@
     "@astrojs/starlight": "^0.41.8",
     "astro": "^7.1.6",
     "sharp": "^0.35.3"
-  }
+  },
+  "packageManager": "pnpm@10.28.1"
 }
