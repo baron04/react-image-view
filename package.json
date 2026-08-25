@@ -1,7 +1,7 @@
 {
   "name": "react-img-view",
   "version": "0.1.1",
-  "description": "Composable, headless image viewer for React. Built for reviewing documents and admin image fields.",
+  "description": "React image viewer and lightbox component: zoom, pan, pinch, rotate, fit-to-window and 1:1, keyboard and touch. Headless and composable, built for previewing document attachments and admin image fields.",
   "homepage": "https://baron04.github.io/react-img-view",
   "repository": {
     "type": "git",
@@ -75,12 +75,30 @@
   },
   "keywords": [
     "react",
+    "react-image-viewer",
+    "image-viewer",
+    "react-image-preview",
+    "image-preview",
+    "lightbox",
+    "react-lightbox",
+    "photo-viewer",
     "image",
     "viewer",
     "preview",
-    "lightbox",
+    "gallery",
+    "modal",
     "zoom",
-    "headless"
+    "pan",
+    "pinch-zoom",
+    "rotate",
+    "pinch",
+    "headless",
+    "composable",
+    "accessible",
+    "a11y",
+    "typescript",
+    "attachment",
+    "document-viewer"
   ],
   "pnpm": {
     "onlyBuiltDependencies": [

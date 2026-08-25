@@ -63,6 +63,8 @@ pnpm install
 pnpm dev          # tsup --watch
 pnpm vite         # the playground, at localhost:5180
 pnpm test         # vitest
+pnpm e2e          # playwright (starts the playground itself)
+pnpm lint
 pnpm typecheck
 pnpm build        # ESM + CJS + .d.ts, minified, into dist/
 ```
@@ -70,6 +72,21 @@ pnpm build        # ESM + CJS + .d.ts, minified, into dist/
 `pnpm registry:build` regenerates the shadcn registry's served JSON into
 `docs-site/public/r/` — do this after changing `registry/image-view/
 image-view.tsx` or the `cssVars` in `registry.json`.
+
+## Releasing
+
+Bump `version` in `package.json`, merge, then run the **Release** workflow
+from the Actions tab. It lints, typechecks, unit-tests, builds, runs the e2e
+suite, refuses to republish a version that already exists, publishes to npm
+with provenance, tags the commit, and opens a GitHub release. It defaults to
+a dry run — untick it to publish for real.
+
+Two one-time setup steps it depends on:
+
+1. An npm **automation** token (npmjs.com → Access Tokens → Generate →
+   Automation). Automation tokens are the kind that work under 2FA; a
+   classic publish token will be rejected.
+2. That token stored as the `NPM_TOKEN` repository secret on GitHub.
 
 ## Known limitation
 

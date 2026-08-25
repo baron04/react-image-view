@@ -1,0 +1,98 @@
+name: Release
+
+# Publishing is driven by the version in package.json, not by a tag pushed by
+# hand: the tag is created *from* that version once the build passes, so a tag
+# can never point at a commit whose package.json says something else.
+#
+# Guarded by an explicit dispatch rather than firing on every push to main —
+# publishing is irreversible (a version number can be deprecated but never
+# reused), which is not something a routine merge should be able to trigger.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Build, test, and pack — but do not publish or tag'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright's browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E
+        run: pnpm e2e
+
+      - name: Read the version being released
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Publishing the same version twice fails partway through, after the tag
+      # exists — cheaper to find out before anything has been written.
+      - name: Refuse to republish an existing version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if npm view "react-img-view@$VERSION" version >/dev/null 2>&1; then
+            echo "react-img-view@$VERSION is already on npm. Bump the version in package.json first."
+            exit 1
+          fi
+          echo "v$VERSION is unpublished — proceeding."
+
+      - name: Inspect the tarball
+        run: npm pack --dry-run
+
+      - name: Publish to npm
+        if: ${{ !inputs.dry_run }}
+        # Provenance ties the published tarball to this workflow run, so anyone
+        # can verify what source built it. Requires id-token: write above.
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Tag the release
+        if: ${{ !inputs.dry_run }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Create the GitHub release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "v$VERSION" --title "v$VERSION" --generate-notes
