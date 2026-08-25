@@ -1,17 +1,12 @@
 import type { Size, Transform } from './types'
+import { tuning } from './tuning'
 
 export const IDENTITY: Transform = { scale: 1, x: 0, y: 0, rotation: 0 }
 
-/**
- * A budget on rasterised pixels. Scaling an <img> with a CSS transform makes
- * the compositor re-rasterise the layer at the scaled size, and an unbounded
- * ceiling is what makes competing viewers exhaust GPU memory and take the tab
- * down with them. 64 megapixels is roughly a 8000x8000 layer.
- */
-const MAX_RASTER_PIXELS = 64_000_000
-
-/** Hard ceiling, so a tiny image cannot be magnified into abstraction. */
-const MAX_ZOOM_FACTOR = 16
+// Tunable values live in ./tuning — see that file for the reasoning behind
+// each one and the note on real-device confirmation still being outstanding.
+const MAX_RASTER_PIXELS = tuning.zoom.maxRasterPixels
+const MAX_ZOOM_FACTOR = tuning.zoom.maxFactor
 
 export function normaliseRotation(deg: number): number {
   return ((deg % 360) + 360) % 360

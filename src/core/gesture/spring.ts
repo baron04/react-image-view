@@ -1,3 +1,5 @@
+import { tuning } from '../tuning'
+
 /**
  * Physics for settling motion. Deliberately hand-rolled: a critically damped
  * spring and an exponential decay are a few dozen lines between them, and the
@@ -10,16 +12,9 @@ export interface SpringState {
   velocity: number
 }
 
-/**
- * Longest slice the integrator will take in one go, in seconds.
- *
- * Explicit integration of a stiff spring blows up once the step grows past
- * roughly 2/sqrt(stiffness): the velocity term is amplified instead of damped
- * and the value runs away. A dropped frame or a backgrounded tab is enough to
- * get there, and the symptom is spectacular — the image flies off screen.
- * Sub-stepping keeps every slice small no matter how long the frame was.
- */
-const MAX_SUBSTEP = 1 / 240
+// See ../tuning for the reasoning; kept as a local const so every call site
+// below reads `MAX_SUBSTEP` rather than the longer `tuning.spring...` path.
+const MAX_SUBSTEP = tuning.spring.maxSubstepSeconds
 
 /**
  * Critically damped step — reaches the target as fast as possible without

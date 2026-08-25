@@ -1,3 +1,4 @@
+export * from './tuning'
 export * from './types'
 export * from './transform'
 export * from './image'

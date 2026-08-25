@@ -6,13 +6,10 @@ import { IDENTITY, clamp, fitScale as computeFit, maxScale as computeMax, zoomAb
 import { Ticker } from '../../core/ticker'
 import { animateTransform } from '../../core/animate'
 import { prefersReducedMotion, transformFromRect } from '../../core/flip'
+import { tuning } from '../../core/tuning'
 
-/**
- * Exits are much quicker than entrances. An entrance is showing you where the
- * image came from; an exit is getting out of the way, and anything lingering
- * there feels like a stall. Roughly 100ms.
- */
-const EXIT_STIFFNESS = 3600
+// See ../../core/tuning: exits run far stiffer than entrances on purpose.
+const EXIT_STIFFNESS = tuning.spring.exitStiffness
 import { paintImage, paintTrack } from '../paint'
 import { Content } from './Content'
 import { DefaultContent } from '../../preset/DefaultContent'

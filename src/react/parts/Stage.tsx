@@ -6,6 +6,7 @@ import { VelocityTracker } from '../../core/gesture/pointer'
 import { panBounds } from '../../core/gesture/bounds'
 import { animateFling, animateTransform, animateValue } from '../../core/animate'
 import { fitScale as computeFit, maxScale as computeMax, IDENTITY } from '../../core/transform'
+import { tuning } from '../../core/tuning'
 import {
   createState,
   reduce,
@@ -15,14 +16,9 @@ import {
   type GestureState,
 } from '../../core/gesture/machine'
 
-/**
- * How hard a trackpad pinch bites, per unit of wheel delta.
- *
- * Trackpads vary enough between vendors that this wants confirming by hand;
- * what made the gesture feel dead before was not this number but starting a
- * settling animation per event, so that each one cancelled the last.
- */
-const TRACKPAD_ZOOM_RATE = 0.02
+// See ../../core/tuning for the reasoning; this is the value most likely to
+// need per-platform adjustment.
+const TRACKPAD_ZOOM_RATE = tuning.zoom.trackpadRate
 
 export interface StageProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode

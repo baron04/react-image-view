@@ -1,13 +1,10 @@
 import type { Bounds, Point, Transform } from './types'
 import { decayStep, isSettled, springStep, type SpringState } from './gesture/spring'
 import type { Ticker } from './ticker'
+import { tuning } from './tuning'
 
-/**
- * Critically damped settling takes roughly 6/sqrt(k) seconds, so this is about
- * a third of a second — quick enough that a button press feels answered,
- * slow enough to still read as motion rather than a cut.
- */
-const SETTLE_STIFFNESS = 340
+// See ./tuning for the reasoning behind every value below.
+const SETTLE_STIFFNESS = tuning.spring.settleStiffness
 
 /**
  * Per-channel settle thresholds, in the channel's own units.
@@ -66,15 +63,8 @@ export function animateTransform(
   })
 }
 
-/**
- * Glide distance after a flick is v0/friction, so 5 sent a brisk throw over
- * 400px past where the finger stopped — the image kept going somewhere the
- * hand had not asked for.
- */
-const FLING_FRICTION = 9
-
-/** Below this (px/ms) a release is a stop, not a throw. */
-const FLING_MIN_VELOCITY = 0.08
+const FLING_FRICTION = tuning.fling.friction
+const FLING_MIN_VELOCITY = tuning.fling.minVelocity
 
 /**
  * Carry a released pan on, then bring it home if it left the bounds.

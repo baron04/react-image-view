@@ -1,5 +1,6 @@
 import type { Point, Size, Transform } from '../types'
 import { clamp, orientedSize, zoomAbout } from '../transform'
+import { tuning } from '../tuning'
 import { panBounds, remainingIn, rubberBand } from './bounds'
 
 export type GesturePhase =
@@ -16,36 +17,18 @@ export type GesturePhase =
   /** Two pointers down. */
   | 'pinching'
 
-/** Movement before a single-pointer drag commits to an axis. */
-export const INTENT_THRESHOLD = 8
+/** Movement before a single-pointer drag commits to an axis. See ../tuning. */
+export const INTENT_THRESHOLD = tuning.intentThreshold
 
-/**
- * Overshoot past a pan edge before control passes to the pager. Large enough
- * that a pan ending at the edge does not turn the page by accident, small
- * enough that deliberately continuing feels like one motion.
- *
- * A starting value, not a conclusion — this wants tuning on real hardware.
- */
-export const HANDOFF_THRESHOLD = 40
+/** See ../tuning: the threshold this whole mechanism hinges on. */
+export const HANDOFF_THRESHOLD = tuning.handoffThreshold
 
-/** Fraction of the stage a page drag must cover to commit on release. */
-export const PAGE_COMMIT_RATIO = 0.5
-/** …or this flick speed, in px/ms, which commits regardless of distance. */
-export const PAGE_COMMIT_VELOCITY = 0.4
+export const PAGE_COMMIT_RATIO = tuning.page.commitRatio
+export const PAGE_COMMIT_VELOCITY = tuning.page.commitVelocity
 
-/**
- * Pull-to-dismiss is deliberately harder to trigger than a page turn. A short
- * downward drag is a very common accident while reading, and dismissing on one
- * loses the reader's place for no reason.
- */
-export const DISMISS_COMMIT_RATIO = 0.35
-export const DISMISS_COMMIT_VELOCITY = 1.6
-/**
- * A flick alone must not dismiss. Any brisk downward swipe clears a velocity
- * threshold — that was what kept closing the viewer by accident — so the drag
- * has to have covered real ground as well before speed counts for anything.
- */
-export const DISMISS_FLICK_MIN_PROGRESS = 0.5
+export const DISMISS_COMMIT_RATIO = tuning.dismiss.commitRatio
+export const DISMISS_COMMIT_VELOCITY = tuning.dismiss.commitVelocity
+export const DISMISS_FLICK_MIN_PROGRESS = tuning.dismiss.flickMinProgress
 
 export interface ActivePointer {
   id: number
