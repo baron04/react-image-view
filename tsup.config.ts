@@ -11,6 +11,15 @@ export default defineConfig({
   treeshake: true,
   target: 'es2020',
   external: ['react', 'react-dom'],
+  // The published bundle had been shipping full source — including every
+  // multi-paragraph doc comment in src/core/tuning.ts — because tsup does
+  // not minify by default. That was never a deliberate choice; every "N kB
+  // gzipped" figure reported before this had comments baked into it.
+  // Consumers only ever see the .d.ts for documentation, so there is nothing
+  // lost by minifying the runtime code. Identifier minification only
+  // touches internal bindings — exported names must still match the .d.ts,
+  // so esbuild does not (and cannot) rename them.
+  minify: true,
   // "use client" must survive bundling — RSC consumers depend on it
   banner: { js: '"use client";' },
 })
