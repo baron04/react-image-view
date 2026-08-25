@@ -71,14 +71,16 @@ image-view.tsx` or the `cssVars` in `registry.json`.
 
 Every gesture constant — how far a pan has to overshoot before it hands off
 to the pager, how hard a flick decays, the trackpad pinch rate — lives in
-[`src/core/tuning.ts`](src/core/tuning.ts) and has been exercised hard: replayed
-pointer-event sequences in unit tests, synthetic touch/pinch dispatched through
-a real browser, mobile-width and touch-emulated viewports. None of that is a
-substitute for a physical thumb — latency, screen size, and finger friction
-change how a threshold feels in ways synthetic events can't reproduce, and
-this hasn't had that pass yet. If a gesture feels wrong on a real phone,
-`tuning.ts` is the one file to open; a PR changing a number there, with what
-device it was felt on, is exactly the kind of contribution this needs.
+[`src/core/tuning.ts`](src/core/tuning.ts). It's been exercised hard in
+simulation (replayed pointer-event sequences in unit tests, synthetic
+touch/pinch dispatched through a real browser, mobile-width and
+touch-emulated viewports) and has now had one real-device pass on an actual
+phone, with no issues reported — pinch, pan-to-page handoff, and
+pull-to-dismiss all felt right. That's one device, not a matrix; latency,
+screen size, and finger friction vary enough across hardware that this is
+still worth trying on whatever you're carrying. If a gesture feels wrong,
+`tuning.ts` is the one file to open — a PR changing a number there, with
+what device it was felt on, is exactly the kind of contribution this needs.
 
 ## License
 

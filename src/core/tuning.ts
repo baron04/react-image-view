@@ -1,14 +1,15 @@
 /**
  * Every hand-picked constant that shapes how the viewer feels, in one place.
  *
- * These were chosen by reasoning about the physics and by driving synthetic
- * and real touch/pointer events through a browser — see the commit history
- * for the specific defects each value fixes. What has NOT happened is a pass
- * on a physical phone with a human thumb: latency, screen size, and finger
- * friction all change how a threshold feels in a way no amount of synthetic
- * event replay can substitute for. If a gesture feels wrong on real hardware,
- * this file is the one place to look — change a number here rather than
- * hunting through the reducer or the animation drivers for it.
+ * These were chosen by reasoning about the physics, by driving synthetic and
+ * real touch/pointer events through a browser, and now by one real-device
+ * pass on an actual phone (pinch, pan-to-page handoff, pull-to-dismiss — no
+ * issues felt) — see the commit history for the specific defects each value
+ * fixes. That's one device, not a matrix: latency, screen size, and finger
+ * friction vary enough across hardware that more real-device passes are
+ * still worth doing. If a gesture feels wrong on real hardware, this file is
+ * the one place to look — change a number here rather than hunting through
+ * the reducer or the animation drivers for it.
  */
 
 export const tuning = {
