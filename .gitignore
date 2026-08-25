@@ -10,6 +10,11 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Playwright
+playwright-report/
+test-results/
+coverage/
+
 # 编辑器
 .vscode/
 .idea/
