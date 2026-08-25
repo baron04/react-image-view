@@ -1,0 +1,42 @@
+/*
+ * Reuses this project's own design tokens (see /src/styles.css and the
+ * shadcn registry's cssVars at the repo root) rather than a generic
+ * Starlight theme — the docs site, the npm preset, and the registry block
+ * should all read as the same product, not three different-looking things.
+ * Same Ink Indigo accent, same IBM Plex pairing, mapped onto Starlight's
+ * own --sl-* custom properties (see node_modules/@astrojs/starlight/style/
+ * props.css for the full set this overrides).
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root {
+	--sl-font: 'IBM Plex Sans', var(--sl-font-system);
+	--sl-font-mono: 'IBM Plex Mono', var(--sl-font-system-mono);
+
+	/* Dark mode (Starlight's default root state) — same values as
+	   --riv-accent / --riv-accent-surface in the component's dark palette. */
+	--sl-color-accent-low: #1c2340;
+	--sl-color-accent: #8e9bdb;
+	--sl-color-accent-high: #c7cdf0;
+	--sl-color-text-accent: var(--sl-color-accent);
+}
+
+:root[data-theme='light'] {
+	/* Same values as --riv-accent / --riv-accent-surface in the component's
+	   light palette. */
+	--sl-color-accent-low: #dde0f2;
+	--sl-color-accent: #3d4e8f;
+	--sl-color-accent-high: #232e59;
+	--sl-color-text-accent: var(--sl-color-accent);
+}
+
+/* Starlight's default heading weight is inherited from body text; IBM Plex
+   Sans reads better on headings a step bolder, matching the component's own
+   type scale (see design/gen.py's toolbar/heading treatment). */
+h1,
+h2,
+h3,
+h4 {
+	font-weight: 600;
+}
