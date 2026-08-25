@@ -67,6 +67,19 @@ pnpm build        # ESM + CJS + .d.ts, minified, into dist/
 `docs-site/public/r/` — do this after changing `registry/image-view/
 image-view.tsx` or the `cssVars` in `registry.json`.
 
+## Known limitation
+
+Every gesture constant — how far a pan has to overshoot before it hands off
+to the pager, how hard a flick decays, the trackpad pinch rate — lives in
+[`src/core/tuning.ts`](src/core/tuning.ts) and has been exercised hard: replayed
+pointer-event sequences in unit tests, synthetic touch/pinch dispatched through
+a real browser, mobile-width and touch-emulated viewports. None of that is a
+substitute for a physical thumb — latency, screen size, and finger friction
+change how a threshold feels in ways synthetic events can't reproduce, and
+this hasn't had that pass yet. If a gesture feels wrong on a real phone,
+`tuning.ts` is the one file to open; a PR changing a number there, with what
+device it was felt on, is exactly the kind of contribution this needs.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
