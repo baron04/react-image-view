@@ -1,19 +1,20 @@
 import * as React from 'react'
-import { ViewerProvider, type TriggerRegistration, type ViewerContextValue, type ViewerInternals } from '../context'
+import { ViewerProvider, type TriggerGeometry, type TriggerRegistration, type ViewerContextValue, type ViewerInternals } from '../context'
 import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerStatus } from '../../types'
 import type { Size, SlideSize, Transform } from '../../core/types'
+import type { Crop, FlipFrame } from '../../core/flip'
 import { IDENTITY, clamp, fitScale as computeFit, maxScale as computeMax, zoomAbout } from '../../core/transform'
 import { Ticker } from '../../core/ticker'
-import { animateTransform } from '../../core/animate'
-import { prefersReducedMotion, transformFromRect } from '../../core/flip'
+import { animateFlipFrame, animateTransform } from '../../core/animate'
+import { NO_CROP, fittedFlipFrame, flipFrameFromRect, prefersReducedMotion } from '../../core/flip'
 import { tuning } from '../../core/tuning'
-
-// See ../../core/tuning: exits run far stiffer than entrances on purpose.
-const EXIT_STIFFNESS = tuning.spring.exitStiffness
-import { paintImage, paintTrack } from '../paint'
+import { paintCrop, paintImage, paintTrack } from '../paint'
 import { Content } from './Content'
 import { DefaultContent } from '../../preset/DefaultContent'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
+
+// See ../../core/tuning: exits run far stiffer than entrances on purpose.
+const EXIT_STIFFNESS = tuning.spring.exitStiffness
 
 function useControllable<T>(
   controlled: T | undefined,
@@ -82,9 +83,16 @@ export function Root({
   // Where the viewer was opened from, and whether the entry animation still
   // owes a run. Both are refs: they are read once, during a layout effect, and
   // must not schedule a render of their own.
-  const originRectRef = React.useRef<DOMRect | null>(null)
+  const originGeometryRef = React.useRef<TriggerGeometry | null>(null)
   const flipPendingRef = React.useRef(false)
   const closingRef = React.useRef(false)
+  // The crop currently applied for a `cover`-fit FLIP flight — see
+  // core/flip.ts. Mirrors transformRef: authoritative during a gesture-free
+  // flight, painted straight to the DOM, and always reset to NO_CROP the
+  // moment anything takes the transform away from the flight (see
+  // stopAnimations below) — an interrupted flight must never leave the image
+  // visibly cropped once the user is just looking at or dragging it normally.
+  const cropRef = React.useRef<Crop>(NO_CROP)
   // True while an animation owns the transform. The refit effect below re-runs
   // whenever geometry resolves, which lands right on top of an entry animation
   // and snaps it to its destination — so it has to know to keep its hands off.
@@ -102,8 +110,8 @@ export function Root({
     return at < 0 ? 0 : at
   }, [])
 
-  const getTriggerRect = React.useCallback(
-    (at: number) => registry.current[at]?.getRect() ?? null,
+  const getTriggerGeometry = React.useCallback(
+    (at: number) => registry.current[at]?.getGeometry() ?? null,
     [],
   )
 
@@ -146,6 +154,12 @@ export function Root({
   const stopAnimations = React.useCallback(() => {
     ticker.cancelAll()
     animatingRef.current = false
+    // A flight cut short must not leave the image looking cropped once
+    // gestures or a plain zoom take over — those never touch crop themselves.
+    if (cropRef.current !== NO_CROP) {
+      cropRef.current = NO_CROP
+      paintCrop(imageRef.current, NO_CROP)
+    }
   }, [ticker])
   const markDirty = React.useCallback(() => {
     pristineRef.current = false
@@ -250,7 +264,7 @@ export function Root({
       prev: () => goTo(index - 1),
       close: () => {
         if (closingRef.current) return
-        const target = getTriggerRect(index)
+        const target = getTriggerGeometry(index)
         const stageEl = imageRef.current?.closest('[data-image-view-stage]')
         const dialogEl = imageRef.current?.closest('dialog[data-image-view]')
 
@@ -263,20 +277,24 @@ export function Root({
           return
         }
 
-        const to = transformFromRect(target, stageEl.getBoundingClientRect(), natural, transformRef.current.rotation)
+        const rotation = transformRef.current.rotation
+        const to = flipFrameFromRect(target.rect, stageEl.getBoundingClientRect(), natural, rotation, target.fit)
+        const from: FlipFrame = { transform: transformRef.current, crop: cropRef.current }
         stopAnimations()
         closingRef.current = true
         animatingRef.current = true
-        // 3) Tell the chrome to leave at the same time as the image, rather
+        // Tell the chrome to leave at the same time as the image, rather
         // than waiting for it to land and then vanishing all at once.
         dialogEl?.setAttribute('data-closing', '')
-        animateTransform(
+        animateFlipFrame(
           ticker,
-          transformRef.current,
+          from,
           to,
-          (t) => {
-            transformRef.current = t
-            paintImage(imageRef.current, t)
+          (frame) => {
+            transformRef.current = frame.transform
+            cropRef.current = frame.crop
+            paintImage(imageRef.current, frame.transform)
+            paintCrop(imageRef.current, frame.crop)
           },
           () => {
             closingRef.current = false
@@ -292,7 +310,7 @@ export function Root({
         setReloadToken((n) => n + 1)
       },
     }
-  }, [index, total, open, transform, fitScale, minScale, maxScale, status, natural, images, stageSize, getTriggerRect, setIndex, setOpen, glideTo, stopAnimations, ticker])
+  }, [index, total, open, transform, fitScale, minScale, maxScale, status, natural, images, stageSize, getTriggerGeometry, setIndex, setOpen, glideTo, stopAnimations, ticker])
 
   const internals = React.useMemo<ViewerInternals>(
     () => ({
@@ -333,26 +351,31 @@ export function Root({
     // Geometry is not ready yet; keep the claim and wait for the next pass.
     if (!natural || !stageSize.width) return
 
-    const origin = originRectRef.current
+    const origin = originGeometryRef.current
     const stageEl = imageRef.current?.closest('[data-image-view-stage]')
     flipPendingRef.current = false
     if (!origin || !stageEl) return
 
-    const fitted: Transform = { ...IDENTITY, scale: fitScale, rotation: transformRef.current.rotation }
-    const from = transformFromRect(origin, stageEl.getBoundingClientRect(), natural, fitted.rotation)
+    const rotation = transformRef.current.rotation
+    const target = fittedFlipFrame(fitScale, rotation)
+    const from = flipFrameFromRect(origin.rect, stageEl.getBoundingClientRect(), natural, rotation, origin.fit)
 
     stopAnimations()
     animatingRef.current = true
-    transformRef.current = from
-    paintImage(imageRef.current, from)
+    transformRef.current = from.transform
+    cropRef.current = from.crop
+    paintImage(imageRef.current, from.transform)
+    paintCrop(imageRef.current, from.crop)
 
-    animateTransform(
+    animateFlipFrame(
       ticker,
       from,
-      fitted,
-      (t) => {
-        transformRef.current = t
-        paintImage(imageRef.current, t)
+      target,
+      (frame) => {
+        transformRef.current = frame.transform
+        cropRef.current = frame.crop
+        paintImage(imageRef.current, frame.transform)
+        paintCrop(imageRef.current, frame.crop)
       },
       () => {
         animatingRef.current = false
@@ -405,8 +428,8 @@ export function Root({
   React.useEffect(() => () => ticker.cancelAll(), [ticker])
 
   const openAt = React.useCallback(
-    (at: number, from: DOMRect | null) => {
-      originRectRef.current = from
+    (at: number, from: TriggerGeometry | null) => {
+      originGeometryRef.current = from
       flipPendingRef.current = from !== null && !prefersReducedMotion()
       pristineRef.current = true
       setIndex(at)
@@ -416,8 +439,8 @@ export function Root({
   )
 
   const value = React.useMemo<ViewerContextValue>(
-    () => ({ api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerRect, openAt }),
-    [api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerRect, openAt],
+    () => ({ api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerGeometry, openAt }),
+    [api, images, container, internals, extensions, registerTrigger, indexOf, getTriggerGeometry, openAt],
   )
 
   // L2 falls out of L3 rather than being a separate path: if the caller

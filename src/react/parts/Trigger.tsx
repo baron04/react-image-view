@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Slot } from '../slot'
 import { useViewerContext } from '../context'
 import type { ImageItem } from '../../types'
+import type { ThumbnailFit } from '../../core/flip'
 
 export interface TriggerProps extends ImageItem {
   children: React.ReactElement
@@ -15,6 +16,27 @@ export interface TriggerProps extends ImageItem {
   disabled?: boolean
 }
 
+/**
+ * How the trigger actually displays the image, read from the real DOM rather
+ * than assumed. `asChild` means the rendered element could be anything — the
+ * `<img>` itself, or a wrapper around one — so this looks at the node first,
+ * then its first `<img>` descendant. `contain` (nothing hangs outside the
+ * box) is the fallback for everything else: a `<div>` with a background
+ * image, `next/image` with `fill` and its own wrapper, anything this can't
+ * actually inspect. Getting this wrong for a `cover`-fit thumbnail is a real
+ * bug, not a cosmetic one — the FLIP flight's final frame visibly does not
+ * match the thumbnail underneath it (see core/flip.ts).
+ */
+function detectFit(img: HTMLImageElement): ThumbnailFit {
+  return getComputedStyle(img).objectFit === 'cover' ? 'cover' : 'contain'
+}
+
+function readGeometry(node: HTMLElement | null) {
+  if (!node) return null
+  const img = node instanceof HTMLImageElement ? node : node.querySelector('img')
+  return { rect: node.getBoundingClientRect(), fit: img ? detectFit(img) : ('contain' as ThumbnailFit) }
+}
+
 let uid = 0
 
 export const Trigger = React.forwardRef<HTMLElement, TriggerProps>(function Trigger(
@@ -26,7 +48,12 @@ export const Trigger = React.forwardRef<HTMLElement, TriggerProps>(function Trig
   const id = React.useMemo(() => `trigger-${++uid}`, [])
 
   React.useEffect(
-    () => ctx.registerTrigger({ id, item, getRect: () => nodeRef.current?.getBoundingClientRect() ?? null }),
+    () =>
+      ctx.registerTrigger({
+        id,
+        item,
+        getGeometry: () => readGeometry(nodeRef.current),
+      }),
     // `item` is spread from props; re-registering on every field would thrash.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ctx, id, item.src, item.alt, item.name],
@@ -43,7 +70,7 @@ export const Trigger = React.forwardRef<HTMLElement, TriggerProps>(function Trig
       data-disabled={disabled ? '' : undefined}
       onClick={() => {
         if (disabled) return
-        ctx.openAt(index ?? ctx.indexOf(id), nodeRef.current?.getBoundingClientRect() ?? null)
+        ctx.openAt(index ?? ctx.indexOf(id), readGeometry(nodeRef.current))
       }}
     >
       {children}

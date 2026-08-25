@@ -1,4 +1,5 @@
 import type { Bounds, Point, Transform } from './types'
+import type { FlipFrame } from './flip'
 import { decayStep, isSettled, springStep, type SpringState } from './gesture/spring'
 import type { Ticker } from './ticker'
 import { tuning } from './tuning'
@@ -132,6 +133,71 @@ export function animateValue(
       return false
     }
     onFrame(state.value)
+    return true
+  })
+}
+
+const FLIP_CHANNELS = ['scale', 'x', 'y', 'rotation', 'top', 'right', 'bottom', 'left'] as const
+type FlipChannel = (typeof FLIP_CHANNELS)[number]
+
+/**
+ * Springs a FlipFrame (transform + crop) to its target as one motion.
+ *
+ * A separate function from `animateTransform` rather than a generalisation of
+ * it: `crop` is a FLIP-only concept (it exists to make a `cover`-fit
+ * thumbnail's crop line up with the full image while the two are the same
+ * element), and folding it into the core `Transform` type would put a
+ * FLIP-specific idea into the type every gesture and bounds calculation also
+ * uses.
+ */
+export function animateFlipFrame(
+  ticker: Ticker,
+  from: FlipFrame,
+  target: FlipFrame,
+  onFrame: (frame: FlipFrame) => void,
+  onDone?: () => void,
+  stiffness: number = SETTLE_STIFFNESS,
+): () => void {
+  const flat = (f: FlipFrame): Record<FlipChannel, number> => ({
+    scale: f.transform.scale,
+    x: f.transform.x,
+    y: f.transform.y,
+    rotation: f.transform.rotation,
+    top: f.crop.top,
+    right: f.crop.right,
+    bottom: f.crop.bottom,
+    left: f.crop.left,
+  })
+  const fromFlat = flat(from)
+  const targetFlat = flat(target)
+
+  const channels = {} as Record<FlipChannel, SpringState>
+  for (const key of FLIP_CHANNELS) channels[key] = { value: fromFlat[key], velocity: 0 }
+
+  const unflatten = (v: Record<FlipChannel, number>): FlipFrame => ({
+    transform: { scale: v.scale, x: v.x, y: v.y, rotation: v.rotation },
+    crop: { top: v.top, right: v.right, bottom: v.bottom, left: v.left },
+  })
+
+  return ticker.add((dtMs) => {
+    const dt = dtMs / 1000
+    let done = true
+    const next = {} as Record<FlipChannel, number>
+
+    for (const key of FLIP_CHANNELS) {
+      const eps = key === 'scale' ? SETTLE_EPSILON.scale : SETTLE_EPSILON.x
+      channels[key] = springStep(channels[key], targetFlat[key], stiffness, dt)
+      if (!isSettled(channels[key], targetFlat[key], eps.value, eps.velocity)) done = false
+      next[key] = channels[key].value
+    }
+
+    if (done) {
+      onFrame(target)
+      onDone?.()
+      return false
+    }
+
+    onFrame(unflatten(next))
     return true
   })
 }

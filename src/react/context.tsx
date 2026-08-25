@@ -1,12 +1,25 @@
 import * as React from 'react'
 import type { Extension, ImageItem, ViewerApi, ViewerStatus } from '../types'
+import type { ThumbnailFit } from '../core/flip'
 import type { Size, SlideSize, Transform } from '../core/types'
 import type { Ticker } from '../core/ticker'
+
+export interface TriggerGeometry {
+  rect: DOMRect
+  fit: ThumbnailFit
+}
 
 export interface TriggerRegistration {
   id: string
   item: ImageItem
-  getRect(): DOMRect | null
+  /**
+   * Live position and displayed fit mode, read fresh each call — the page may
+   * have scrolled or the trigger's own layout may have changed since it was
+   * registered, and `fit` has to match reality or the FLIP flight lands
+   * somewhere visibly different from the actual thumbnail (see
+   * `core/flip.ts`).
+   */
+  getGeometry(): TriggerGeometry | null
 }
 
 /**
@@ -49,12 +62,12 @@ export interface ViewerContextValue {
   registerTrigger(reg: TriggerRegistration): () => void
   indexOf(id: string): number
   /**
-   * Live position of the thumbnail for a slide, measured on demand — the page
+   * Live geometry of the thumbnail for a slide, measured on demand — the page
    * may have scrolled since it was opened, and closing has to land where the
    * thumbnail is now, not where it was.
    */
-  getTriggerRect(index: number): DOMRect | null
-  openAt(index: number, from: DOMRect | null): void
+  getTriggerGeometry(index: number): TriggerGeometry | null
+  openAt(index: number, from: TriggerGeometry | null): void
 }
 
 const ViewerContext = React.createContext<ViewerContextValue | null>(null)
