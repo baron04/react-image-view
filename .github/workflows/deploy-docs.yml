@@ -1,13 +1,20 @@
 name: Deploy docs
 
+# No path filter, deliberately.
+#
+# The docs site embeds the real component for its live demos through a
+# `link:..` dependency, so its output depends on src/ as much as on
+# docs-site/. The filter this replaces listed only docs-site, registry, and
+# this workflow — and it silently skipped the deploy for the accessibility
+# release, leaving the published demos running a build whose thumbnails were
+# not keyboard-reachable.
+#
+# A filter here has to encode the docs' entire dependency graph to be correct,
+# and gets quietly wrong every time that graph changes. Building on every push
+# to main costs a couple of minutes and cannot go stale.
 on:
   push:
     branches: [main]
-    paths:
-      - "docs-site/**"
-      - "registry.json"
-      - "registry/**"
-      - ".github/workflows/deploy-docs.yml"
   workflow_dispatch:
 
 permissions:
