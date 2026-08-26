@@ -58,6 +58,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # The CSS preset and the shadcn registry block are the same UI written
+      # twice; this fails if one has grown a control the other lacks.
+      - name: Check the registry has not drifted
+        run: pnpm registry:check
+
       - name: Test
         run: pnpm test
 
@@ -67,8 +72,11 @@ jobs:
       - name: Install Playwright's browser
         run: pnpm exec playwright install --with-deps chromium
 
+      # functional only: the visual baselines are macOS-rendered and would
+      # fail on a Linux runner for font-rasterisation reasons alone. See the
+      # comment in playwright.config.ts.
       - name: E2E
-        run: pnpm e2e
+        run: pnpm e2e --project=functional
 
       - name: Read the version being released
         id: version

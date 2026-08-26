@@ -119,6 +119,13 @@ still worth trying on whatever you're carrying. If a gesture feels wrong,
 `tuning.ts` is the one file to open — a PR changing a number there, with
 what device it was felt on, is exactly the kind of contribution this needs.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) — including two testing rules this
+codebase learned the hard way, both from bugs that reached npm.
+
+Release history is in [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
