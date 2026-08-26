@@ -44,7 +44,12 @@ export const Thumbnails = React.forwardRef<HTMLDivElement, ThumbnailsProps>(func
       }}
       data-image-view-thumbnails=""
       data-mode={mode}
-      role="tablist"
+      // A group of navigation buttons, not tabs. The tab pattern is a
+      // contract — tabs own a tabpanel via aria-controls and expect roving
+      // focus with arrow keys — and none of that is true here, where the
+      // arrow keys are already bound to paging. Claiming `tablist`/`tab`
+      // announced "tab 2 of 4" and set up expectations the widget breaks.
+      role="group"
       aria-label={labels.thumbnails}
     >
       {images.map((item, i) => {
@@ -56,8 +61,10 @@ export const Thumbnails = React.forwardRef<HTMLDivElement, ThumbnailsProps>(func
             type="button"
             data-image-view-thumb=""
             data-active={active ? '' : undefined}
-            role="tab"
-            aria-selected={active}
+            // `aria-current`, not `aria-selected`: selection belongs to the
+            // tab/option patterns, whereas this is "the one you are looking
+            // at" within a set of navigation controls.
+            aria-current={active ? 'true' : undefined}
             aria-label={item.name ?? item.alt ?? labels.thumbnailAt(i)}
             onClick={() => api.go(i)}
           >

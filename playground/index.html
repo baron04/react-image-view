@@ -2,7 +2,12 @@
 <html lang="zh">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!-- No maximum-scale/user-scalable=no. Locking zoom is a WCAG 1.4.4
+         failure — it takes page zoom away from anyone who needs it — and it
+         was never what kept browser pinch-zoom out of the viewer's gestures
+         anyway: the stage claims the pointer stream with touch-action: none,
+         which is scoped to the component instead of the whole document. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>react-img-view playground</title>
   </head>
   <body>
