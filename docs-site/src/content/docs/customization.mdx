@@ -99,6 +99,14 @@ import { Button } from '@/components/ui/button';
 </ImageView.ZoomIn>
 ```
 
+<Aside type="caution" title="An asChild child must forward props and ref">
+  Controls pass their click handler, the ref the animation is measured from,
+  and their `data-*` by cloning the child through a Slot. A child component
+  that drops unknown props swallows all of it — the thumbnail renders
+  perfectly and simply does nothing when clicked, with no error. Use
+  `React.forwardRef` and spread `...rest` onto a real DOM node.
+</Aside>
+
 To change only the **icon or text**, pass children — no `asChild` needed:
 
 ```tsx

@@ -1,0 +1,174 @@
+---
+title: 快速开始
+description: 单图一行接入，多图一个组件共享预览器，需要时可以完全自己拼界面。
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { SingleImageDemo, AttachmentsDemo } from '../../../components/Demo.tsx';
+
+## 单图（L1）
+
+包裹任意元素即可 —— 缩略图可以是原生 `<img>`、`next/image`、`<picture>`，
+或者你自己设计系统里的组件。`ImageView` 只负责挂上行为和 `ref`，
+它不会替你渲染触发用的 `<img>`。
+
+```tsx
+import { ImageView } from 'react-img-view';
+import 'react-img-view/styles.css';
+
+function ContractPreview({ file }: { file: { thumb: string; full: string; name: string } }) {
+  return (
+    <ImageView src={file.full} alt={file.name} name={file.name}>
+      <img src={file.thumb} alt={file.name} />
+    </ImageView>
+  );
+}
+```
+
+<SingleImageDemo client:load />
+
+## 多图共享一个预览器（L2）
+
+`Root` 会把它下面所有的 `Trigger` 收集成一组。点击任意一个都会打开预览器并定位到那张图，
+方向键和滑动可以在其余图片之间切换。这里没有写 `Content` ——
+`Root` 会自动补上同一套默认界面。
+
+```tsx
+import { ImageView } from 'react-img-view';
+import 'react-img-view/styles.css';
+
+function Attachments({ files }: { files: { src: string; name: string }[] }) {
+  return (
+    <ImageView.Root images={files}>
+      <div className="grid grid-cols-4 gap-3">
+        {files.map((file, i) => (
+          <ImageView.Trigger key={file.src} index={i} {...file}>
+            <img src={file.src} alt={file.name} className="h-24 w-full object-cover" />
+          </ImageView.Trigger>
+        ))}
+      </div>
+    </ImageView.Root>
+  );
+}
+```
+
+<AttachmentsDemo client:load />
+
+<Aside title="知道宽高就传进去">
+  `ImageItem` 可选接收 `width`/`height`。传了就能省掉一次测量往返，
+  第一帧直接按正确尺寸绘制，而不是画完再修正。
+</Aside>
+
+### 受控的打开状态
+
+如果要从别处打开预览 —— 比如表格行里的「查看」按钮 —— 自己控制 `open` 和 `index` 即可：
+
+```tsx
+const [open, setOpen] = useState(false);
+const [index, setIndex] = useState(0);
+
+<ImageView.Root
+  images={files}
+  open={open}
+  index={index}
+  onOpenChange={setOpen}
+  onIndexChange={setIndex}
+>
+  {/* 以编程方式打开时，triggers 是可选的 */}
+</ImageView.Root>
+
+<Button onClick={() => { setIndex(2); setOpen(true); }}>
+  查看第 3 张
+</Button>
+```
+
+### 打开计数器或缩略图轨
+
+两者默认都关闭 —— 原因见[设计决策](../design-and-registry/)。
+当图片数量较多、仅靠左右箭头说明不了情况时再打开：
+
+```tsx
+<ImageView.Root images={files}>
+  {/* triggers */}
+  <ImageView.DefaultContent counter thumbnails />
+</ImageView.Root>
+```
+
+## 完全组合（L3）
+
+用 `DefaultContent` 所使用的同一批部件，自己拼出界面。每个部件都支持 `asChild`，
+可以换成你自己的元素；每个控件都会暴露 `data-active` / `data-boundary` /
+`data-disabled` 供你写样式。
+
+```tsx
+import { ImageView } from 'react-img-view';
+
+<ImageView.Root images={files}>
+  {/* triggers */}
+
+  <ImageView.Content className="riv-dialog">
+    <ImageView.Header className="riv-header">
+      <ImageView.Close>关闭</ImageView.Close>
+      <ImageView.Title />
+      <ImageView.Download>下载</ImageView.Download>
+    </ImageView.Header>
+
+    <ImageView.Stage className="riv-stage">
+      <ImageView.Image />
+      <ImageView.Prev>‹</ImageView.Prev>
+      <ImageView.Next>›</ImageView.Next>
+      <ImageView.Loading>载入中…</ImageView.Loading>
+      <ImageView.Error>
+        {({ retry }) => (
+          <div>
+            <p>无法加载这张图片</p>
+            <button onClick={retry}>重试</button>
+          </div>
+        )}
+      </ImageView.Error>
+
+      <ImageView.Toolbar className="riv-toolbar">
+        <ImageView.ZoomOut />
+        <ImageView.ZoomIn />
+        <ImageView.RotateLeft />
+        <ImageView.RotateRight />
+        <ImageView.FitToWindow />
+        <ImageView.ActualSize />
+      </ImageView.Toolbar>
+    </ImageView.Stage>
+  </ImageView.Content>
+</ImageView.Root>
+```
+
+<Aside type="tip" title="界面文案不用写死">
+  上面为了直观把中文直接写进了 JSX。实际项目里更推荐用 `Root` 的 `labels`
+  统一管理所有文案，这样内置控件和你自己的控件会从同一处取词 ——
+  见[自定义](../customization/#6-labels)。
+</Aside>
+
+## 读取预览器状态
+
+`useViewer()` 在 `Root` 内部任意位置都能用 —— 自定义控件、状态展示、埋点：
+
+```tsx
+import { useViewer } from 'react-img-view';
+
+function ZoomReadout() {
+  const viewer = useViewer();
+  return <span>{Math.round(viewer.scale * 100)}%</span>;
+}
+```
+
+`useViewer()` 的完整返回值和每个部件的属性，见 [API 文档](../api-reference/)。
+
+## 键盘快捷键
+
+| 按键 | 操作 |
+|---|---|
+| `←` / `→` | 上一张 / 下一张 |
+| `Home` / `End` | 第一张 / 最后一张 |
+| `+` / `-` | 放大 / 缩小 |
+| `0` | 适应窗口 |
+| `1` | 原始尺寸（1:1） |
+| `R` / `Shift+R` | 向右 / 向左旋转 |
+| `Esc` | 关闭 |

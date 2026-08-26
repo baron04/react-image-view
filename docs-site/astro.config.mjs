@@ -35,13 +35,20 @@ export default defineConfig({
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/baron04/react-img-view' },
 			],
+			// `translations` on each entry is what keeps the sidebar from
+			// staying English on the Chinese pages — Starlight only localises
+			// labels it is given translations for.
 			sidebar: [
-				{ label: 'Overview', slug: 'index' },
-				{ label: 'Installation', slug: 'installation' },
-				{ label: 'Quick Start', slug: 'quick-start' },
-				{ label: 'Customization', slug: 'customization' },
-				{ label: 'API Reference', slug: 'api-reference' },
-				{ label: 'Design & Registry', slug: 'design-and-registry' },
+				{ label: 'Overview', slug: 'index', translations: { 'zh-CN': '概览' } },
+				{ label: 'Installation', slug: 'installation', translations: { 'zh-CN': '安装' } },
+				{ label: 'Quick Start', slug: 'quick-start', translations: { 'zh-CN': '快速开始' } },
+				{ label: 'Customization', slug: 'customization', translations: { 'zh-CN': '自定义' } },
+				{ label: 'API Reference', slug: 'api-reference', translations: { 'zh-CN': 'API 文档' } },
+				{
+					label: 'Design & Registry',
+					slug: 'design-and-registry',
+					translations: { 'zh-CN': '设计与 Registry' },
+				},
 			],
 		}),
 	],

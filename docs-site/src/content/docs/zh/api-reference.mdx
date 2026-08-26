@@ -1,0 +1,227 @@
+---
+title: API 文档
+description: 每个部件、每个属性，与发布内容一致 —— 与使用者引入的 types.ts 同源。
+---
+
+## `ImageView`
+
+它本身可调用（即 L1 入口），同时把每个部件挂成静态属性 ——
+`ImageView.Root`、`ImageView.Trigger` 等等。如果你不想引入整个命名空间，
+`Root`、`Trigger` 这些也都有具名导出。
+
+## `<ImageView src alt>`
+
+L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发元素），
+以及会转发给 `Root` 的 `container` 和 `labels`。
+
+## `<ImageView.Root>`
+
+| 属性 | 类型 | 默认值 | |
+|---|---|---|---|
+| `images` | `ImageItem[]` | 各 trigger 的注册顺序 | 不传则改为把 `Trigger` 作为子节点列出。 |
+| `open` / `defaultOpen` | `boolean` | `defaultOpen = false` | 受控 / 非受控。 |
+| `onOpenChange` | `(open: boolean) => void` | — | |
+| `index` / `defaultIndex` | `number` | `defaultIndex = 0` | |
+| `onIndexChange` | `(index: number) => void` | — | |
+| `container` | `HTMLElement \| null` | `document.body` | Portal 目标 —— 什么时候该指向一个带主题的祖先元素，见[安装](../installation/)。 |
+| `extensions` | `Extension[]` | `[]` | 见下方 [Extensions](#extension)。 |
+| `labels` | `Partial<ViewerLabels>` | 英文 | 所有面向用户的文案。见 [`ViewerLabels`](#viewerlabels)。 |
+
+### `ImageItem`
+
+```ts
+interface ImageItem {
+  src: string;
+  alt?: string;
+  /** 由 Title 显示；依次回退到 alt、文件名。 */
+  name?: string;
+  /** 省掉一次测量往返，避免加载时布局跳动。 */
+  width?: number;
+  height?: number;
+  /** 默认等于 src。下载需要提供另一个文件时设置。 */
+  downloadUrl?: string;
+}
+```
+
+## `<ImageView.Trigger>`
+
+`ImageItem` 加上：
+
+| 属性 | 类型 | |
+|---|---|---|
+| `index` | `number` | 在整组里的位置。不传时按注册顺序 —— 虚拟列表，或任何挂载顺序与视觉顺序可能不一致的场景，请显式传入。 |
+| `disabled` | `boolean` | |
+| `asChild` | — | 始终开启：`Trigger` 只渲染它的子元素，从不渲染自己的元素。 |
+
+## `<ImageView.Content>`
+
+Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
+传子节点来自己组合布局（L3），或者干脆不写，让 `Root` 补上
+`DefaultContent`（L2）。
+
+## 布局区域
+
+`Header`、`Toolbar`、`Footer` —— 纯粹的定位容器，
+都是支持 `asChild` 的 `<div>`，本身没有任何行为。
+
+## `<ImageView.Stage>`
+
+手势承载面。`Image`、`Prev`/`Next`、`Loading`、`Error` 都应该放在它里面 ——
+预设里工具栏的 `position: absolute` 正是相对 stage 定位的，
+这样放在它下面的东西（说明文字、`Thumbnails`）不会把工具栏挤出画面。
+
+## `<ImageView.Image>`
+
+渲染当前这张以及紧邻的前后两张（这样手势进行中翻页不必等待挂载）。
+`overscan?: number` 控制当前张两侧各保留多少张处于挂载状态（默认 `1`）。
+
+## 状态部件
+
+| 部件 | 渲染时机 |
+|---|---|
+| `<ImageView.Loading>` | `status === 'loading'` |
+| `<ImageView.Error>` | `status === 'error'`。children 可以是渲染函数：`{({ retry }) => …}`。 |
+| `<ImageView.Title>` | 始终渲染 —— 当前图片的 `name`，回退到 `alt`。 |
+| `<ImageView.Counter>` | 一旦渲染就始终显示 —— 默认不在 `DefaultContent` 里。形如 `"3 / 8"`，也可以传渲染函数 `{({ index, total }) => …}`。 |
+
+## 控件
+
+下面每个控件都是 `<button>`（`Download` 是 `<a>`），
+接受 `asChild` 和标准的 button/anchor 属性，
+并在相关时暴露 `data-active` / `data-boundary` / `disabled`。
+
+| 组件 | `data-image-view-control` | 行为 |
+|---|---|---|
+| `Close` | `close` | `api.close()` |
+| `Prev` / `Next` | `prev` / `next` | `api.prev()` / `api.next()`；在两端会带 `data-boundary` 和 `disabled` |
+| `ZoomIn` / `ZoomOut` | `zoom-in` / `zoom-out` | `api.zoomBy(1.4)` / `api.zoomBy(1/1.4)`；到达缩放上下限时 `disabled` |
+| `RotateLeft` / `RotateRight` | `rotate-left` / `rotate-right` | `api.rotate(∓90)` |
+| `FitToWindow` | `fit` | `api.fit()`；`scale === fitScale` 时带 `data-active` |
+| `ActualSize` | `actual-size` | `api.actualSize()`；`scale === 1` 时带 `data-active` |
+| `Download` | `download` | 一个 `<a>`，`href`/`download` 取自当前图片 |
+
+`FitToWindow` 和 `ActualSize` 刻意做成两个按钮而不是分段控件 ——
+分段控件断言总有一项被选中，而缩放到中间值时两者都不是当前状态。
+完整理由见[设计与 Registry](../design-and-registry/)。
+
+## `<ImageView.Thumbnails>`
+
+需要显式启用 —— `DefaultContent` 不会自动渲染它。
+
+| 属性 | 类型 | 默认值 |
+|---|---|---|
+| `mode` | `'auto' \| 'always' \| 'never'` | `'auto'` |
+
+`auto` 在只有一张图时不渲染，并且无论图片数量多少，
+在视口宽度小于 640px 时通过 CSS 隐藏
+（在那个尺寸下，缩略图轨要占掉手机约 15% 的高度，收益却很小）。
+`always` 会同时覆盖这两条规则。
+
+## `<ImageView.DefaultContent>`
+
+当你不提供自己的 `Content` 时，`Root` 自动渲染的就是它。
+也可以显式使用，比如只想打开 `counter`/`thumbnails`
+而不想手写整个 L3：
+
+| 属性 | 类型 | 默认值 |
+|---|---|---|
+| `counter` | `boolean` | `false` |
+| `thumbnails` | `boolean \| 'auto' \| 'always' \| 'never'` | `false` —— 传 `true` 等价于 `'auto'` |
+
+错误文案不在这里配置：包括它在内的所有面向用户的文案，
+都来自 `Root` 上的 [`labels`](#viewerlabels)。
+
+## `ViewerLabels`
+
+这个库可能渲染出的所有文案，集中在一份记录里，默认英文。
+把 `labels` 传给 `Root`（或 L1 的 `<ImageView>`）即可覆盖其中任意一部分，
+它是逐字段合并的。其中大多数是 `aria-label`，
+所以不翻译它们属于无障碍缺陷而不是外观问题：
+无论页面的 `lang` 声明成什么，读屏软件都会照字面念出来。
+
+```ts
+interface ViewerLabels {
+  viewer: string;        // dialog 上的 aria-label
+  close: string;
+  prev: string;
+  next: string;
+  zoomIn: string;
+  zoomOut: string;
+  rotateLeft: string;
+  rotateRight: string;
+  fitToWindow: string;
+  actualSize: string;
+  download: string;
+  retry: string;
+  thumbnails: string;    // 缩略图轨上的 aria-label
+  thumbnailAt(index: number): string;
+  errorTitle: string;
+  errorHint: string;
+  loading: string;
+}
+```
+
+如果你想在默认值基础上扩展而不是整体替换，`defaultLabels` 也有导出。
+
+## `useLabels()`
+
+返回解析后的 `ViewerLabels` —— 调用方的覆盖已经合并到默认值之上。
+在自定义控件里用它，就能和内置控件从同一个 `labels` 属性取词。
+
+## `useViewer()`
+
+返回实时的 `ViewerApi` —— 在 `Root` 内部的任何组件里调用都是安全的。
+
+```ts
+interface ViewerApi {
+  readonly index: number;
+  readonly total: number;
+  readonly open: boolean;
+  readonly transform: Transform; // { scale, x, y, rotation }
+  readonly scale: number;
+  readonly rotation: number;
+  readonly fitScale: number;
+  readonly canZoomIn: boolean;
+  readonly canZoomOut: boolean;
+  readonly canPrev: boolean;
+  readonly canNext: boolean;
+  readonly status: 'idle' | 'loading' | 'ready' | 'error';
+
+  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void;
+  zoomBy(factor: number): void;
+  fit(): void;
+  actualSize(): void;
+  rotate(degrees: number): void;
+  go(index: number): void;
+  next(): void;
+  prev(): void;
+  close(): void;
+  retry(): void;
+}
+```
+
+`scale`/`rotation`/平移位置**刻意**没有做成受控属性 ——
+它们在手势过程中每一帧都在变，做成受控等于把一个 60fps 的渲染循环
+强加给每一个使用者。用 `useViewer()` 读取，用上面的方法驱动。
+
+## `Extension`
+
+组合方式够不着的行为才用它 —— 拦截手势、抢占某个按键。
+只有两个钩子，没有生命周期：任何需要**渲染**的东西都应该作为子节点放进树里。
+
+```ts
+interface Extension {
+  name: string;
+  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void;
+  onGesture?(phase: 'start' | 'move' | 'end', api: ViewerApi): boolean | void;
+}
+```
+
+返回 `true` 表示事件已被消费。通过 `Root` 的 `extensions` 属性传入数组。
+
+## `core`
+
+手势数学和状态机，导出给需要在 React 层之外做更多事情的人 ——
+`core.tuning`（所有影响手感的常数，集中在一处并带有注释）、
+`core.fitScale`、`core.maxScale`、`core` 里的手势 reducer，以及动画驱动。
+零 React 依赖；为什么要保持这样，见 `src/core/` 的源码。

@@ -1,0 +1,64 @@
+---
+title: 安装
+description: 安装依赖包，并按需选择样式方案。
+---
+
+## 环境要求
+
+React 18 或 19，以及浏览器环境 —— 包以 `"use client"` 发布，运行时需要
+`document`。SSR 没有问题：在预览器真正挂载之前，不会执行任何东西。
+
+## 安装
+
+```bash
+npm install react-img-view
+```
+
+```bash
+pnpm add react-img-view
+```
+
+这个包没有自己的运行时依赖 —— 手势引擎、动画驱动和弹窗都只依赖 React 和 DOM。
+
+## 样式
+
+所有部件默认不带任何样式，只提供行为和 `data-*` 状态。一共有三条路可选。
+
+### 使用内置预设
+
+```tsx
+import 'react-img-view/styles.css';
+```
+
+所有取值都来自 CSS 自定义属性，设置在 `:root` 和 dialog 元素本身上 ——
+**不要**设置在某个祖先类上：预览器会 portal 到 DOM 树外面，作用域限定在包裹类上的
+规则跟不过去。
+
+```css
+:root {
+  --riv-accent: #0f766e;
+  --riv-chrome: #ffffff;
+  --riv-stage: #f4f4f5;
+}
+```
+
+深色模式会自动跟随 `prefers-color-scheme`；如果要强制固定，在 `:root` 或 dialog 上加
+`data-riv-theme="light"` 或 `data-riv-theme="dark"`。完整的属性清单见
+[自定义](../customization/)。
+
+### 使用 shadcn registry 区块
+
+如果项目已经在用 Tailwind 和 shadcn 那套约定，可以直接装 Tailwind 类名版本 ——
+它会把真实源码放进你的仓库，和其它组件一样可以随意修改：
+
+```bash
+npx shadcn add https://baron04.github.io/react-img-view/r/image-view.json
+```
+
+它具体装了什么、和 CSS 预设是什么关系，见[设计与 Registry](../design-and-registry/)。
+
+### 两个都不用
+
+每个部件都支持 `asChild`，并向外暴露 `data-*` 状态，所以你完全可以从零开始写样式：
+用属性选择器、Tailwind 的 `data-[active]:…` 变体，或你自己设计系统里的组件。
+见[自定义](../customization/)。
