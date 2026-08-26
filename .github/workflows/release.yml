@@ -27,11 +27,27 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
+      # Node 24, not 22, specifically because of npm: trusted publishing needs
+      # npm >= 11.5.1, and Node 22 still bundles npm 10.9.8. Node 24 bundles
+      # 11.17.x, so this needs no separate npm upgrade step.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
+
+      # Fail loudly rather than falling back to "no token, no OIDC" and
+      # erroring somewhere less obvious if a future Node bump ships an older
+      # npm than trusted publishing requires.
+      - name: Check npm supports trusted publishing
+        run: |
+          REQUIRED=11.5.1
+          ACTUAL="$(npm --version)"
+          echo "npm $ACTUAL / node $(node --version)"
+          if [ "$(printf '%s\n%s\n' "$REQUIRED" "$ACTUAL" | sort -V | head -n1)" != "$REQUIRED" ]; then
+            echo "npm $ACTUAL is too old — trusted publishing needs >= $REQUIRED"
+            exit 1
+          fi
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -74,11 +90,14 @@ jobs:
 
       - name: Publish to npm
         if: ${{ !inputs.dry_run }}
-        # Provenance ties the published tarball to this workflow run, so anyone
-        # can verify what source built it. Requires id-token: write above.
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # No token. Authentication is npm trusted publishing: npm exchanges the
+        # OIDC token GitHub mints for this run (hence `id-token: write` above)
+        # for a short-lived credential, so there is no long-lived npm secret in
+        # this repository to leak or rotate.
+        #
+        # No `--provenance` either — publishing this way generates and uploads
+        # the provenance attestation on its own.
+        run: npm publish --access public
 
       - name: Tag the release
         if: ${{ !inputs.dry_run }}

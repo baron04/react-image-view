@@ -81,12 +81,28 @@ suite, refuses to republish a version that already exists, publishes to npm
 with provenance, tags the commit, and opens a GitHub release. It defaults to
 a dry run — untick it to publish for real.
 
-Two one-time setup steps it depends on:
+There is no npm token anywhere in this repository. Authentication is npm
+[trusted publishing](https://docs.npmjs.com/trusted-publishers/): npm
+exchanges the OIDC token GitHub mints for the workflow run for a
+short-lived credential, so there is no long-lived secret to leak, rotate,
+or accidentally grant to a fork. Publishing this way also attaches a
+provenance attestation automatically.
 
-1. An npm **automation** token (npmjs.com → Access Tokens → Generate →
-   Automation). Automation tokens are the kind that work under 2FA; a
-   classic publish token will be rejected.
-2. That token stored as the `NPM_TOKEN` repository secret on GitHub.
+One-time setup, on npmjs.com → the package → **Settings → Trusted
+Publisher**:
+
+| Field | Value |
+|---|---|
+| Publisher | GitHub Actions |
+| Organization or user | `baron04` |
+| Repository | `react-img-view` |
+| Workflow filename | `release.yml` |
+| Environment | *(leave empty)* |
+
+The workflow pins Node 24 deliberately: trusted publishing needs npm
+&ge; 11.5.1, and Node 22 still bundles npm 10.9.8. A version check runs
+before publishing so a future Node bump that regresses npm fails loudly
+instead of falling back to an unauthenticated publish.
 
 ## Known limitation
 
