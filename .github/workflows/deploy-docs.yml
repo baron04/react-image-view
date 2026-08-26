@@ -38,6 +38,12 @@ jobs:
       - name: Install package dependencies
         run: pnpm install --frozen-lockfile
 
+      # The docs site imports the real component for its live demos through a
+      # `file:..` dependency, which resolves to dist/ — so the library has to
+      # be built before the docs are, or the demo imports resolve to nothing.
+      - name: Build the library
+        run: pnpm build
+
       # Regenerated here rather than trusted from the commit, so the served
       # registry JSON can never drift from registry.json / image-view.tsx —
       # the same guarantee the CSS preset gets by being part of `pnpm build`.

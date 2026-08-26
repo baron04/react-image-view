@@ -6,8 +6,8 @@ description: Add the package, and optionally its preset styles.
 ## Requirements
 
 React 18 or 19, and a browser environment — the package renders
-`"use client"` and needs `document` at runtime (SSR is fine; nothing runs
-until the viewer actually mounts).
+`"use client"` and needs `document` at runtime. SSR is fine; nothing runs
+until the viewer actually mounts.
 
 ## Install
 
@@ -15,14 +15,17 @@ until the viewer actually mounts).
 npm install react-img-view
 ```
 
-The package has no runtime dependencies of its own — the gesture engine,
-the animation drivers, and the modal are all built on nothing but React and
-the DOM.
+```bash
+pnpm add react-img-view
+```
+
+The package has no runtime dependencies of its own — the gesture engine, the
+animation drivers, and the modal are built on nothing but React and the DOM.
 
 ## Styles
 
 Every part ships unstyled by default: behaviour and `data-*` state only.
-Two ways to get a look:
+There are three ways to get a look.
 
 ### The shipped preset
 
@@ -30,9 +33,9 @@ Two ways to get a look:
 import 'react-img-view/styles.css';
 ```
 
-CSS custom properties on `:root` and the dialog itself — never on an
-ancestor class, since the viewer portals out of the tree and a class-scoped
-rule wouldn't follow it. Override any of them:
+Everything is driven by CSS custom properties, set on `:root` and on the
+dialog itself — never on an ancestor class, since the viewer portals out of
+the tree and a class-scoped rule would not follow it.
 
 ```css
 :root {
@@ -43,8 +46,8 @@ rule wouldn't follow it. Override any of them:
 ```
 
 Dark mode follows `prefers-color-scheme` automatically; force one side with
-`data-riv-theme="light"` or `data-riv-theme="dark"` on `:root` or the
-dialog.
+`data-riv-theme="light"` or `data-riv-theme="dark"` on `:root` or the dialog.
+See [Customization](../customization/) for the full list of properties.
 
 ### The shadcn registry block
 
@@ -61,8 +64,7 @@ and how it relates to the CSS preset.
 
 ### Neither
 
-Every part takes `asChild` and forwards `data-*` state
-(`data-active`, `data-boundary`, `data-phase`, `data-state`). Style from
-scratch with plain CSS attribute selectors, Tailwind's `data-[active]:…`
-variants, or your own design system's components — see
-[Quick Start](../quick-start/) for a fully custom L3 composition.
+Every part takes `asChild` and forwards `data-*` state, so you can style
+from scratch with attribute selectors, Tailwind's `data-[active]:…`
+variants, or your own design system's components. See
+[Customization](../customization/).

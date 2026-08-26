@@ -10,9 +10,17 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/react": "^6.0.4",
     "@astrojs/starlight": "^0.41.8",
     "astro": "^7.1.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-img-view": "link:..",
     "sharp": "^0.35.3"
   },
-  "packageManager": "pnpm@10.28.1"
+  "packageManager": "pnpm@10.28.1",
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5"
+  }
 }

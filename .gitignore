@@ -1,7 +1,7 @@
 # macOS
 .DS_Store
 
-# Python (design/ 里的生成脚本)
+# Python
 __pycache__/
 *.pyc
 
@@ -15,9 +15,15 @@ playwright-report/
 test-results/
 coverage/
 
-# 编辑器
+# Editors
 .vscode/
 .idea/
 
 # pnpm
 .pnpm-store/
+
+# Recording scratch
+.tmp-video/
+
+# Recording intermediate; regenerate with scripts/capture-demo.mjs
+media/demo.webm

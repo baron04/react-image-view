@@ -40,3 +40,207 @@ h3,
 h4 {
 	font-weight: 600;
 }
+
+/* ---------------------------------------------------------------------------
+ * Demo blocks — used on the homepage and inside docs pages.
+ * Deliberately styled here rather than with utility classes on the component:
+ * the same React component is shared with the Fumadocs build, so its markup
+ * has to stay framework-neutral.
+ * ------------------------------------------------------------------------ */
+
+.riv-demo-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+	margin: 0;
+}
+
+@media (min-width: 40rem) {
+	.riv-demo-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	.riv-demo-grid--two {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.riv-demo-single {
+	max-width: 220px;
+}
+
+.riv-demo-thumb {
+	margin: 0;
+	overflow: hidden;
+	cursor: zoom-in;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.5rem;
+	background: var(--sl-color-black);
+	transition: border-color 0.2s;
+}
+
+.riv-demo-thumb:hover {
+	border-color: var(--sl-color-accent);
+}
+
+.riv-demo-thumb img {
+	display: block;
+	aspect-ratio: 4 / 3;
+	width: 100%;
+	object-fit: cover;
+	transition: transform 0.3s;
+}
+
+.riv-demo-thumb:hover img {
+	transform: scale(1.03);
+}
+
+.riv-demo-thumb figcaption {
+	padding: 0.5rem 0.75rem;
+	font-size: 0.75rem;
+	color: var(--sl-color-gray-3);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------------------------
+ * Landing page
+ * ------------------------------------------------------------------------ */
+
+.riv-landing {
+	max-width: 64rem;
+	margin-inline: auto;
+	padding-inline: 1.5rem;
+}
+
+.riv-hero {
+	padding-block: 4rem 2.5rem;
+	text-align: center;
+}
+
+.riv-hero__eyebrow {
+	margin: 0 0 1rem;
+	font-size: 0.75rem;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--sl-color-gray-3);
+}
+
+.riv-hero__title {
+	margin: 0 0 1.25rem;
+	font-size: clamp(2.25rem, 6vw, 3.5rem);
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+}
+
+.riv-hero__tagline {
+	max-width: 42rem;
+	margin: 0 auto 2rem;
+	font-size: 1.125rem;
+	line-height: 1.6;
+	text-wrap: pretty;
+	color: var(--sl-color-gray-2);
+}
+
+.riv-hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	justify-content: center;
+	margin-bottom: 1rem;
+}
+
+.riv-btn {
+	display: inline-block;
+	padding: 0.7rem 1.35rem;
+	border-radius: 0.5rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+	text-decoration: none;
+	transition: opacity 0.2s, background-color 0.2s;
+}
+
+.riv-btn--primary {
+	background: var(--sl-color-accent);
+	color: var(--sl-color-black);
+}
+
+.riv-btn--primary:hover {
+	opacity: 0.9;
+}
+
+.riv-btn--ghost {
+	border: 1px solid var(--sl-color-gray-5);
+	color: var(--sl-color-white);
+}
+
+.riv-btn--ghost:hover {
+	background: var(--sl-color-gray-6);
+}
+
+.riv-install {
+	display: inline-block;
+	padding: 0.4rem 0.8rem;
+	border-radius: 0.375rem;
+	background: var(--sl-color-gray-6);
+	font-family: var(--sl-font-mono);
+	font-size: 0.875rem;
+	color: var(--sl-color-gray-2);
+}
+
+.riv-demo-panel {
+	padding: 1.25rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.75rem;
+	background: var(--sl-color-black);
+}
+
+.riv-demo-caption {
+	margin: 0 0 1rem;
+	text-align: center;
+	font-size: 0.875rem;
+	color: var(--sl-color-gray-3);
+}
+
+.riv-features {
+	display: grid;
+	gap: 1rem;
+	padding-block: 3rem 5rem;
+}
+
+@media (min-width: 40rem) {
+	.riv-features {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.riv-feature {
+	padding: 1.25rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.75rem;
+	background: var(--sl-color-black);
+}
+
+.riv-feature h2 {
+	margin: 0 0 0.5rem;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.riv-feature p {
+	margin: 0;
+	font-size: 0.9rem;
+	line-height: 1.6;
+	color: var(--sl-color-gray-2);
+}
+
+/* The splash template still renders the frontmatter title as `h1#_top`. The
+   landing page supplies its own <h1>, and two <h1>s on one page is both an
+   accessibility problem and a mixed signal to crawlers — so hide Starlight's
+   wherever the custom landing markup is present. The title stays in
+   <title>/metadata either way. */
+body:has(.riv-landing) h1#_top {
+	display: none;
+}

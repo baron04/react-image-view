@@ -1,120 +1,79 @@
 ---
 title: react-img-view
-description: A composable, headless image viewer for React — built for reviewing document attachments and admin image fields, not photo galleries.
+description: React image viewer and lightbox component — zoom, pan, pinch, rotate, fit-to-window and 1:1. Headless and composable, built for reviewing document attachments and admin image fields.
 template: splash
-hero:
-  title: react-img-view
-  tagline: A composable, headless image viewer for React — built for reviewing document attachments, not scrolling photo feeds.
-  image:
-    file: ../../assets/hero.png
-    alt: The default preset open on a scanned document, showing the always-visible toolbar with zoom, rotate, fit-to-window, and 1:1 controls.
-  actions:
-    - text: Get Started
-      link: quick-start/
-      icon: right-arrow
-    - text: View on GitHub
-      link: https://github.com/baron04/react-img-view
-      icon: code-branch
-      variant: secondary
+editUrl: false
+# No `hero:` block on purpose — Starlight's built-in hero renders a fixed
+# title/tagline/actions arrangement, and the landing markup below is the whole
+# point of this page. Declaring both would stack two hero sections.
 ---
 
-import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { AttachmentsDemo } from '../../components/Demo.tsx';
 
 {/* Plain relative hrefs, not root-relative. Verified by building and
-    inspecting dist/*.html: Starlight's base-path rewrite only reaches its
-    own generated sidebar/pagination nav — neither a literal markdown link
-    nor a component's href prop gets touched by it, so anything root-relative
-    written here ships without /react-img-view. A relative path needs no
-    rewriting at all: it resolves against the page's own (already correct)
-    URL by ordinary browser rules. */}
+    inspecting dist/*.html: Starlight's base-path rewrite only reaches its own
+    generated sidebar/pagination nav — neither a literal markdown link nor a
+    component's href prop gets touched by it, so anything root-relative written
+    here ships without /react-img-view. A relative path needs no rewriting at
+    all: it resolves against the page's own (already correct) URL. */}
 
-## What this is
+<div class="riv-landing">
 
-A React image viewer for the case that shows up in every admin panel and
-document workflow: someone clicks a thumbnail, needs to actually read the
-thing — check a figure on an invoice, confirm a signature, read small print
-on a scanned contract — and clicks away again. Not a photo gallery.
+<section class="riv-hero">
+  <p class="riv-hero__eyebrow">MIT licensed · React 18 &amp; 19 · ~10 kB</p>
 
-That distinction drives every default in this library. The toolbar is
-always visible rather than fading out. There's a dedicated **1:1** control
-because "is this legible at full resolution" is a real question here.
-Pinch-zoom pans smoothly and a drag that runs out of room hands off to the
-next slide mid-gesture, without a stutter. Swipe-to-dismiss only responds to
-touch and pen — a mouse dragged downward should never close the viewer, no
-matter how it happened.
+  <h1 class="riv-hero__title">An image viewer for reading, not browsing</h1>
 
-<img
-	src={`${import.meta.env.BASE_URL}demo.gif`}
-	alt="Zooming in, rotating, fitting to window, and paging to the next attachment"
-	width="760"
-	style="border-radius: 8px; border: 1px solid var(--sl-color-hairline); margin: 1.5rem 0;"
-/>
+  <p class="riv-hero__tagline">
+    A composable, headless React image viewer built for reviewing document
+    attachments and admin image fields — not scrolling photo feeds.
+  </p>
 
-<CardGrid>
-	<LinkCard
-		title="Installation"
-		description="Add the package and, optionally, its preset styles."
-		href="installation/"
-	/>
-	<LinkCard
-		title="Quick Start"
-		description="One line for a single image, one component for a shared gallery."
-		href="quick-start/"
-	/>
-	<LinkCard
-		title="API Reference"
-		description="Every part, every prop, exactly as shipped."
-		href="api-reference/"
-	/>
-</CardGrid>
+  <div class="riv-hero__actions">
+    <a class="riv-btn riv-btn--primary" href="quick-start/">Get started</a>
+    <a class="riv-btn riv-btn--ghost" href="api-reference/">API reference</a>
+  </div>
 
-## Three ways in, same underlying tree
+  <code class="riv-install">npm install react-img-view</code>
+</section>
 
-```tsx
-// L1 — one image, one line
-<ImageView src={full} alt={name}>
-  <img src={thumb} alt={name} />
-</ImageView>
+{/* The demo sits above the fold on purpose: the fastest way to judge an image
+    viewer is to open one. */}
+<p class="riv-demo-caption">Click any image below. This is the real component, not a video.</p>
 
-// L2 — several images sharing one viewer, default UI
-<ImageView.Root images={files}>
-  {files.map((f) => (
-    <ImageView.Trigger key={f.src} {...f}>
-      <img src={f.src} alt={f.alt} />
-    </ImageView.Trigger>
-  ))}
-</ImageView.Root>
+<div class="riv-demo-panel">
+  <AttachmentsDemo client:load />
+</div>
 
-// L3 — full composition, your own layout
-<ImageView.Root images={files}>
-  {/* triggers */}
-  <ImageView.Content>
-    <ImageView.Header>…</ImageView.Header>
-    <ImageView.Stage>
-      <ImageView.Image />
-    </ImageView.Stage>
-    <ImageView.Toolbar>…</ImageView.Toolbar>
-  </ImageView.Content>
-</ImageView.Root>
-```
+<div class="riv-features">
+  <div class="riv-feature">
+    <h2>The toolbar stays put</h2>
+    <p>
+      Zoom, rotate, fit-to-window and a dedicated 1:1 control, visible the whole
+      time. Reviewing a document is a task, not a scroll.
+    </p>
+  </div>
+  <div class="riv-feature">
+    <h2>Gestures that hand off</h2>
+    <p>
+      Pinch to zoom, drag to pan, and a drag that runs out of room pages to the
+      next image mid-gesture — no stutter at the boundary.
+    </p>
+  </div>
+  <div class="riv-feature">
+    <h2>Nothing you cannot replace</h2>
+    <p>
+      Every part is exported, every control takes <code>asChild</code>, and state
+      ships as data-attributes. Restyle it, reorder it, or rebuild the whole shell.
+    </p>
+  </div>
+  <div class="riv-feature">
+    <h2>Careful about input</h2>
+    <p>
+      Swipe-to-dismiss responds to touch and pen only, so a mouse drag never
+      closes the viewer by accident. Full keyboard support throughout.
+    </p>
+  </div>
+</div>
 
-L1 and L2 are not a separate, simplified implementation — `Root` detects
-whether you've already placed a `<ImageView.Content>` among its children,
-and appends the same reviewed default UI itself when you haven't. There is
-no second design to fall out of sync with the one L3 composes by hand.
-
-## Why not a gallery library
-
-Most React image viewers — `yet-another-react-lightbox`, `react-photo-view`,
-PhotoSwipe — are built for browsing: fading chrome, slideshow autoplay,
-swipe-anything-to-dismiss. Reviewing a document is a different job with
-different defaults, and retrofitting a gallery library for it usually means
-fighting its opinions. See [the design decisions](design-and-registry/)
-for the fuller reasoning, including why several gallery conventions were
-deliberately left out.
-
-## What it isn't
-
-No image editing, no built-in gallery/grid layout (pair it with something
-like `react-photo-album` for that), no autoplay slideshow. Reviewing an
-image is the whole scope.
+</div>

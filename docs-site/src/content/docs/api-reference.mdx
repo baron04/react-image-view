@@ -13,8 +13,7 @@ namespace.
 ## `<ImageView src alt>`
 
 L1. Props are `ImageItem` (below) plus `children: ReactElement` (the
-trigger element) and `container?: HTMLElement | null` (forwarded to
-`Root`).
+trigger element), and `container` / `labels`, both forwarded to `Root`.
 
 ## `<ImageView.Root>`
 
@@ -27,6 +26,7 @@ trigger element) and `container?: HTMLElement | null` (forwarded to
 | `onIndexChange` | `(index: number) => void` | — | |
 | `container` | `HTMLElement \| null` | `document.body` | Portal target — see [Installation](../installation/) for when to point this at a themed ancestor instead. |
 | `extensions` | `Extension[]` | `[]` | See [Extensions](#extension) below. |
+| `labels` | `Partial<ViewerLabels>` | English | Every user-facing string. See [`ViewerLabels`](#viewerlabels). |
 
 ### `ImageItem`
 
@@ -130,8 +130,47 @@ without writing the rest of L3 by hand:
 |---|---|---|
 | `counter` | `boolean` | `false` |
 | `thumbnails` | `boolean \| 'auto' \| 'always' \| 'never'` | `false` — `true` means `'auto'` |
-| `errorTitle` | `string` | `"无法加载这张图片"` |
-| `errorHint` | `string` | (a Chinese sentence about corrupted files / unsupported encodings) |
+
+Error copy is not configured here: every user-facing string, this one
+included, comes from [`labels`](#viewerlabels) on `Root`.
+
+## `ViewerLabels`
+
+Every string the library can render, in one record, English by default.
+Pass `labels` to `Root` (or to the L1 `<ImageView>`) to override any subset
+— it is merged field by field. Most of these are `aria-label`s, so leaving
+them untranslated is an accessibility problem, not a cosmetic one: a screen
+reader announces them verbatim whatever the page's `lang` says.
+
+```ts
+interface ViewerLabels {
+  viewer: string;        // aria-label on the dialog
+  close: string;
+  prev: string;
+  next: string;
+  zoomIn: string;
+  zoomOut: string;
+  rotateLeft: string;
+  rotateRight: string;
+  fitToWindow: string;
+  actualSize: string;
+  download: string;
+  retry: string;
+  thumbnails: string;    // aria-label on the thumbnail strip
+  thumbnailAt(index: number): string;
+  errorTitle: string;
+  errorHint: string;
+  loading: string;
+}
+```
+
+`defaultLabels` is exported if you want to extend rather than replace them.
+
+## `useLabels()`
+
+Returns the resolved `ViewerLabels` — the caller's overrides already merged
+over the defaults. Use it in custom controls so they localise from the same
+`labels` prop the built-ins do.
 
 ## `useViewer()`
 
@@ -194,5 +233,5 @@ The gesture math and state machine, exported for anyone building past what
 the React layer offers — `core.tuning` (every constant that shapes how the
 viewer feels, in one documented place), `core.fitScale`, `core.maxScale`,
 the reducer in `core` gesture machine, and the animation drivers. Zero React
-dependency; see the [architecture notes](https://github.com/baron04/react-img-view/blob/main/docs/03-架构设计.html)
+dependency; see the source in `src/core/`
 for why it's kept that way.

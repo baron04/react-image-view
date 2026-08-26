@@ -16,9 +16,13 @@ export default tseslint.config(
       'docs-site/dist/**',
       'docs-site/.astro/**',
       'docs-site/public/r/**',
+      // The docs apps carry their own lint setup and their own build output;
+      // linting either from the root just reports on generated bundles.
+      'docs-next/**',
       'coverage/**',
       'playwright-report/**',
       'test-results/**',
+      'media/**',
       '.claude/**',
     ],
   },
@@ -80,7 +84,10 @@ export default tseslint.config(
     // The playground and scripts/ are throwaway harnesses, not shipped
     // code — real console usage and looser typing are expected there.
     files: ['playground/**/*.{ts,tsx}', 'scripts/**/*.{ts,mjs}'],
-    languageOptions: { globals: globals.node },
+    // Both globals on purpose: the Playwright scripts run in Node, but the
+    // callbacks they pass to page.evaluate/waitForFunction are serialised and
+    // executed in the browser, where `document` is exactly right.
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
     rules: {
       'no-console': 'off',
     },

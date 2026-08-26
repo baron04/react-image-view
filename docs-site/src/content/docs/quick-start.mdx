@@ -1,7 +1,11 @@
 ---
 title: Quick Start
-description: One line for a single image, one component for a shared gallery, full control when you need it.
+description: One line for a single image, one component for a shared set, full control when you need it.
 ---
+
+import { Aside } from '@astrojs/starlight/components';
+
+import { SingleImageDemo, AttachmentsDemo } from '../../components/Demo.tsx';
 
 ## Single image (L1)
 
@@ -23,12 +27,14 @@ function ContractPreview({ file }: { file: { thumb: string; full: string; name: 
 }
 ```
 
+<SingleImageDemo client:load />
+
 ## Several images, shared viewer (L2)
 
-`Root` collects every `Trigger` beneath it into one set; clicking any one
+`Root` collects every `Trigger` beneath it into one set. Clicking any one
 opens the viewer positioned on that image, with arrow keys and swipe moving
 between the rest. No `Content` is written here — `Root` supplies the same
-default UI itself.
+reviewed default UI itself.
 
 ```tsx
 import { ImageView } from 'react-img-view';
@@ -49,9 +55,17 @@ function Attachments({ files }: { files: { src: string; name: string }[] }) {
 }
 ```
 
+<AttachmentsDemo client:load />
+
+<Aside title="Pass width and height when you know them">
+  `ImageItem` takes optional `width`/`height`. Supplying them skips a
+  measurement round-trip, so the first frame is drawn at the right size
+  instead of being corrected a frame later.
+</Aside>
+
 ### Controlled open state
 
-Open the viewer from anywhere else in the app — a "查看" button in a table
+Open the viewer from anywhere else in the app — a "View" button in a table
 row, say — by controlling `open` and `index` yourself:
 
 ```tsx
@@ -69,15 +83,15 @@ const [index, setIndex] = useState(0);
 </ImageView.Root>
 
 <Button onClick={() => { setIndex(2); setOpen(true); }}>
-  查看第 3 张
+  View file 3
 </Button>
 ```
 
 ### Turning on the counter or the thumbnail strip
 
-Both are off by default — see [the design decisions](../design-and-registry/#why-the-counter-and-thumbnails-are-off-by-default)
-for why. Turn them on for a longer set (a gallery, a product's photos)
-where the arrows alone don't say enough:
+Both are off by default — see
+[the design decisions](../design-and-registry/) for why. Turn them on
+for a longer set, where the arrows alone do not say enough:
 
 ```tsx
 <ImageView.Root images={files}>
@@ -88,10 +102,10 @@ where the arrows alone don't say enough:
 
 ## Full composition (L3)
 
-Build your own layout from the same parts `DefaultContent` uses. Everything
-takes `asChild` to keep your own element instead of the library's default
-`<button>`/`<div>`, and every control publishes `data-active` /
-`data-boundary` / `data-disabled` for styling.
+Build your own layout from the same parts `DefaultContent` uses. Every part
+takes `asChild` to keep your own element instead of the library's default,
+and every control publishes `data-active` / `data-boundary` /
+`data-disabled` for styling.
 
 ```tsx
 import { ImageView } from 'react-img-view';
@@ -101,21 +115,21 @@ import { ImageView } from 'react-img-view';
 
   <ImageView.Content className="riv-dialog">
     <ImageView.Header className="riv-header">
-      <ImageView.Close>关闭</ImageView.Close>
+      <ImageView.Close>Close</ImageView.Close>
       <ImageView.Title />
-      <ImageView.Download>下载</ImageView.Download>
+      <ImageView.Download>Download</ImageView.Download>
     </ImageView.Header>
 
     <ImageView.Stage className="riv-stage">
       <ImageView.Image />
       <ImageView.Prev>‹</ImageView.Prev>
       <ImageView.Next>›</ImageView.Next>
-      <ImageView.Loading>载入中…</ImageView.Loading>
+      <ImageView.Loading>Loading…</ImageView.Loading>
       <ImageView.Error>
         {({ retry }) => (
           <div>
-            <p>无法加载这张图片</p>
-            <button onClick={retry}>重试</button>
+            <p>This image couldn&apos;t be loaded</p>
+            <button onClick={retry}>Retry</button>
           </div>
         )}
       </ImageView.Error>
@@ -133,6 +147,9 @@ import { ImageView } from 'react-img-view';
 </ImageView.Root>
 ```
 
+See [Customization](../customization/) for replacing individual
+buttons, adding your own, and translating every string.
+
 ## Reading viewer state
 
 `useViewer()` works from anywhere inside `Root` — a custom control, a
@@ -149,3 +166,15 @@ function ZoomReadout() {
 
 See the [API reference](../api-reference/) for everything `useViewer()`
 returns and every prop each part accepts.
+
+## Keyboard shortcuts
+
+| Key | Action |
+|---|---|
+| `←` / `→` | Previous / next image |
+| `Home` / `End` | First / last image |
+| `+` / `-` | Zoom in / out |
+| `0` | Fit to window |
+| `1` | Actual size (1:1) |
+| `R` / `Shift+R` | Rotate right / left |
+| `Esc` | Close |
