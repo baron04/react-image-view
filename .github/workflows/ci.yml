@@ -10,11 +10,15 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      # Deliberately 22 while release.yml runs 24: the release workflow runs
+      # this same suite on the Node it actually publishes from, so pinning a
+      # different version here buys a second Node in the test matrix rather
+      # than duplicating coverage.
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
