@@ -331,14 +331,35 @@ export function Root({
         }
 
         const rotation = transformRef.current.rotation
-        const to = flipFrameFromRect(target.rect, stageEl.getBoundingClientRect(), natural, rotation, target.fit)
         const from: FlipFrame = { transform: transformRef.current, crop: cropRef.current }
         stopAnimations()
         closingRef.current = true
         animatingRef.current = true
-        // Tell the chrome to leave at the same time as the image, rather
-        // than waiting for it to land and then vanishing all at once.
+
+        // Tell the chrome to leave at the same time as the image, rather than
+        // waiting for it to land and then vanishing all at once.
+        //
+        // This has to happen *before* the stage is measured. `[data-closing]`
+        // sets `display: none` on the header and toolbar, which reflows the
+        // dialog's column: the stage grows by the header's height and the
+        // centred image shifts up by half of it. Measuring first meant the
+        // whole flight was computed against a layout that no longer existed by
+        // the time it ran — off by ~24px for its entire length, and correct
+        // only on the final frame, when removing the attribute restored the
+        // layout the numbers had assumed. That read as the image settling too
+        // high and then snapping into place.
         dialogEl?.setAttribute('data-closing', '')
+
+        // Reading a rect right after the attribute write forces the layout to
+        // flush, so this sees the post-`data-closing` geometry the flight will
+        // actually run in.
+        const to = flipFrameFromRect(
+          target.rect,
+          stageEl.getBoundingClientRect(),
+          natural,
+          rotation,
+          target.fit,
+        )
         animateFlipFrame(
           ticker,
           from,
@@ -352,8 +373,21 @@ export function Root({
           () => {
             closingRef.current = false
             animatingRef.current = false
-            dialogEl?.removeAttribute('data-closing')
             setOpen(false)
+
+            // Deliberately not removed before the unmount. Taking
+            // `[data-closing]` off puts the header and toolbar back, which
+            // reflows the column and drops the centred image by half the
+            // header's height — so the flight that had just landed exactly on
+            // the thumbnail jumped downward for the one frame between the
+            // restore and React removing the dialog.
+            //
+            // Unmounting takes the attribute with it, so the only case that
+            // still needs it cleared is a controlled `open` that declined to
+            // close and left the dialog mounted.
+            requestAnimationFrame(() => {
+              if (dialogEl?.isConnected) dialogEl.removeAttribute('data-closing')
+            })
           },
           EXIT_STIFFNESS,
         )

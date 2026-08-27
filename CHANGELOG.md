@@ -10,6 +10,16 @@ other landing in the wrong place. Neither changes any API.
 
 ### Fixed
 
+- **The close animation ran ~24px above where it belonged.** The landing
+  position was exact, so this survived a test that asserted only the endpoint.
+  `[data-closing]` sets `display: none` on the header and toolbar, which
+  reflows the dialog's column and drops the centred image by half the header's
+  height — and the flight was measured *before* that reflow, so it spent its
+  whole length offset and agreed with the thumbnail only on the final frame,
+  when removing the attribute restored the layout the numbers had assumed.
+  That read as the image settling too high and then snapping into place. The
+  stage is now measured after the attribute is applied, and the attribute is
+  no longer removed before the dialog unmounts.
 - **Opening did not animate at all.** The entry flight started with correct
   geometry and was then erased inside the same commit, before a frame was
   painted: the refit effect treats `framedFor !== index` as a slide change, a

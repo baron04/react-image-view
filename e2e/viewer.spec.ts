@@ -211,3 +211,52 @@ test('opening animates from the thumbnail rather than appearing', async ({ page 
   // one reports exactly 1, the destination.
   expect(scales).toBeGreaterThan(8)
 })
+
+test('the close animation settles smoothly, with no jump on the last frame', async ({ page }) => {
+  // The landing position was already exact — what was wrong was everything
+  // leading up to it. `[data-closing]` hides the header and toolbar, which
+  // reflows the dialog's column, and the flight was measured before that
+  // reflow: the whole animation ran ~24px above where it belonged and only
+  // agreed with the thumbnail on the final frame, when removing the attribute
+  // restored the layout the numbers had assumed. Asserting the endpoint alone
+  // passes against that; the tail is what shows it.
+  const thumb = page.locator('[data-testid="card-img-0"]')
+  const before = await thumb.boundingBox()
+
+  await page.click('[data-testid="card-0"]')
+  await page.waitForSelector('dialog[data-image-view]')
+
+  const tail = await page
+    .locator('[data-image-view-slide][data-current] img')
+    .evaluate((el) => {
+      const visibleTop = () => {
+        const r = el.getBoundingClientRect()
+        const s = getComputedStyle(el)
+        const m = new DOMMatrixReadOnly(s.transform)
+        const scaleY = Math.hypot(m.c, m.d) || 1
+        const match = /inset\(([^)]+)\)/.exec(s.clipPath)
+        const v = match ? match[1].split(/\s+/).map((n) => parseFloat(n) || 0) : [0]
+        const top = v[0]
+        return r.y + top * scaleY
+      }
+
+      const seen: number[] = []
+      ;(document.querySelector('[data-image-view-control="close"]') as HTMLElement).click()
+      return new Promise<number[]>((resolve) => {
+        const tick = () => {
+          if (!el.isConnected) return resolve(seen)
+          seen.push(visibleTop())
+          requestAnimationFrame(tick)
+        }
+        tick()
+      })
+    })
+
+  // The last handful of frames must already be sitting on the thumbnail, not
+  // arriving there in one step.
+  const last = tail.slice(-5)
+  expect(last.length).toBeGreaterThan(2)
+  for (const y of last) {
+    expect(Math.abs(y - before!.y)).toBeLessThan(3)
+  }
+})
