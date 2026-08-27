@@ -3,6 +3,30 @@
 Notable changes to `react-img-view`. Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] — 2026-08-26
+
+Both open/close transitions were wrong in 0.2.0 — one silently absent, the
+other landing in the wrong place. Neither changes any API.
+
+### Fixed
+
+- **Opening did not animate at all.** The entry flight started with correct
+  geometry and was then erased inside the same commit, before a frame was
+  painted: the refit effect treats `framedFor !== index` as a slide change, a
+  slide change deliberately overrides every guard (including "an animation is
+  running"), and on the first open that comparison is `null !== 0`. So refit
+  read the entry flight as a page turn, cancelled it, and snapped straight to
+  the fitted scale. Closing animated normally throughout, which is what made
+  this easy to miss by eye. Measured over 900ms after a click: 1 distinct
+  scale before the fix, 61 after.
+- **Closing landed on the trigger's box rather than the picture's.**
+  `readGeometry` measured the trigger while reading `fit` from the `<img>`
+  inside it. Those are the same element when the trigger is a bare `<img>`,
+  but the common shape is a card — a `<figure>` holding the image *and* a
+  caption — and against that the flight flew to a box taller than the
+  thumbnail by the height of the caption, so the close ended on a visible
+  jump. Measured on the docs site: figure 225×222, image 223×167.
+
 ## [0.2.0] — 2026-08-26
 
 The headline is that the viewer is now usable without a mouse, and that its
@@ -84,6 +108,7 @@ considered unfit for production.
 First publish. Withdrawn in practice: the toolbar was non-functional under a
 mouse.
 
+[0.2.1]: https://github.com/baron04/react-img-view/releases/tag/v0.2.1
 [0.2.0]: https://github.com/baron04/react-img-view/releases/tag/v0.2.0
 [0.1.1]: https://github.com/baron04/react-img-view/releases/tag/v0.1.1
 [0.1.0]: https://github.com/baron04/react-img-view/releases/tag/v0.1.0

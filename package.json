@@ -1,6 +1,6 @@
 {
   "name": "react-img-view",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "React image viewer and lightbox component: zoom, pan, pinch, rotate, fit-to-window and 1:1, keyboard and touch. Headless and composable, built for previewing document attachments and admin image fields.",
   "homepage": "https://baron04.github.io/react-img-view",
   "repository": {
