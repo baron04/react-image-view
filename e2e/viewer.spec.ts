@@ -152,13 +152,15 @@ test('closing lands on the picture, not on the wrapper around it', async ({ page
               ? [v[0], v[1], v[2], v[1]]
               : [v[0], v[1], v[2], v[3]]
       return {
+        x: r.x + left * scaleX,
+        y: r.y + top * scaleY,
         width: r.width - (left + right) * scaleX,
         height: r.height - (top + bottom) * scaleY,
       }
     }
 
-    return new Promise<{ width: number; height: number }>((resolve) => {
-      let last = { width: 0, height: 0 }
+    return new Promise<{ x: number; y: number; width: number; height: number }>((resolve) => {
+      let last = { x: 0, y: 0, width: 0, height: 0 }
       const tick = () => {
         if (!el.isConnected) return resolve(last)
         const box = visible()
@@ -169,8 +171,11 @@ test('closing lands on the picture, not on the wrapper around it', async ({ page
     })
   })
 
-  // Within a couple of pixels of the thumbnail's own image box. Measured
-  // against the wrapper it overshot by the caption's height — ~33% taller.
+  // Within a couple of pixels of the thumbnail's own image box, on every
+  // axis. Size alone is not enough: a flight can be the right size and still
+  // settle in the wrong place, which reads as the same jump to a viewer.
+  expect(Math.abs(landing.x - before!.x)).toBeLessThan(3)
+  expect(Math.abs(landing.y - before!.y)).toBeLessThan(3)
   expect(Math.abs(landing.width - before!.width)).toBeLessThan(3)
   expect(Math.abs(landing.height - before!.height)).toBeLessThan(3)
 })
