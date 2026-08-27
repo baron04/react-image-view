@@ -7,11 +7,15 @@
  * back to the thumbnail. A reel of the grid would advertise a gallery, which
  * is the one thing this component is not.
  *
- *   node scripts/capture-demo.mjs        # needs the playground on :5180
- *   ffmpeg ... media/demo.webm -> media/demo.gif
+ * Records and encodes in one step — the trim offset below only means anything
+ * relative to this recording, so splitting them invites the two drifting apart.
+ *
+ *   pnpm vite                            # the playground, on :5180
+ *   node scripts/capture-demo.mjs        # -> media/demo.gif
  */
 import { chromium } from '@playwright/test';
-import { mkdirSync, renameSync, readdirSync, rmSync } from 'node:fs';
+import { mkdirSync, renameSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
 const outDir = path.resolve('media');
@@ -23,6 +27,13 @@ mkdirSync(videoDir, { recursive: true });
 const size = { width: 1000, height: 700 };
 
 const browser = await chromium.launch();
+
+// Playwright starts recording when the *context* is created, not when the page
+// is ready — so navigation, the network fetch for every photograph, and decode
+// are all in the take. That is why the first seconds were a blank page and a
+// grid of grey placeholders. Timing from here lets the encoder trim them.
+const recordingStart = Date.now();
+
 const context = await browser.newContext({
   viewport: size,
   recordVideo: { dir: videoDir, size },
@@ -32,16 +43,29 @@ const page = await context.newPage();
 
 await page.goto('http://localhost:5180');
 await page.waitForSelector('[data-testid="default-thumb-0"]');
-// Let every thumbnail decode before recording anything, so the take never
-// opens on a half-loaded grid.
+
+// Every image on the page, not just the grid being clicked: the viewport shows
+// the second demo's thumbnails too, and a half-loaded one further down is just
+// as visible in the recording.
 await page.waitForFunction(
-  () =>
-    [...document.querySelectorAll('[data-testid^="default-thumb-"]')].every(
-      (img) => img.complete && img.naturalWidth > 0,
-    ),
+  () => {
+    const imgs = [...document.querySelectorAll('img')];
+    return imgs.length > 0 && imgs.every((img) => img.complete && img.naturalWidth > 0);
+  },
   null,
-  { timeout: 30_000 },
+  { timeout: 60_000 },
 );
+
+// Decoded is not the same as painted; give the compositor a moment so the
+// first kept frame is the finished grid rather than the frame it appears on.
+// This wait is *before* the mark, so it is trimmed away.
+await page.waitForTimeout(400);
+const trimSeconds = (Date.now() - recordingStart) / 1000;
+
+// Everything from here is kept. The grid gets a beat on screen — long enough
+// to show which thumbnail is about to be clicked, which is the whole point of
+// opening from one — and no longer, because a reel of the grid would advertise
+// the gallery this deliberately is not.
 await page.waitForTimeout(700);
 
 // 1. Open from a thumbnail — the interaction the component is named for.
@@ -95,7 +119,59 @@ await context.close();
 await browser.close();
 
 const file = readdirSync(videoDir).find((f) => f.endsWith('.webm'));
-const dest = path.join(outDir, 'demo.webm');
-renameSync(path.join(videoDir, file), dest);
+const source = path.join(outDir, 'demo.webm');
+renameSync(path.join(videoDir, file), source);
 rmSync(videoDir, { recursive: true, force: true });
-console.log('saved', dest);
+
+const gif = path.join(outDir, 'demo.gif');
+
+/**
+ * Encoded here rather than by a separate command, so the trim offset can never
+ * drift from the recording it belongs to.
+ *
+ * The filter chain, in order:
+ *
+ *   -ss              drop the load-in: navigation, image fetches, decode.
+ *   fps=12           resample to a fixed rate first, so mpdecimate compares
+ *                    frames at the rate that will actually be written.
+ *   mpdecimate       drop frames that are near-identical to the one before.
+ *                    GIF stores a delay per frame, so a still stretch becomes
+ *                    one frame held for a while instead of a dozen copies —
+ *                    which is most of this take, since the viewer spends most
+ *                    of it holding an image steady.
+ *   fps_mode=vfr     required for that: without it ffmpeg re-duplicates the
+ *                    dropped frames to keep a constant rate, and mpdecimate
+ *                    buys nothing.
+ *   palettegen/use   one palette for the whole clip, diffed per rectangle.
+ */
+// Note there is no `setpts` here. The usual mpdecimate recipe re-times the
+// survivors to a constant rate, which is for *speeding a clip up* — it would
+// undo exactly what is wanted here. Leaving timestamps alone is what turns a
+// dropped run of duplicates into a longer delay on the frame before it, so the
+// demo still plays at real speed with fewer frames stored.
+/*
+ * 48 colours at 560px, measured against the alternatives on this take:
+ *
+ *   64c 620w 12fps   3817 kB   best quality
+ *   48c 560w 10fps   2529 kB   chosen
+ *   32c 520w 10fps   1913 kB   visible banding on skin and hair
+ *
+ * Photographs are the expensive part — a 256-colour format has to posterise
+ * them — so the palette size is where the bytes are, not the frame count.
+ * 32 was a step too far; the banding is obvious on faces.
+ */
+const filters =
+  `fps=10,mpdecimate=hi=64*12:lo=64*5:frac=0.1,` +
+  `scale=560:-1:flags=lanczos,split[s0][s1];` +
+  `[s0]palettegen=max_colors=48:stats_mode=diff[p];` +
+  `[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`;
+
+execFileSync(
+  'ffmpeg',
+  ['-y', '-ss', trimSeconds.toFixed(2), '-i', source, '-vf', filters, '-fps_mode', 'vfr', gif],
+  { stdio: ['ignore', 'ignore', 'pipe'] },
+);
+
+const kb = (p) => Math.round(statSync(p).size / 1024);
+console.log(`trimmed ${trimSeconds.toFixed(2)}s of load-in`);
+console.log(`saved ${gif} (${kb(gif)} kB, from ${kb(source)} kB of video)`);
