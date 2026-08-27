@@ -35,7 +35,21 @@ function detectFit(img: HTMLImageElement): ThumbnailFit {
 function readGeometry(node: HTMLElement | null) {
   if (!node) return null
   const img = node instanceof HTMLImageElement ? node : node.querySelector('img')
-  return { rect: node.getBoundingClientRect(), fit: img ? detectFit(img) : ('contain' as ThumbnailFit) }
+
+  // Measure the <img>, not the trigger, whenever there is one.
+  //
+  // The trigger is frequently a wrapper — a <figure> with a <figcaption>, a
+  // card with a title and a file size — and its box is therefore taller than
+  // the picture inside it. Flying to the wrapper's rect lands the image over
+  // the whole card including the caption strip, visibly larger than the
+  // thumbnail it is supposed to become, and the close animation ends on a
+  // jump. `fit` was already read from the <img>; the rect has to come from
+  // the same element or the two describe different boxes.
+  const measured = img ?? node
+  return {
+    rect: measured.getBoundingClientRect(),
+    fit: img ? detectFit(img) : ('contain' as ThumbnailFit),
+  }
 }
 
 /**

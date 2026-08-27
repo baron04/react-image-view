@@ -110,6 +110,41 @@ function DefaultDemo() {
 }
 
 /**
+ * A trigger that wraps more than the picture.
+ *
+ * Every other demo hands `Trigger` a bare `<img>`, which makes the trigger's
+ * box and the picture's box the same thing — and hid a real bug: the FLIP
+ * flight measured the trigger, so a wrapper with a caption sent the closing
+ * image to a box taller than the thumbnail by the height of the caption. This
+ * is the shape real consumers use (a card with a filename under it, which is
+ * what the docs site does), so it belongs in the playground.
+ */
+function CaptionedDemo() {
+  return (
+    <section className="demo">
+      <h2>Captioned card trigger</h2>
+      <p className="hint">
+        The trigger is a <code>&lt;figure&gt;</code> wrapping the image
+        <em>and</em> its caption. Closing must land on the picture, not on the
+        whole card.
+      </p>
+      <ImageView.Root images={images}>
+        <div className="grid">
+          {images.map((img, i) => (
+            <ImageView.Trigger key={img.src} index={i} src={img.src} alt={img.name} name={img.name}>
+              <figure className="card" data-testid={`card-${i}`}>
+                <img src={img.src} alt={img.name} data-testid={`card-img-${i}`} />
+                <figcaption>{img.name}</figcaption>
+              </figure>
+            </ImageView.Trigger>
+          ))}
+        </div>
+      </ImageView.Root>
+    </section>
+  )
+}
+
+/**
  * Default preset with the thumbnail strip turned on — the opt-in gallery
  * configuration the decisions doc describes (products, a longer set), as
  * opposed to the handful-of-attachments default above.
@@ -227,6 +262,7 @@ function App() {
     <main>
       <h1>react-img-view</h1>
       <DefaultDemo />
+      <CaptionedDemo />
       <ThumbnailsDemo />
       <SingleDemo />
       <AdvancedDemo />

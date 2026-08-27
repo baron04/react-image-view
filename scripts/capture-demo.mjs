@@ -160,8 +160,18 @@ const gif = path.join(outDir, 'demo.gif');
  * them — so the palette size is where the bytes are, not the frame count.
  * 32 was a step too far; the banding is obvious on faces.
  */
+/*
+ * `tpad` holds the first good frame rather than cutting straight into the
+ * action. A GIF loops, so without it the take restarts mid-motion and there is
+ * no moment to register what is being looked at before it moves.
+ *
+ * Ordered before mpdecimate deliberately: the padded frames are exact copies,
+ * so mpdecimate folds them into a single frame with a long delay. The hold
+ * costs one frame, not a second's worth.
+ */
 const filters =
-  `fps=10,mpdecimate=hi=64*12:lo=64*5:frac=0.1,` +
+  `fps=10,tpad=start_duration=1.2:start_mode=clone,` +
+  `mpdecimate=hi=64*12:lo=64*5:frac=0.1,` +
   `scale=560:-1:flags=lanczos,split[s0][s1];` +
   `[s0]palettegen=max_colors=48:stats_mode=diff[p];` +
   `[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`;

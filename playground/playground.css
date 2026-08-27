@@ -49,3 +49,30 @@ h1 { font-size: 22px; margin: 0 0 8px; }
 .demo h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
 .demo .hint { margin-bottom: 16px; }
 .demo code { font-family: ui-monospace, monospace; font-size: 12px; background: #eef0f3; padding: 1px 5px; border-radius: 4px; }
+
+/* The captioned-card trigger demo: a <figure> wrapping image + caption, which
+   is the shape that exposed the FLIP flight measuring the wrapper instead of
+   the picture. object-fit: cover on purpose — the crop is half of what makes
+   the landing position visible. */
+.card {
+  margin: 0;
+  overflow: hidden;
+  cursor: zoom-in;
+  border: 1px solid var(--line, #e4e8ea);
+  border-radius: 8px;
+  background: #fff;
+}
+.card img {
+  display: block;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  object-fit: cover;
+}
+.card figcaption {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
