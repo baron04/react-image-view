@@ -25,7 +25,7 @@ L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发�
 | `onIndexChange` | `(index: number) => void` | — | |
 | `container` | `HTMLElement \| null` | `document.body` | Portal 目标 —— 什么时候该指向一个带主题的祖先元素，见[安装](../installation/)。 |
 | `extensions` | `Extension[]` | `[]` | 见下方 [Extensions](#extension)。 |
-| `labels` | `Partial<ViewerLabels>` | 英文 | 所有面向用户的文案。见 [`ViewerLabels`](#viewerlabels)。 |
+| `labels` | `Partial<ViewerLabels>` | 跟随浏览器语言 | 所有面向用户的文案。见 [`ViewerLabels`](#viewerlabels)。 |
 
 ### `ImageItem`
 
@@ -133,11 +133,15 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 
 ## `ViewerLabels`
 
-这个库可能渲染出的所有文案，集中在一份记录里，默认英文。
-把 `labels` 传给 `Root`（或 L1 的 `<ImageView>`）即可覆盖其中任意一部分，
-它是逐字段合并的。其中大多数是 `aria-label`，
-所以不翻译它们属于无障碍缺陷而不是外观问题：
-无论页面的 `lang` 声明成什么，读屏软件都会照字面念出来。
+这个库可能渲染出的所有文案，集中在一份记录里。`errorTitle` 是默认界面里
+唯一还会显示成文字的一项，其余都是图标按钮上的 `aria-label`——不翻译它们
+属于无障碍缺陷而不是外观问题：无论页面的 `lang` 声明成什么，读屏软件都会
+照字面念出来。
+
+不传 `labels` 时，`Root` 会按 `navigator.language` 匹配内置的语言包（目前
+是 `en` 和 `zhCN`），匹配不到就用英文兜底。如果应用需要固定语言、不随访客
+浏览器变化，把 `labels` 传给 `Root`（或 L1 的 `<ImageView>`）即可覆盖，它是
+逐字段合并到探测出的语言包之上的。
 
 ```ts
 interface ViewerLabels {
@@ -152,16 +156,17 @@ interface ViewerLabels {
   fitToWindow: string;
   actualSize: string;
   download: string;
+  downloadOriginal: string; // 错误状态里的下载按钮
   retry: string;
   thumbnails: string;    // 缩略图轨上的 aria-label
   thumbnailAt(index: number): string;
-  errorTitle: string;
-  errorHint: string;
+  errorTitle: string;    // 唯一会显示成文字的一项
   loading: string;
 }
 ```
 
-如果你想在默认值基础上扩展而不是整体替换，`defaultLabels` 也有导出。
+内置的两个语言包以 `en`、`zhCN` 导出，`labelsForLocale(tag)` 按 BCP-47
+标签选一个；`defaultLabels` 保留作为 `en` 的兼容别名。
 
 ## `useLabels()`
 

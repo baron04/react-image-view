@@ -46,9 +46,12 @@ export function DefaultContent({ counter = false, thumbnails = false }: DefaultC
     <Content>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Header>
+          {/* Icon only. The controls carry their meaning in `aria-label`,
+              which is what a screen reader reads anyway; ✕ and the download
+              glyph are understood without a word beside them, and dropping
+              the words is most of what made this UI need translating. */}
           <Close>
             <CloseIcon size={18} />
-            {labels.close}
           </Close>
           <span className="riv-sep" />
           <Title />
@@ -56,7 +59,6 @@ export function DefaultContent({ counter = false, thumbnails = false }: DefaultC
           <span className="riv-spacer" />
           <Download>
             <DownloadIcon size={16} />
-            {labels.download}
           </Download>
         </Header>
 
@@ -80,18 +82,24 @@ export function DefaultContent({ counter = false, thumbnails = false }: DefaultC
             {({ retry }) => (
               <>
                 <AlertIcon size={40} />
+                {/* The one visible string the default UI still renders. An
+                    alert glyph says something broke; it cannot say that it
+                    was *this image* rather than the viewer itself. */}
                 <div className="riv-error-copy">
                   <div className="riv-error-title">{labels.errorTitle}</div>
-                  <div className="riv-error-hint">{labels.errorHint}</div>
                 </div>
                 <div className="riv-error-actions">
-                  <button type="button" data-image-view-control="retry" onClick={retry}>
+                  <button
+                    type="button"
+                    data-image-view-control="retry"
+                    aria-label={labels.retry}
+                    title={labels.retry}
+                    onClick={retry}
+                  >
                     <RetryIcon size={16} />
-                    {labels.retry}
                   </button>
-                  <Download>
+                  <Download aria-label={labels.downloadOriginal} title={labels.downloadOriginal}>
                     <DownloadIcon size={16} />
-                    {labels.download}
                   </Download>
                 </div>
               </>

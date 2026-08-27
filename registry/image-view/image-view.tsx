@@ -188,9 +188,11 @@ export function ImagePreview({
       <ImageView.Content className="fixed inset-0 m-0 h-dvh max-h-dvh w-screen max-w-none overflow-hidden border-0 bg-[color:var(--riv-chrome)] p-0 text-[color:var(--riv-ink)] backdrop:bg-black/32 open:animate-in open:fade-in open:duration-200">
         <div className="flex h-full flex-col">
           <ImageView.Header className="flex h-12 flex-none items-center gap-3 overflow-hidden border-b border-[color:var(--riv-line)] bg-[color:var(--riv-chrome)] px-2 pl-2">
-            <ImageView.Close className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 pl-2 text-sm text-[color:var(--riv-ink)] hover:bg-[color:var(--riv-hover)]">
+            <ImageView.Close
+              aria-label="Close"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 pl-2 text-sm text-[color:var(--riv-ink)] hover:bg-[color:var(--riv-hover)]"
+            >
               <CloseIcon size={18} />
-              Close
             </ImageView.Close>
             <span className="h-[18px] w-px flex-none bg-[color:var(--riv-line)]" />
             <ImageView.Title className="min-w-0 truncate text-[13.5px] font-medium" />
@@ -198,9 +200,11 @@ export function ImagePreview({
               <ImageView.Counter className="flex-none font-mono text-[11.5px] tabular-nums text-[color:var(--riv-ink-muted)]" />
             )}
             <span className="min-w-2 flex-1" />
-            <ImageView.Download className="inline-flex h-8 flex-none items-center gap-1.5 rounded-md border border-[color:var(--riv-line)] bg-[color:var(--riv-chrome)] px-3 text-sm text-[color:var(--riv-ink)] no-underline hover:bg-[color:var(--riv-hover)]">
+            <ImageView.Download
+              aria-label="Download"
+              className="inline-flex h-8 flex-none items-center gap-1.5 rounded-md border border-[color:var(--riv-line)] bg-[color:var(--riv-chrome)] px-3 text-sm text-[color:var(--riv-ink)] no-underline hover:bg-[color:var(--riv-hover)]"
+            >
               <DownloadIcon size={16} />
-              Download
             </ImageView.Download>
           </ImageView.Header>
 
@@ -229,23 +233,23 @@ export function ImagePreview({
                     <div className="text-[15px] font-semibold">
                       This image couldn&apos;t be loaded
                     </div>
-                    <div className="max-w-[40ch] text-sm leading-relaxed text-[color:var(--riv-ink-muted)]">
-                      The file may be damaged, or in a format this browser cannot decode. The
-                      original can still be downloaded and opened locally.
-                    </div>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <button
                       type="button"
                       onClick={retry}
+                      aria-label="Try again"
+                      title="Try again"
                       className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[color:var(--riv-line)] bg-[color:var(--riv-chrome)] px-4 text-sm hover:bg-[color:var(--riv-hover)]"
                     >
                       <RetryIcon size={16} />
-                      Retry
                     </button>
-                    <ImageView.Download className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[color:var(--riv-accent)] bg-[color:var(--riv-accent)] px-4 text-sm text-white no-underline">
+                    <ImageView.Download
+                      aria-label="Download the original file"
+                      title="Download the original file"
+                      className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[color:var(--riv-accent)] bg-[color:var(--riv-accent)] px-4 text-sm text-white no-underline"
+                    >
                       <DownloadIcon size={16} />
-                      Download original
                     </ImageView.Download>
                   </div>
                 </>

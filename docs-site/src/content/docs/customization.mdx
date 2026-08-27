@@ -238,9 +238,12 @@ plugin system.
 
 ## 6. Labels
 
-Every user-facing string — visible text and `aria-label` alike — comes from
-one record, English by default. Pass `labels` to translate the interface;
-it merges field by field, so overriding one leaves the rest alone.
+Every user-facing string comes from one record. Most surface only as
+`aria-label` on an otherwise icon-only control — `errorTitle` is the one the
+default UI still renders as visible text. Left alone, `Root` picks a pack by
+matching the browser's language; pass `labels` to pin one regardless of the
+visitor's browser, merged field by field so overriding one leaves the rest
+alone.
 
 ```tsx
 <ImageView.Root

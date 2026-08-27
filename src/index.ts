@@ -40,7 +40,7 @@ export {
 }
 
 export { useViewer, useLabels } from './react/context'
-export { defaultLabels } from './labels'
+export { en, zhCN, defaultLabels, labelsForLocale } from './labels'
 export { Slot, composeRefs } from './react/slot'
 export type {
   ImageItem, ViewerApi, ViewerStatus, Extension, ImageViewRootProps, GestureHookPhase,

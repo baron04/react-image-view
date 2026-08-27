@@ -3,6 +3,42 @@
 Notable changes to `react-img-view`. Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+The default UI had drifted into needing a translation for every host app: eight
+strings rendered as visible text, and all of them were English regardless of
+the browser. This cuts that down to one string and lets the rest follow the
+visitor rather than the app.
+
+### Breaking
+
+- **`ViewerLabels` no longer has `errorHint`.** The error state's explanatory
+  paragraph is gone — the alert icon plus `errorTitle` carry the state, and a
+  second sentence of body copy was rarely more than a screen-reader-only
+  restatement of it. Drop `errorHint` from any `labels` override; it is now
+  ignored by nothing, because the field itself no longer exists to pass.
+- **Close, header Download, Retry, and the error state's download-original
+  control are icon-only.** Their strings still exist — `labels.close`,
+  `labels.download`, `labels.retry`, `labels.downloadOriginal` — but now
+  surface only as `aria-label`/`title`, not as rendered text. `errorTitle` is
+  the one string `DefaultContent` still renders visibly.
+- **Labels default to the browser's language, not always English.** `Root`
+  auto-detects via `navigator.language` and picks a bundled pack — currently
+  `en` or `zhCN` — falling back to English for anything else. An app that must
+  stay in one language regardless of the visitor's browser should pass
+  `labels` explicitly (or spread a named pack: `labels={zhCN}`). See
+  [src/labels.ts](src/labels.ts) for why this follows the browser rather than
+  the app.
+
+### Added
+
+- **`downloadOriginal` on `ViewerLabels`** — the error state's download
+  action, distinct from the header's `download` now that the two can carry
+  different copy (e.g. "Download the original file" vs "Download").
+- **`en`, `zhCN`, and `labelsForLocale` exports** from the package root, so an
+  app that wants one bundled pack regardless of the browser can import it
+  directly instead of relying on auto-detection.
+
 ## [0.2.1] — 2026-08-26
 
 Both open/close transitions were wrong in 0.2.0 — one silently absent, the

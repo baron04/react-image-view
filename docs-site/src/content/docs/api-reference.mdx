@@ -26,7 +26,7 @@ trigger element), and `container` / `labels`, both forwarded to `Root`.
 | `onIndexChange` | `(index: number) => void` | — | |
 | `container` | `HTMLElement \| null` | `document.body` | Portal target — see [Installation](../installation/) for when to point this at a themed ancestor instead. |
 | `extensions` | `Extension[]` | `[]` | See [Extensions](#extension) below. |
-| `labels` | `Partial<ViewerLabels>` | English | Every user-facing string. See [`ViewerLabels`](#viewerlabels). |
+| `labels` | `Partial<ViewerLabels>` | detected from the browser | Every user-facing string. See [`ViewerLabels`](#viewerlabels). |
 
 ### `ImageItem`
 
@@ -136,11 +136,17 @@ included, comes from [`labels`](#viewerlabels) on `Root`.
 
 ## `ViewerLabels`
 
-Every string the library can render, in one record, English by default.
-Pass `labels` to `Root` (or to the L1 `<ImageView>`) to override any subset
-— it is merged field by field. Most of these are `aria-label`s, so leaving
-them untranslated is an accessibility problem, not a cosmetic one: a screen
-reader announces them verbatim whatever the page's `lang` says.
+Every string the library can render, in one record. `errorTitle` is the only
+one `DefaultContent` renders as visible text — the rest are `aria-label`s on
+otherwise icon-only controls, so leaving them untranslated is an
+accessibility problem, not a cosmetic one: a screen reader announces them
+verbatim whatever the page's `lang` says.
+
+Left unset, `Root` picks a bundled pack — currently `en` or `zhCN` — by
+matching `navigator.language`, falling back to English. Pass `labels` to
+`Root` (or to the L1 `<ImageView>`) to pin a language regardless of the
+visitor's browser; it is merged field by field over the detected pack, so
+overriding one key leaves the rest alone.
 
 ```ts
 interface ViewerLabels {
@@ -155,16 +161,18 @@ interface ViewerLabels {
   fitToWindow: string;
   actualSize: string;
   download: string;
+  downloadOriginal: string; // the error state's download action
   retry: string;
   thumbnails: string;    // aria-label on the thumbnail strip
   thumbnailAt(index: number): string;
-  errorTitle: string;
-  errorHint: string;
+  errorTitle: string;    // the one string rendered as visible text
   loading: string;
 }
 ```
 
-`defaultLabels` is exported if you want to extend rather than replace them.
+`en` and `zhCN` are exported as the two bundled packs, `labelsForLocale(tag)`
+picks one by BCP-47 tag, and `defaultLabels` is kept as a deprecated alias
+for `en`.
 
 ## `useLabels()`
 

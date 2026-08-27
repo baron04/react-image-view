@@ -48,13 +48,16 @@ export interface ViewerApi {
 /**
  * Every user-facing string the library can render, in one place.
  *
- * These are English by default and overridable as a whole or field by field,
- * because a component that hardcodes one language is unusable in an app
- * written in another — and most of these are `aria-label`s, so getting them
- * wrong is an accessibility bug, not a cosmetic one: a screen reader
- * announces them verbatim regardless of the page's `lang`.
+ * Almost all of them are `aria-label`s: the default UI renders icons, and the
+ * only visible string left is `errorTitle`. That makes hardcoding a language
+ * an accessibility bug rather than a cosmetic one — a screen reader announces
+ * these verbatim whatever the page's `lang` says.
  *
- * Passed to `Root` as `labels`; read anywhere below it with `useLabels()`.
+ * Left unset, these follow the browser's language among the packs this
+ * package ships (English and Simplified Chinese) — see src/labels.ts for why
+ * the browser rather than the application. Pass `labels` to pin them.
+ *
+ * Read anywhere below `Root` with `useLabels()`.
  */
 export interface ViewerLabels {
   /** `aria-label` on the modal itself. */
@@ -69,14 +72,15 @@ export interface ViewerLabels {
   fitToWindow: string
   actualSize: string
   download: string
+  /** The error state's download action, which is about the original file. */
+  downloadOriginal: string
   retry: string
   /** `aria-label` on the thumbnail strip. */
   thumbnails: string
   /** Builds the `aria-label` for one thumbnail with no name of its own. */
   thumbnailAt(index: number): string
-  /** Shown by the default error state. */
+  /** The one string the default UI still renders as visible text. */
   errorTitle: string
-  errorHint: string
   loading: string
 }
 

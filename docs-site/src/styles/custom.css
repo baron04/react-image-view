@@ -236,6 +236,10 @@ h4 {
 	color: var(--sl-color-gray-2);
 }
 
+.sl-markdown-content .riv-feature {
+	margin-top: 0;
+}
+
 /* The splash template still renders the frontmatter title as `h1#_top`. The
    landing page supplies its own <h1>, and two <h1>s on one page is both an
    accessibility problem and a mixed signal to crawlers — so hide Starlight's

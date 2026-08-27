@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ViewerProvider, type TriggerGeometry, type TriggerRegistration, type ViewerContextValue, type ViewerInternals } from '../context'
-import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerStatus } from '../../types'
+import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerLabels, ViewerStatus } from '../../types'
 import type { Size, SlideSize, Transform } from '../../core/types'
 import type { Crop, FlipFrame } from '../../core/flip'
 import { IDENTITY, clamp, fitScale as computeFit, maxScale as computeMax, zoomAbout } from '../../core/transform'
@@ -8,7 +8,7 @@ import { Ticker } from '../../core/ticker'
 import { animateFlipFrame, animateTransform } from '../../core/animate'
 import { NO_CROP, fittedFlipFrame, flipFrameFromRect, prefersReducedMotion } from '../../core/flip'
 import { tuning } from '../../core/tuning'
-import { mergeLabels } from '../../labels'
+import { en, labelsForLocale, mergeLabels } from '../../labels'
 import { paintCrop, paintImage, paintTrack } from '../paint'
 import { Content } from './Content'
 import { DefaultContent } from '../../preset/DefaultContent'
@@ -16,6 +16,13 @@ import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
 // See ../../core/tuning: exits run far stiffer than entrances on purpose.
 const EXIT_STIFFNESS = tuning.spring.exitStiffness
+
+// The browser's language cannot change without a reload, so there is nothing
+// to subscribe to — but the store contract requires a subscribe function.
+const subscribeNever = () => () => {}
+let cached: ViewerLabels | undefined
+const clientLabels = () => (cached ??= labelsForLocale(navigator.language))
+const serverLabels = () => en
 
 function useControllable<T>(
   controlled: T | undefined,
@@ -60,7 +67,20 @@ export function Root({
       prev.width === next.width && prev.height === next.height ? prev : next,
     )
   }, [])
-  const labels = React.useMemo(() => mergeLabels(labelsProp), [labelsProp])
+  // Follows the browser's language among the packs this package ships, and
+  // only when the caller has not pinned `labels` themselves.
+  //
+  // `useSyncExternalStore` rather than reading `navigator` during render: the
+  // server has no `navigator`, so a client that resolved Chinese while the
+  // server had emitted English would mismatch on every aria-label it
+  // hydrated. Giving the two sides an explicit snapshot each is what the API
+  // is for. `clientLabels` caches, so the snapshot is reference-stable and
+  // the store never re-fires.
+  const detected = React.useSyncExternalStore(subscribeNever, clientLabels, serverLabels)
+  const labels = React.useMemo(
+    () => mergeLabels(detected, labelsProp),
+    [detected, labelsProp],
+  )
   const [natural, setNaturalState] = React.useState<SlideSize | null>(null)
   // Image.tsx calls this on every layout pass that touches the current slide,
   // not only when the size actually changed — republishing a same-valued but
