@@ -386,6 +386,10 @@ export function Root({
     [ticker, stageSize, setStageSize, natural, setNatural, syncTransform, markDirty, stopAnimations, reloadToken, paint],
   )
 
+  // Which slide the current framing was computed for. A slide change always
+  // re-frames, whatever else is going on.
+  const framedForRef = React.useRef<number | null>(null)
+
   /**
    * Entry animation, in its own effect and nothing else's business.
    *
@@ -415,6 +419,20 @@ export function Root({
 
     stopAnimations()
     animatingRef.current = true
+
+    // Claim the framing for this slide before handing off to the ticker.
+    //
+    // The refit effect below treats `framedForRef.current !== index` as a
+    // slide change, and a slide change deliberately overrides every guard —
+    // including `animatingRef`. On the first open that comparison is
+    // `null !== 0`, so refit read the entry flight as a page turn, cancelled
+    // it, and snapped straight to the fitted scale in the same commit. The
+    // flight started and was erased before a single frame was painted, which
+    // is why opening appeared instant while closing animated normally.
+    //
+    // This *is* the framing for this slide, so say so.
+    framedForRef.current = index
+
     transformRef.current = from.transform
     cropRef.current = from.crop
     paintImage(imageRef.current, from.transform)
@@ -442,11 +460,7 @@ export function Root({
     // behind a plain variable, not a wrapper the plugin's static analysis
     // can see through, which is why it doesn't recognise this as an effect.
     // eslint-disable-next-line react-hooks/refs -- see comment above
-  }, [open, natural, stageSize, fitScale, ticker, stopAnimations, syncTransform])
-
-  // Which slide the current framing was computed for. A slide change always
-  // re-frames, whatever else is going on.
-  const framedForRef = React.useRef<number | null>(null)
+  }, [open, index, natural, stageSize, fitScale, ticker, stopAnimations, syncTransform])
 
   /**
    * Fit whenever the framing changes underneath us — a new image arrives, the

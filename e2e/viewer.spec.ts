@@ -174,3 +174,35 @@ test('closing lands on the picture, not on the wrapper around it', async ({ page
   expect(Math.abs(landing.width - before!.width)).toBeLessThan(3)
   expect(Math.abs(landing.height - before!.height)).toBeLessThan(3)
 })
+
+test('opening animates from the thumbnail rather than appearing', async ({ page }) => {
+  // The entry flight was started and then erased inside the same commit: the
+  // refit effect treats `framedFor !== index` as a slide change, a slide
+  // change overrides every guard including `animating`, and on the first open
+  // that comparison is `null !== 0`. So it cancelled the flight and snapped to
+  // the fitted scale before a frame was painted — opening looked instant while
+  // closing animated normally, which is a hard difference to notice by eye.
+  const scales = await page.evaluate(async () => {
+    const seen = new Set<string>()
+    const sample = () => {
+      const img = document.querySelector('[data-image-view-slide][data-current] img')
+      if (!img) return
+      const m = new DOMMatrixReadOnly(getComputedStyle(img).transform)
+      seen.add(Math.hypot(m.a, m.b).toFixed(4))
+    }
+    const started = performance.now()
+    ;(document.querySelector('[data-testid="default-thumb-0"]') as HTMLElement).click()
+    return new Promise<number>((resolve) => {
+      const tick = () => {
+        sample()
+        if (performance.now() - started < 900) requestAnimationFrame(tick)
+        else resolve(seen.size)
+      }
+      requestAnimationFrame(tick)
+    })
+  })
+
+  // A real spring passes through dozens of intermediate scales; a cancelled
+  // one reports exactly 1, the destination.
+  expect(scales).toBeGreaterThan(8)
+})

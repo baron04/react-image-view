@@ -66,7 +66,7 @@ const trimSeconds = (Date.now() - recordingStart) / 1000;
 // to show which thumbnail is about to be clicked, which is the whole point of
 // opening from one — and no longer, because a reel of the grid would advertise
 // the gallery this deliberately is not.
-await page.waitForTimeout(700);
+await page.waitForTimeout(450);
 
 // 1. Open from a thumbnail — the interaction the component is named for.
 await page.click('[data-testid="default-thumb-0"]');
@@ -131,46 +131,33 @@ const gif = path.join(outDir, 'demo.gif');
  *
  * The filter chain, in order:
  *
- *   -ss              drop the load-in: navigation, image fetches, decode.
- *   fps=12           resample to a fixed rate first, so mpdecimate compares
- *                    frames at the rate that will actually be written.
- *   mpdecimate       drop frames that are near-identical to the one before.
- *                    GIF stores a delay per frame, so a still stretch becomes
- *                    one frame held for a while instead of a dozen copies —
- *                    which is most of this take, since the viewer spends most
- *                    of it holding an image steady.
- *   fps_mode=vfr     required for that: without it ffmpeg re-duplicates the
- *                    dropped frames to keep a constant rate, and mpdecimate
- *                    buys nothing.
- *   palettegen/use   one palette for the whole clip, diffed per rectangle.
- */
-// Note there is no `setpts` here. The usual mpdecimate recipe re-times the
-// survivors to a constant rate, which is for *speeding a clip up* — it would
-// undo exactly what is wanted here. Leaving timestamps alone is what turns a
-// dropped run of duplicates into a longer delay on the frame before it, so the
-// demo still plays at real speed with fewer frames stored.
-/*
- * 48 colours at 560px, measured against the alternatives on this take:
- *
- *   64c 620w 12fps   3817 kB   best quality
- *   48c 560w 10fps   2529 kB   chosen
- *   32c 520w 10fps   1913 kB   visible banding on skin and hair
- *
- * Photographs are the expensive part — a 256-colour format has to posterise
- * them — so the palette size is where the bytes are, not the frame count.
- * 32 was a step too far; the banding is obvious on faces.
- */
-/*
- * `tpad` holds the first good frame rather than cutting straight into the
- * action. A GIF loops, so without it the take restarts mid-motion and there is
- * no moment to register what is being looked at before it moves.
- *
- * Ordered before mpdecimate deliberately: the padded frames are exact copies,
- * so mpdecimate folds them into a single frame with a long delay. The hold
- * costs one frame, not a second's worth.
+ *   -ss           drop the load-in: navigation, image fetches, decode.
+ *   fps=10        resample first, so everything downstream works at the rate
+ *                 that will actually be written.
+ *   tpad          hold the opening frame. A GIF loops, so without it the take
+ *                 restarts mid-motion with no moment to register what is being
+ *                 looked at. Before mpdecimate on purpose — the padding is
+ *                 exact copies, which mpdecimate folds into one long-delay
+ *                 frame, so the hold costs a frame rather than a second's.
+ *   mpdecimate    drop frames near-identical to the one before. The viewer
+ *                 spends most of the take holding an image steady, and GIF
+ *                 stores a delay per frame, so a dropped run becomes a longer
+ *                 delay instead of a dozen copies. Halved the frame count.
+ *   fps_mode=vfr  required for that: otherwise ffmpeg re-duplicates the
+ *                 dropped frames to keep a constant rate and mpdecimate buys
+ *                 nothing. Note there is deliberately no `setpts` — the usual
+ *                 mpdecimate recipe re-times the survivors to a constant rate,
+ *                 which is for speeding a clip up and would undo exactly this.
+ *   palette       48 colours at 560px, measured on this take:
+ *                   64c 620w   3817 kB   best quality
+ *                   48c 560w   2529 kB   chosen
+ *                   32c 520w   1913 kB   visible banding on skin and hair
+ *                 Photographs are the expensive part, since a 256-colour
+ *                 format has to posterise them — the palette is where the
+ *                 bytes are, not the frame count.
  */
 const filters =
-  `fps=10,tpad=start_duration=1.2:start_mode=clone,` +
+  `fps=10,tpad=start_duration=1.5:start_mode=clone,` +
   `mpdecimate=hi=64*12:lo=64*5:frac=0.1,` +
   `scale=560:-1:flags=lanczos,split[s0][s1];` +
   `[s0]palettegen=max_colors=48:stats_mode=diff[p];` +
