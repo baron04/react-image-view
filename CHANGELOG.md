@@ -27,9 +27,13 @@ checks.
 
 ### Added
 
-- **`react-img-view/imperative`** — an opt-in `ImagePreviewProvider` and
-  `useImagePreview()` controller for opening a managed viewer from any
-  descendant with `open({ images, index })`, plus close and navigation commands.
+- **`react-img-view/imperative`** — a true `ImagePreview.open()` function that
+  lazily mounts a viewer with no Provider, returns close/navigation commands,
+  and automatically removes its React root and temporary host after closing.
+- **`ImageView.Image.renderImage`** — replace the full-size image with a
+  `<picture>` or another image component while preserving the viewer's supplied
+  source, sizing, loading, retry, and transform plumbing. The preset exposes the
+  same option through `DefaultContent` and the imperative entry.
 - **`react-img-view/primitives`** — semantic React parts and the pure headless
   `Root`, without `SingleImage`, `DefaultContent`, preset icons, or automatic
   chrome.

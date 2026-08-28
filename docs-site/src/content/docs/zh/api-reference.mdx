@@ -20,34 +20,35 @@ L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发�
 
 ## 函数式调用
 
-从 `react-img-view/imperative` 引入 `ImagePreviewProvider` 和
-`useImagePreview`。这个独立入口不会增加常规入口的体积。
-
-先在应用上层挂载 Provider，再在业务组件中调用：
+从 `react-img-view/imperative` 引入 `ImagePreview`。这个独立入口不会增加
+常规入口的体积，也不需要 Provider：
 
 ```tsx
-const preview = useImagePreview()
-preview.open({ images, index: 0 })
-preview.go(2)
-preview.next()
-preview.prev()
-preview.close()
+const viewer = ImagePreview.open({ images, index: 0 })
+viewer.go(2)
+viewer.next()
+viewer.prev()
+viewer.close()
 ```
 
 `open()` 接收 `ImageItem[]` 和可选的初始序号。再次调用会替换当前图片组；
-传入空数组时不会打开，序号越界时会自动调整到有效范围。
+传入空数组时不会打开，序号越界时会自动调整到有效范围。无论通过句柄、预设
+关闭按钮还是 Escape 关闭，React Root 和临时宿主都会自动卸载。
 
-| Provider 属性                         | 类型              | 默认值  |                                                 |
+| `open()` 参数                         | 类型              | 默认值  |                                                 |
 | ------------------------------------- | ----------------- | ------- | ----------------------------------------------- |
-| `children`                            | `ReactNode`       | —       | 可以调用 `useImagePreview()` 的组件。           |
+| `images`                              | `ImageItem[]`     | —       | 要打开的图片。                                  |
+| `index`                               | `number`          | `0`     | 初始序号，越界时自动调整。                      |
 | `content`                             | `ReactNode`       | 预设    | 用 `ImageView.Content` 等部件组合的自定义界面。 |
 | `counter`                             | `boolean`         | `false` | 是否显示预设计数器。                            |
 | `thumbnails`                          | `boolean \| mode` | `false` | 是否显示预设缩略图轨。                          |
+| `renderImage`                         | 函数              | —       | 与 `ImageView.Image` 相同的图片渲染函数。       |
 | `container` / `extensions` / `labels` | 与 `Root` 相同    | —       | 转发给内部托管的 `Root`。                       |
 
-`useImagePreview()` 用于从外部打开和切换预览器；`useViewer()` 用于在预览器内部
-读取状态、控制缩放和旋转。函数式调用没有对应的缩略图位置，因此会直接打开，
-不播放缩略图到大图的过渡动画。
+返回的句柄只控制这次调用创建的预览；之后再次 `open()` 时，旧句柄不会误操作新预览。
+`ImagePreview.close()` 关闭当前函数式预览。自定义 `content` 内仍然可以使用
+`useViewer()` 读取状态、控制缩放和旋转。函数式调用没有对应的缩略图位置，因此会
+直接打开，不播放缩略图到大图的过渡动画。
 
 ## `<ImageView.Root>`
 
@@ -113,6 +114,25 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 渲染当前这张以及紧邻的前后两张（这样手势进行中翻页不必等待挂载）。
 `overscan?: number` 控制当前张两侧各保留多少张处于挂载状态（默认 `1`）。
 
+`renderImage` 可以替换大图的渲染方式，不必把所有原生图片属性都加进
+`ImageItem`。它会收到当前图片、序号、是否为当前页，以及库组装好的
+`imageProps`：
+
+```tsx
+<ImageView.Image
+  renderImage={({ item, imageProps }) => (
+    <picture>
+      <source srcSet={`${item.src}.webp`} type="image/webp" />
+      <img referrerPolicy="no-referrer" {...imageProps} />
+    </picture>
+  )}
+/>
+```
+
+最终 DOM 必须包含一个展开了 `imageProps` 的 `<img>`。这些属性包含图片地址、
+尺寸样式、加载/错误处理，以及变换和重试所需的连接。想保留预设界面时，可把同一个
+函数传给 `<ImageView.DefaultContent renderImage={...} />`。
+
 ## 状态部件
 
 | 部件                  | 渲染时机                                                                                                           |
@@ -161,10 +181,11 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 也可以显式使用，比如只想打开 `counter`/`thumbnails`
 而不想手写整个 L3：
 
-| 属性         | 类型                                       | 默认值                               |
-| ------------ | ------------------------------------------ | ------------------------------------ |
-| `counter`    | `boolean`                                  | `false`                              |
-| `thumbnails` | `boolean \| 'auto' \| 'always' \| 'never'` | `false` —— 传 `true` 等价于 `'auto'` |
+| 属性          | 类型                                       | 默认值                               |
+| ------------- | ------------------------------------------ | ------------------------------------ |
+| `counter`     | `boolean`                                  | `false`                              |
+| `thumbnails`  | `boolean \| 'auto' \| 'always' \| 'never'` | `false` —— 传 `true` 等价于 `'auto'` |
+| `renderImage` | 与 `Image` 相同                            | —                                    |
 
 默认错误态刻意保持紧凑：一行错误文案和一个只显示图标的重试按钮。按钮的无障碍
 名称以及其余面向用户的文案都来自 `Root` 上的 [`labels`](#viewerlabels)。

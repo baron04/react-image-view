@@ -22,38 +22,38 @@ trigger element), and `container` / `labels`, both forwarded to `Root`.
 
 ## Imperative API
 
-Import `ImagePreviewProvider` and `useImagePreview` from
-`react-img-view/imperative`. This separate entry adds nothing to the regular
-bundle.
-
-Mount the provider near the application root, then call the API from a
-component:
+Import `ImagePreview` from `react-img-view/imperative`. This separate entry
+adds nothing to the regular bundle and requires no Provider:
 
 ```tsx
-const preview = useImagePreview()
-preview.open({ images, index: 0 })
-preview.go(2)
-preview.next()
-preview.prev()
-preview.close()
+const viewer = ImagePreview.open({ images, index: 0 })
+viewer.go(2)
+viewer.next()
+viewer.prev()
+viewer.close()
 ```
 
 `open()` takes `ImageItem[]` and an optional initial index. Calling it again
 replaces the current set. An empty set stays closed, and an out-of-range index
-is adjusted to the nearest valid value.
+is adjusted to the nearest valid value. Closing from the handle, the preset UI,
+or Escape automatically unmounts the React root and removes its temporary host.
 
-| Provider prop                         | Type              | Default |                                                                    |
+| `open()` option                       | Type              | Default |                                                                    |
 | ------------------------------------- | ----------------- | ------- | ------------------------------------------------------------------ |
-| `children`                            | `ReactNode`       | —       | Components that may call `useImagePreview()`.                      |
+| `images`                              | `ImageItem[]`     | —       | Images to open.                                                    |
+| `index`                               | `number`          | `0`     | Initial image, clamped to the available range.                     |
 | `content`                             | `ReactNode`       | preset  | A custom composition built from `ImageView.Content` and its parts. |
 | `counter`                             | `boolean`         | `false` | Show the preset counter.                                           |
 | `thumbnails`                          | `boolean \| mode` | `false` | Show the preset thumbnail strip.                                   |
+| `renderImage`                         | function          | —       | Same renderer accepted by `ImageView.Image`.                       |
 | `container` / `extensions` / `labels` | same as `Root`    | —       | Forwarded to the managed `Root`.                                   |
 
-Use `useImagePreview()` outside the viewer to open and navigate it. Use
-`useViewer()` inside the viewer to read state and control zoom or rotation.
-An imperative call has no thumbnail position, so the viewer opens directly
-without the thumbnail-to-image transition.
+The returned handle controls only the viewer created by that call; after a
+later `open()`, an old handle is harmless. `ImagePreview.close()` closes the
+currently active function-style viewer. Inside custom `content`, `useViewer()`
+still reads state and controls zoom or rotation. A function call has no
+thumbnail position, so it opens directly without the thumbnail-to-image
+transition.
 
 ## `<ImageView.Root>`
 
@@ -122,6 +122,26 @@ Renders the current slide and its immediate neighbours (so a page turn
 never waits on a mount mid-gesture). `overscan?: number` controls how many
 slides stay mounted either side of the current one (default `1`).
 
+`renderImage` replaces the full-size image without adding every native image
+attribute to `ImageItem`. It receives the current item, index, whether that
+slide is current, and the library's assembled `imageProps`:
+
+```tsx
+<ImageView.Image
+  renderImage={({ item, imageProps }) => (
+    <picture>
+      <source srcSet={`${item.src}.webp`} type="image/webp" />
+      <img referrerPolicy="no-referrer" {...imageProps} />
+    </picture>
+  )}
+/>
+```
+
+The final DOM must contain an `<img>` with `imageProps` spread onto it. Those
+props carry the source, sizing styles, loading/error handlers and the plumbing
+used by transforms and retry. To keep the preset chrome, pass the same renderer
+to `<ImageView.DefaultContent renderImage={...} />`.
+
 ## Status
 
 | Part                  | Renders when                                                                                                             |
@@ -170,10 +190,11 @@ What `Root` renders automatically when you don't supply your own
 `Content`. Also usable explicitly, e.g. to turn on `counter`/`thumbnails`
 without writing the rest of L3 by hand:
 
-| Prop         | Type                                       | Default                         |
-| ------------ | ------------------------------------------ | ------------------------------- |
-| `counter`    | `boolean`                                  | `false`                         |
-| `thumbnails` | `boolean \| 'auto' \| 'always' \| 'never'` | `false` — `true` means `'auto'` |
+| Prop          | Type                                       | Default                         |
+| ------------- | ------------------------------------------ | ------------------------------- |
+| `counter`     | `boolean`                                  | `false`                         |
+| `thumbnails`  | `boolean \| 'auto' \| 'always' \| 'never'` | `false` — `true` means `'auto'` |
+| `renderImage` | same as `Image`                            | —                               |
 
 The default error is deliberately compact: visible error copy and an icon-only
 retry button. Its accessible name and every other user-facing string come from

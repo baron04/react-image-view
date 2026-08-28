@@ -40,14 +40,9 @@ const consumerEntries = [
     name: 'consumer: imperative',
     budget: 12_000,
     source: `
-      import * as React from 'react'
-      import { ImagePreviewProvider, useImagePreview } from 'react-img-view/imperative'
-      function Open({ images }) {
-        const preview = useImagePreview()
-        return <button onClick={() => preview.open({ images })}>open</button>
-      }
+      import { ImagePreview } from 'react-img-view/imperative'
       export function Preview({ images }) {
-        return <ImagePreviewProvider><Open images={images} /></ImagePreviewProvider>
+        return <button onClick={() => ImagePreview.open({ images })}>open</button>
       }
     `,
   },

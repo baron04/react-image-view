@@ -65,31 +65,20 @@ function Attachments({ files }: { files: { src: string; name: string }[] }) {
 ### Imperative API
 
 Use the imperative API when you do not want to manage `open` and `index`
-yourself:
-
-1. Mount `ImagePreviewProvider` once near the application root.
-2. Call `preview.open()` from a component using `useImagePreview()`.
+yourself. It is a direct function call; no Provider is required:
 
 ```tsx
-import { ImagePreviewProvider, useImagePreview } from 'react-img-view/imperative'
+import { ImagePreview } from 'react-img-view/imperative'
 
 function ViewButton({ files }) {
-  const preview = useImagePreview()
-  return <button onClick={() => preview.open({ images: files, index: 2 })}>View file 3</button>
-}
-
-function App() {
-  return (
-    <ImagePreviewProvider>
-      <ViewButton files={files} />
-    </ImagePreviewProvider>
-  )
+  return <button onClick={() => ImagePreview.open({ images: files, index: 2 })}>View file 3</button>
 }
 ```
 
 `open()` receives the images and initial index. Calling it again replaces the
-current image set. The same controller provides `close()`, `go()`, `next()`,
-and `prev()`.
+current image set. It returns a handle with `close()`, `go()`, `next()`, and
+`prev()`; `ImagePreview.close()` closes whichever function-style viewer is
+active. Closing unmounts the React root and removes its temporary DOM host.
 
 An imperative call has no corresponding thumbnail element, so the viewer opens
 directly without the thumbnail-to-image transition.

@@ -38,9 +38,9 @@ composition when you need it — see the
 [docs](https://baron04.github.io/react-img-view/quick-start/) for all
 three.
 
-For imperative calls, import `ImagePreviewProvider` and `useImagePreview`
-from `react-img-view/imperative`. Mount the provider once, then call
-`preview.open({ images, index })` from an application component.
+For a true function call, import `ImagePreview` from
+`react-img-view/imperative` and call `ImagePreview.open({ images, index })`.
+No Provider is required; closing automatically removes the temporary host.
 
 The main entry is **11.6 kB gzip**. For custom chrome, import headless parts
 from `react-img-view/primitives` (**10.4 kB gzip**); low-level transforms and

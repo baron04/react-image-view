@@ -1,11 +1,9 @@
-/**
- * Opt-in function-style entry. Keeping it separate means applications that
- * only use ImageView do not include the provider/controller layer.
- */
-export { ImagePreviewProvider, useImagePreview } from './preset/ImagePreviewProvider'
+/** True function-style entry, isolated from the regular component bundle. */
+export { ImagePreview } from './preset/ImagePreview'
 export type {
-  ImagePreviewController,
+  ImagePreviewHandle,
   ImagePreviewOpenOptions,
-  ImagePreviewProviderProps,
-} from './preset/ImagePreviewProvider'
+  ImagePreviewStatic,
+} from './preset/ImagePreview'
+export type { ImageProps, ImageRenderContext } from './react/parts/Image'
 export type { ImageItem } from './types'

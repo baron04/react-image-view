@@ -34,9 +34,8 @@ function AttachmentPreview({ file }) {
 单张图片一行代码，一组图片一个组件，需要自定义界面时也能完全展开来写——三种
 用法都在[文档](https://baron04.github.io/react-img-view/zh/quick-start/)里。
 
-需要函数式调用时，从 `react-img-view/imperative` 引入
-`ImagePreviewProvider` 和 `useImagePreview`。在应用上层挂一次 Provider，
-业务组件中直接调用 `preview.open({ images, index })`。
+需要函数式调用时，从 `react-img-view/imperative` 引入 `ImagePreview`，直接调用
+`ImagePreview.open({ images, index })`。不需要 Provider；关闭后临时宿主会自动清理。
 
 完整入口为 **11.6 kB gzip**。自定义界面可从
 `react-img-view/primitives` 引入无默认外观的部件（**10.4 kB gzip**）；底层变换

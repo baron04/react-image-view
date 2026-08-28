@@ -1,4 +1,5 @@
 import * as React from 'react'
+import type { ImageItem } from '../../types'
 import { useViewerContext } from '../context'
 import { paintImage, paintTrack } from '../paint'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
@@ -6,6 +7,19 @@ import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 export interface ImageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Slides kept mounted either side of the current one. */
   overscan?: number
+  /**
+   * Replace the rendered image without copying every native `<img>` option
+   * into `ImageItem`. Spread `imageProps` onto the actual `<img>` so sizing,
+   * loading state, retry and transforms remain connected to the viewer.
+   */
+  renderImage?(context: ImageRenderContext): React.ReactNode
+}
+
+export interface ImageRenderContext {
+  item: ImageItem
+  index: number
+  isCurrent: boolean
+  imageProps: React.ImgHTMLAttributes<HTMLImageElement>
 }
 
 /**
@@ -17,7 +31,7 @@ export interface ImageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
  * two hundred attachments still holds three nodes.
  */
 export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image(
-  { overscan = 1, style, ...rest },
+  { overscan = 1, renderImage, style, ...rest },
   forwardedRef,
 ) {
   const { images, api, internals } = useViewerContext('Image')
@@ -38,7 +52,10 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
    * querySelector per render costs nothing and cannot be out of date.
    */
   const currentImage = React.useCallback(
-    () => viewportRef.current?.querySelector<HTMLImageElement>('[data-image-view-slide][data-current] img') ?? null,
+    () =>
+      viewportRef.current?.querySelector<HTMLImageElement>(
+        '[data-image-view-slide][data-current] img',
+      ) ?? null,
     [],
   )
 
@@ -125,6 +142,51 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
           const item = images[i]
           if (!item) return null
           const isCurrent = i === index
+          const imageProps: React.ImgHTMLAttributes<HTMLImageElement> = {
+            src: item.src,
+            alt: item.alt ?? item.name ?? '',
+            draggable: false,
+            decoding: 'async',
+            onLoad: (event) => {
+              if (!isCurrent) return
+              const el = event.currentTarget
+              internals.setNatural({
+                width: el.naturalWidth,
+                height: el.naturalHeight,
+                forIndex: i,
+              })
+              setStatus('ready')
+            },
+            onError: () => {
+              if (isCurrent) setStatus('error')
+            },
+            style: isCurrent
+              ? {
+                  // Natural layout size, so `scale` means exactly what the
+                  // 1:1 control claims: one image pixel per CSS pixel.
+                  width: 'auto',
+                  height: 'auto',
+                  maxWidth: 'none',
+                  maxHeight: 'none',
+                  transformOrigin: 'center center',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  willChange: 'transform',
+                }
+              : {
+                  // Neighbours are only ever seen fitted, so CSS contain is
+                  // enough and costs no measurement. It lands on the same
+                  // pixels the fitted transform would, so promotion to current
+                  // is invisible.
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  width: 'auto',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                },
+          }
           return (
             <div
               key={`${item.src}-${i}-${isCurrent ? reloadToken : 0}`}
@@ -145,49 +207,11 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
                 overflow: 'hidden',
               }}
             >
-              <img
-                src={item.src}
-                alt={item.alt ?? item.name ?? ''}
-                draggable={false}
-                decoding="async"
-                onLoad={(event) => {
-                  if (!isCurrent) return
-                  const el = event.currentTarget
-                  internals.setNatural({ width: el.naturalWidth, height: el.naturalHeight, forIndex: i })
-                  setStatus('ready')
-                }}
-                onError={() => {
-                  if (isCurrent) setStatus('error')
-                }}
-                style={
-                  isCurrent
-                    ? {
-                        // Natural layout size, so `scale` means exactly what the
-                        // 1:1 control claims: one image pixel per CSS pixel.
-                        width: 'auto',
-                        height: 'auto',
-                        maxWidth: 'none',
-                        maxHeight: 'none',
-                        transformOrigin: 'center center',
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        willChange: 'transform',
-                      }
-                    : {
-                        // Neighbours are only ever seen fitted, so CSS contain
-                        // is enough and costs no measurement. It lands on the
-                        // same pixels the fitted transform would, so promotion
-                        // to current is invisible.
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                        width: 'auto',
-                        height: 'auto',
-                        objectFit: 'contain',
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                      }
-                }
-              />
+              {renderImage ? (
+                renderImage({ item, index: i, isCurrent, imageProps })
+              ) : (
+                <img {...imageProps} />
+              )}
             </div>
           )
         })}

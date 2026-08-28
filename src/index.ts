@@ -111,6 +111,7 @@ export type {
   TitleProps,
 } from './react/parts/containers'
 export type { ThumbnailsProps, ThumbnailsMode } from './react/parts/Thumbnails'
+export type { ImageProps, ImageRenderContext } from './react/parts/Image'
 export type { SingleImageProps } from './preset/SingleImage'
 export type { DefaultContentProps } from './preset/DefaultContent'
 export type { Size, Point, Transform, Bounds } from './core/types'

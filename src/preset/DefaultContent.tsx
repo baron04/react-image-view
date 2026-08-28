@@ -1,6 +1,6 @@
 import { Content } from '../react/parts/Content'
 import { Stage } from '../react/parts/Stage'
-import { Image } from '../react/parts/Image'
+import { Image, type ImageProps } from '../react/parts/Image'
 import { Header, Toolbar, Title, Counter, Loading, ErrorState } from '../react/parts/containers'
 import { Thumbnails, type ThumbnailsMode } from '../react/parts/Thumbnails'
 import { useLabels } from '../react/context'
@@ -43,6 +43,8 @@ export interface DefaultContentProps {
    * `always`/`never`.
    */
   thumbnails?: boolean | ThumbnailsMode
+  /** Customize the actual full-size image while keeping the preset chrome. */
+  renderImage?: ImageProps['renderImage']
 }
 
 /**
@@ -53,7 +55,11 @@ export interface DefaultContentProps {
  * Every string comes from `Root`'s `labels`, so translating this UI is one
  * prop on `Root` rather than a fork of this file.
  */
-export function DefaultContent({ counter = false, thumbnails = false }: DefaultContentProps) {
+export function DefaultContent({
+  counter = false,
+  thumbnails = false,
+  renderImage,
+}: DefaultContentProps) {
   const labels = useLabels()
   const thumbnailsMode: ThumbnailsMode | false =
     thumbnails === true ? 'auto' : thumbnails === false ? false : thumbnails
@@ -79,7 +85,7 @@ export function DefaultContent({ counter = false, thumbnails = false }: DefaultC
         </Header>
 
         <Stage>
-          <Image />
+          <Image renderImage={renderImage} />
           <Prev>
             <PrevIcon size={22} />
           </Prev>
