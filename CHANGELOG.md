@@ -27,6 +27,9 @@ checks.
 
 ### Added
 
+- **`react-img-view/imperative`** — an opt-in `ImagePreviewProvider` and
+  `useImagePreview()` controller for opening a managed viewer from any
+  descendant with `open({ images, index })`, plus close and navigation commands.
 - **`react-img-view/primitives`** — semantic React parts and the pure headless
   `Root`, without `SingleImage`, `DefaultContent`, preset icons, or automatic
   chrome.

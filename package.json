@@ -47,6 +47,16 @@
         "default": "./dist/primitives.cjs"
       }
     },
+    "./imperative": {
+      "import": {
+        "types": "./dist/imperative.d.ts",
+        "default": "./dist/imperative.js"
+      },
+      "require": {
+        "types": "./dist/imperative.d.cts",
+        "default": "./dist/imperative.cjs"
+      }
+    },
     "./core": {
       "import": {
         "types": "./dist/core.d.ts",

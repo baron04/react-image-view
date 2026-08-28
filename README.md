@@ -38,8 +38,12 @@ composition when you need it — see the
 [docs](https://baron04.github.io/react-img-view/quick-start/) for all
 three.
 
-The main entry is **11.3 kB gzip**. For custom chrome, import headless parts
-from `react-img-view/primitives` (**10.1 kB gzip**); low-level transforms and
+For imperative calls, import `ImagePreviewProvider` and `useImagePreview`
+from `react-img-view/imperative`. Mount the provider once, then call
+`preview.open({ images, index })` from an application component.
+
+The main entry is **11.6 kB gzip**. For custom chrome, import headless parts
+from `react-img-view/primitives` (**10.4 kB gzip**); low-level transforms and
 the gesture state machine live at `react-img-view/core` and tree-shake down
 to about **0.5 kB** when one helper is used. The minified CSS preset is
 **1.7 kB gzip**. CI enforces these budgets.

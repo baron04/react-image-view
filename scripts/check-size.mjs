@@ -5,6 +5,7 @@ import { build } from 'esbuild'
 const rawEntries = [
   ['full entry', 'dist/index.js', 12_000],
   ['primitives entry', 'dist/primitives.js', 10_750],
+  ['imperative entry', 'dist/imperative.js', 11_800],
   ['core entry', 'dist/core.js', 4_400],
   ['zh-CN locale', 'dist/locales/zh-CN.js', 400],
   ['preset CSS', 'dist/styles.css', 1_850],
@@ -32,6 +33,21 @@ const consumerEntries = [
       import { Root, Content, Stage, Image } from 'react-img-view/primitives'
       export function Preview({ src }) {
         return <Root images={[{ src }]} defaultOpen><Content><Stage><Image /></Stage></Content></Root>
+      }
+    `,
+  },
+  {
+    name: 'consumer: imperative',
+    budget: 12_000,
+    source: `
+      import * as React from 'react'
+      import { ImagePreviewProvider, useImagePreview } from 'react-img-view/imperative'
+      function Open({ images }) {
+        const preview = useImagePreview()
+        return <button onClick={() => preview.open({ images })}>open</button>
+      }
+      export function Preview({ images }) {
+        return <ImagePreviewProvider><Open images={images} /></ImagePreviewProvider>
       }
     `,
   },

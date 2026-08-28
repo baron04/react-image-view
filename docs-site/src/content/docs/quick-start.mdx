@@ -62,10 +62,43 @@ function Attachments({ files }: { files: { src: string; name: string }[] }) {
   first frame is drawn at the right size instead of being corrected a frame later.
 </Aside>
 
+### Imperative API
+
+Use the imperative API when you do not want to manage `open` and `index`
+yourself:
+
+1. Mount `ImagePreviewProvider` once near the application root.
+2. Call `preview.open()` from a component using `useImagePreview()`.
+
+```tsx
+import { ImagePreviewProvider, useImagePreview } from 'react-img-view/imperative'
+
+function ViewButton({ files }) {
+  const preview = useImagePreview()
+  return <button onClick={() => preview.open({ images: files, index: 2 })}>View file 3</button>
+}
+
+function App() {
+  return (
+    <ImagePreviewProvider>
+      <ViewButton files={files} />
+    </ImagePreviewProvider>
+  )
+}
+```
+
+`open()` receives the images and initial index. Calling it again replaces the
+current image set. The same controller provides `close()`, `go()`, `next()`,
+and `prev()`.
+
+An imperative call has no corresponding thumbnail element, so the viewer opens
+directly without the thumbnail-to-image transition.
+
 ### Controlled open state
 
 Open the viewer from anywhere else in the app — a "View" button in a table
-row, say — by controlling `open` and `index` yourself:
+row, say — by controlling `open` and `index` yourself. Prefer this form when
+the surrounding component also needs to own those values:
 
 ```tsx
 const [open, setOpen] = useState(false);

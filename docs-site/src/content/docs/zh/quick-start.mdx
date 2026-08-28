@@ -61,9 +61,39 @@ function Attachments({ files }: { files: { src: string; name: string }[] }) {
   第一帧直接按正确尺寸绘制，而不是画完再修正。
 </Aside>
 
+### 函数式调用
+
+如果不想自己维护 `open` 和 `index`，可以使用函数式 API：
+
+1. 在应用上层挂一次 `ImagePreviewProvider`。
+2. 在业务组件中通过 `useImagePreview()` 获取控制器，再调用 `preview.open()`。
+
+```tsx
+import { ImagePreviewProvider, useImagePreview } from 'react-img-view/imperative'
+import zhCN from 'react-img-view/locales/zh-CN'
+
+function ViewButton({ files }) {
+  const preview = useImagePreview()
+  return <button onClick={() => preview.open({ images: files, index: 2 })}>查看第 3 张</button>
+}
+
+function App() {
+  return (
+    <ImagePreviewProvider labels={zhCN}>
+      <ViewButton files={files} />
+    </ImagePreviewProvider>
+  )
+}
+```
+
+`open()` 接收图片数组和初始序号。再次调用会替换当前图片组；同一个控制器还提供
+`close()`、`go()`、`next()` 和 `prev()`。
+
+函数式调用没有对应的缩略图元素，因此会直接打开预览器，不播放缩略图到大图的过渡动画。
+
 ### 受控的打开状态
 
-如果要从别处打开预览 —— 比如表格行里的「查看」按钮 —— 自己控制 `open` 和 `index` 即可：
+如果周围组件本来就需要持有打开状态和当前序号，仍然可以自己控制 `open` 和 `index`：
 
 ```tsx
 const [open, setOpen] = useState(false);

@@ -18,6 +18,37 @@ description: 完整说明公开部件与属性，并用可编译示例持续校�
 L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发元素），
 以及会转发给 `Root` 的 `container` 和 `labels`。
 
+## 函数式调用
+
+从 `react-img-view/imperative` 引入 `ImagePreviewProvider` 和
+`useImagePreview`。这个独立入口不会增加常规入口的体积。
+
+先在应用上层挂载 Provider，再在业务组件中调用：
+
+```tsx
+const preview = useImagePreview()
+preview.open({ images, index: 0 })
+preview.go(2)
+preview.next()
+preview.prev()
+preview.close()
+```
+
+`open()` 接收 `ImageItem[]` 和可选的初始序号。再次调用会替换当前图片组；
+传入空数组时不会打开，序号越界时会自动调整到有效范围。
+
+| Provider 属性                         | 类型              | 默认值  |                                                 |
+| ------------------------------------- | ----------------- | ------- | ----------------------------------------------- |
+| `children`                            | `ReactNode`       | —       | 可以调用 `useImagePreview()` 的组件。           |
+| `content`                             | `ReactNode`       | 预设    | 用 `ImageView.Content` 等部件组合的自定义界面。 |
+| `counter`                             | `boolean`         | `false` | 是否显示预设计数器。                            |
+| `thumbnails`                          | `boolean \| mode` | `false` | 是否显示预设缩略图轨。                          |
+| `container` / `extensions` / `labels` | 与 `Root` 相同    | —       | 转发给内部托管的 `Root`。                       |
+
+`useImagePreview()` 用于从外部打开和切换预览器；`useViewer()` 用于在预览器内部
+读取状态、控制缩放和旋转。函数式调用没有对应的缩略图位置，因此会直接打开，
+不播放缩略图到大图的过渡动画。
+
 ## `<ImageView.Root>`
 
 | 属性                     | 类型                      | 默认值                |                                                                                 |

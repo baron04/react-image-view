@@ -35,6 +35,13 @@ export default defineConfig([
   },
   {
     ...shared,
+    name: 'imperative',
+    entry: { imperative: 'src/imperative.ts' },
+    outDir: 'dist',
+    banner: '"use client";',
+  },
+  {
+    ...shared,
     name: 'core',
     entry: { core: 'src/core/index.ts' },
     outDir: 'dist',

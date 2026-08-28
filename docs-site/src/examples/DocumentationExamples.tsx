@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { ImageView, type Extension, type ImageItem } from '../../../src/index'
+import { ImagePreviewProvider, useImagePreview } from '../../../src/imperative'
 import * as Primitives from '../../../src/primitives'
 import zhCN from '../../../src/locales/zh-CN'
 
@@ -30,6 +31,19 @@ export function SharedViewerExample() {
         </ImageView.Trigger>
       ))}
     </ImageView.Root>
+  )
+}
+
+function OpenPreviewButton() {
+  const preview = useImagePreview()
+  return <button onClick={() => preview.open({ images: files })}>查看附件</button>
+}
+
+export function FunctionStyleExample() {
+  return (
+    <ImagePreviewProvider labels={zhCN}>
+      <OpenPreviewButton />
+    </ImagePreviewProvider>
   )
 }
 

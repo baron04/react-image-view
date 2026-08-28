@@ -24,6 +24,7 @@ try {
       '--entrypoints',
       '.',
       './primitives',
+      './imperative',
       './core',
       './locales/zh-CN',
       '--profile',
