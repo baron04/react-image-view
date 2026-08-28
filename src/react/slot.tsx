@@ -23,6 +23,7 @@ function mergeProps(slotProps: AnyProps, childProps: AnyProps): AnyProps {
       if (typeof slotValue === 'function' && typeof childValue === 'function') {
         merged[key] = (...args: unknown[]) => {
           ;(childValue as (...a: unknown[]) => void)(...args)
+          if ((args[0] as AnyProps)?.defaultPrevented) return
           ;(slotValue as (...a: unknown[]) => void)(...args)
         }
         continue

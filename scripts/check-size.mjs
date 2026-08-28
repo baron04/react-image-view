@@ -24,7 +24,9 @@ const consumerEntries = [
   },
   {
     name: 'consumer: primitives',
-    budget: 10_500,
+    // Rebundling adds a little wrapper overhead versus the raw primitives
+    // entry, so keep both views under the same ceiling.
+    budget: 10_750,
     source: `
       import * as React from 'react'
       import { Root, Content, Stage, Image } from 'react-img-view/primitives'

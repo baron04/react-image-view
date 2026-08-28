@@ -245,7 +245,17 @@ export function reduce(
 
       if (pointers.length > 0) return { state: { ...state, pointers }, commands: [] }
 
-      const velocity = event.type === 'pointerup' ? (event.velocity ?? { x: 0, y: 0 }) : { x: 0, y: 0 }
+      // A cancellation may settle visual state, but it must never commit the
+      // page or dismiss thresholds the interrupted drag happened to cross.
+      if (event.type === 'pointercancel') {
+        return release(
+          { ...state, pointers, trackOffset: 0, dismissProgress: 0 },
+          { x: 0, y: 0 },
+          ctx,
+        )
+      }
+
+      const velocity = event.velocity ?? { x: 0, y: 0 }
       return release({ ...state, pointers }, velocity, ctx)
     }
   }
@@ -321,7 +331,9 @@ function applyDrag(state: GestureState, ctx: GestureContext): GestureState {
       overshoot,
       transform: {
         ...state.startTransform,
-        x: clampX(state.startTransform, bounds, direction).x + rubberBand(overshoot, ctx.stage.width),
+        x:
+          clampX(state.startTransform, bounds, direction).x +
+          rubberBand(overshoot, ctx.stage.width),
         y: clamp(wantY, bounds.minY, bounds.maxY),
       },
     }
@@ -359,8 +371,7 @@ function release(
       // A flick only commits when it agrees with the drag. Pulling the track
       // one way and snapping back the other is a cancellation, not a page turn.
       const flickDirection: -1 | 1 = velocity.x < 0 ? 1 : -1
-      const flicked =
-        Math.abs(velocity.x) > PAGE_COMMIT_VELOCITY && flickDirection === direction
+      const flicked = Math.abs(velocity.x) > PAGE_COMMIT_VELOCITY && flickDirection === direction
       const commit = canPage(direction, ctx) && (travelled > PAGE_COMMIT_RATIO || flicked)
 
       return {
@@ -371,8 +382,7 @@ function release(
 
     case 'dismissing': {
       const travelled = state.dismissProgress
-      const flicked =
-        velocity.y > DISMISS_COMMIT_VELOCITY && travelled > DISMISS_FLICK_MIN_PROGRESS
+      const flicked = velocity.y > DISMISS_COMMIT_VELOCITY && travelled > DISMISS_FLICK_MIN_PROGRESS
       const commit = travelled >= 1 || flicked
       return {
         state: { ...settled, dismissProgress: commit ? 1 : 0 },

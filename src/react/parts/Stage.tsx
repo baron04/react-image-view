@@ -24,6 +24,11 @@ export interface StageProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode
 }
 
+function localPoint(event: React.PointerEvent<HTMLDivElement>) {
+  const rect = event.currentTarget.getBoundingClientRect()
+  return { x: event.clientX - rect.left, y: event.clientY - rect.top }
+}
+
 /**
  * The gesture host: measures itself, translates pointer events through the
  * reducer, and carries out the commands it returns.
@@ -55,19 +60,25 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
   // per event means several writes the compositor throws away — which is what
   // a stuttering pinch actually is. Keep the latest and paint once per frame.
   const pending = React.useRef<{ trackOffset: number } | null>(null)
+  const syncPending = React.useRef(false)
   const rafId = React.useRef<number | null>(null)
 
   const flush = React.useCallback(() => {
     rafId.current = null
     const next = pending.current
-    if (!next) return
     pending.current = null
-    // Read the transform from the ref rather than from what was queued. A
-    // frame scheduled during a gesture can land after a page turn has already
-    // set the authoritative value, and repainting the captured one put the
-    // outgoing image's scale back on the incoming slide.
-    paintImage(internals.imageRef.current, internals.transformRef.current)
-    paintTrack(internals.trackRef.current, internals.indexRef.current, next.trackOffset)
+    if (next) {
+      // Read the transform from the ref rather than from what was queued. A
+      // frame scheduled during a gesture can land after a page turn has already
+      // set the authoritative value, and repainting the captured one put the
+      // outgoing image's scale back on the incoming slide.
+      paintImage(internals.imageRef.current, internals.transformRef.current)
+      paintTrack(internals.trackRef.current, internals.indexRef.current, next.trackOffset)
+    }
+    if (syncPending.current) {
+      syncPending.current = false
+      internals.syncTransform()
+    }
   }, [internals])
 
   const schedulePaint = React.useCallback(
@@ -77,6 +88,11 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
     },
     [flush],
   )
+
+  const scheduleTransformSync = React.useCallback(() => {
+    syncPending.current = true
+    if (rafId.current === null) rafId.current = requestAnimationFrame(flush)
+  }, [flush])
 
   React.useEffect(
     () => () => {
@@ -177,11 +193,8 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
             break
 
           case 'snapBack':
-            animateValue(
-              internals.ticker,
-              gesture.current.trackOffset,
-              0,
-              (offset) => paintTrack(internals.trackRef.current, internals.indexRef.current, offset),
+            animateValue(internals.ticker, gesture.current.trackOffset, 0, (offset) =>
+              paintTrack(internals.trackRef.current, internals.indexRef.current, offset),
             )
             break
 
@@ -250,14 +263,16 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
     activePointers.current.add(event.pointerId)
     internals.markDirty()
     velocity.current.reset()
-    velocity.current.add(event.clientX, event.clientY)
-    dispatch({ type: 'pointerdown', id: event.pointerId, x: event.clientX, y: event.clientY })
+    const point = localPoint(event)
+    velocity.current.add(point.x, point.y)
+    dispatch({ type: 'pointerdown', id: event.pointerId, ...point })
   }
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!activePointers.current.has(event.pointerId)) return
-    velocity.current.add(event.clientX, event.clientY)
-    dispatch({ type: 'pointermove', id: event.pointerId, x: event.clientX, y: event.clientY })
+    const point = localPoint(event)
+    velocity.current.add(point.x, point.y)
+    dispatch({ type: 'pointermove', id: event.pointerId, ...point })
   }
 
   const endPointer = (event: React.PointerEvent<HTMLDivElement>, cancelled: boolean) => {
@@ -308,11 +323,12 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
           y: event.clientY - rect.top - rect.height / 2,
         },
       })
+      scheduleTransformSync()
     }
 
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [api, internals])
+  }, [api, internals, scheduleTransformSync])
 
   return (
     <div

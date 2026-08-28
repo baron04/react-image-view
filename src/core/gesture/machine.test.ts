@@ -46,7 +46,12 @@ function run(events: GestureEvent[], ctx: GestureContext, from?: GestureState) {
 
 const down = (x: number, y: number, id = 1): GestureEvent => ({ type: 'pointerdown', id, x, y })
 const move = (x: number, y: number, id = 1): GestureEvent => ({ type: 'pointermove', id, x, y })
-const up = (velocity: Point = { x: 0, y: 0 }, id = 1): GestureEvent => ({ type: 'pointerup', id, velocity })
+const up = (velocity: Point = { x: 0, y: 0 }, id = 1): GestureEvent => ({
+  type: 'pointerup',
+  id,
+  velocity,
+})
+const cancel = (id = 1): GestureEvent => ({ type: 'pointercancel', id })
 
 describe('resolveIntent', () => {
   it('always pans first when the image is zoomed', () => {
@@ -195,7 +200,13 @@ describe('pinch', () => {
 
   it('continues as a pan when one finger lifts', () => {
     const { state } = run(
-      [down(300, 300, 1), down(500, 300, 2), move(200, 300, 1), move(600, 300, 2), up({ x: 0, y: 0 }, 2)],
+      [
+        down(300, 300, 1),
+        down(500, 300, 2),
+        move(200, 300, 1),
+        move(600, 300, 2),
+        up({ x: 0, y: 0 }, 2),
+      ],
       ctx,
     )
     expect(state.phase).toBe('panning')
@@ -280,5 +291,20 @@ describe('release', () => {
     const { state } = run([down(400, 300), move(450, 300), up()], ctx)
     expect(state.phase).toBe('idle')
     expect(state.pointers).toHaveLength(0)
+  })
+})
+
+describe('pointer cancellation', () => {
+  it('never commits a page even after crossing the normal threshold', () => {
+    const { state, commands } = run([down(600, 300), move(50, 300), cancel()], context())
+    expect(state.phase).toBe('idle')
+    expect(commands).toEqual([{ type: 'snapBack' }])
+  })
+
+  it('never dismisses and restores the starting transform', () => {
+    const ctx = context()
+    const { state, commands } = run([down(400, 300), move(400, 590), cancel()], ctx)
+    expect(state.phase).toBe('idle')
+    expect(commands).toEqual([{ type: 'cancelDismiss' }, { type: 'settle', target: ctx.transform }])
   })
 })

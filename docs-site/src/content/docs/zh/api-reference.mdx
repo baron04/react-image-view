@@ -1,6 +1,6 @@
 ---
 title: API 文档
-description: 每个部件、每个属性，与发布内容一致 —— 与使用者引入的 types.ts 同源。
+description: 完整说明公开部件与属性，并用可编译示例持续校验实际发布的 TypeScript API。
 ---
 
 ## `ImageView`
@@ -37,7 +37,7 @@ L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发�
 interface ImageItem {
   src: string
   alt?: string
-  /** 由 Title 显示；依次回退到 alt、文件名。 */
+  /** 由 Title 显示；未提供时回退到 alt。 */
   name?: string
   /** 省掉一次测量往返，避免加载时布局跳动。 */
   width?: number

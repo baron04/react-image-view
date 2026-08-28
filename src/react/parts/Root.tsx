@@ -153,12 +153,14 @@ export function Root({
   const [registryVersion, setRegistryVersion] = React.useState(0)
   const registerTrigger = React.useCallback((reg: TriggerRegistration) => {
     registry.current.push(reg)
+    registry.current.sort((a, b) => (a.index ?? Infinity) - (b.index ?? Infinity))
     setRegistryVersion((v) => v + 1)
     return () => {
       registry.current = registry.current.filter((r) => r.id !== reg.id)
       setRegistryVersion((v) => v + 1)
     }
   }, [])
+
   const indexOf = React.useCallback((id: string) => {
     const at = registry.current.findIndex((r) => r.id === id)
     return at < 0 ? 0 : at

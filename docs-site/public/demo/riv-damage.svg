@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1400" viewBox="0 0 2400 1400">
+  <defs><linearGradient id="g" x2="1"><stop stop-color="#172235"/><stop offset="1" stop-color="#52677f"/></linearGradient></defs>
+  <rect width="2400" height="1400" fill="url(#g)"/><rect x="150" y="150" width="2100" height="1100" rx="32" fill="#e8edf2"/>
+  <path d="M250 1050 650 600l300 250 350-470 260 350 300-220 290 540Z" fill="#71859a"/>
+  <path d="m1230 355 130 175-95 105 170 140-120 195" fill="none" stroke="#c84c45" stroke-width="32" stroke-linecap="round"/>
+  <circle cx="1320" cy="655" r="270" fill="none" stroke="#c84c45" stroke-width="18" stroke-dasharray="34 26"/>
+  <text x="250" y="280" font-family="system-ui,sans-serif" font-size="68" font-weight="700" fill="#26384c">DAMAGE REPORT · PANEL B</text>
+</svg>

@@ -20,6 +20,11 @@ const forbidden = [
   [/Every part takes `asChild`/i, 'only controls and layout regions take `asChild`'],
   [/每个部件都支持 `asChild`/, '只有控件和布局区域支持 `asChild`'],
   [/;<ImageView\./, 'wrap JSX examples in a component instead of using a leading semicolon'],
+  [
+    /pulled from the same types\.ts|与使用者引入的 types\.ts 同源/,
+    'API reference is maintained and checked, not generated from types.ts',
+  ],
+  [/不渲染对应的部件就行/, 'Stage gestures cannot be disabled by omitting a visual part'],
 ]
 
 const failures = []
@@ -52,6 +57,16 @@ for (const file of files) {
     }
 
     if (!candidates.some(existsSync)) failures.push(`${file}: broken local link ${rawTarget}`)
+  }
+}
+
+for (const assetSource of [
+  'docs-site/src/components/Demo.tsx',
+  'docs-site/src/styles/custom.css',
+]) {
+  const source = readFileSync(assetSource, 'utf8')
+  if (/picsum\.photos|fonts\.googleapis\.com/.test(source)) {
+    failures.push(`${resolve(assetSource)}: documentation assets must be self-hosted`)
   }
 }
 

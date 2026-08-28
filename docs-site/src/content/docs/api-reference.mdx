@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Every part, every prop, exactly as shipped — pulled from the same types.ts consumers import.
+description: Every public part and prop, maintained alongside compiled examples that exercise the shipped TypeScript API.
 ---
 
 ## `ImageView`
@@ -39,7 +39,7 @@ trigger element), and `container` / `labels`, both forwarded to `Root`.
 interface ImageItem {
   src: string
   alt?: string
-  /** Shown by Title; falls back to alt, then the filename. */
+  /** Shown by Title; falls back to alt. */
   name?: string
   /** Skips a measurement round-trip and stops the layout jumping on load. */
   width?: number

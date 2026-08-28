@@ -11,6 +11,8 @@ export interface TriggerGeometry {
 
 export interface TriggerRegistration {
   id: string
+  /** Explicit visual position, when mount order is not authoritative. */
+  index?: number
   item: ImageItem
   /**
    * Live position and displayed fit mode, read fresh each call — the page may

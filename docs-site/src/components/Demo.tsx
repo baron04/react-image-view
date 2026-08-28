@@ -9,12 +9,10 @@ function labelsFor(locale: DemoLocale) {
   return locale === 'zh-CN' ? zhCN : undefined
 }
 
-/**
- * Lorem Picsum with a fixed seed per image, so the same photographs come back
- * on every build rather than the page looking different each visit.
- */
-function photo(seed: string, w: number, h: number) {
-  return `https://picsum.photos/seed/${seed}/${w}/${h}`
+/** Self-hosted so the demo is deterministic, private, and available wherever
+ * the documentation itself loads. Astro's base handles GitHub Pages. */
+function photo(seed: string) {
+  return `${import.meta.env.BASE_URL}demo/${seed}.svg`
 }
 
 /**
@@ -28,8 +26,8 @@ export const demoImages = [
   { seed: 'riv-plate', name: 'serial-plate-closeup.jpg', width: 1000, height: 1400 },
   { seed: 'riv-delivery', name: 'delivery-condition.jpg', width: 3200, height: 2400 },
 ].map((f) => ({
-  src: photo(f.seed, f.width, f.height),
-  thumb: photo(f.seed, 320, 240),
+  src: photo(f.seed),
+  thumb: photo(f.seed),
   alt: f.name,
   name: f.name,
   width: f.width,

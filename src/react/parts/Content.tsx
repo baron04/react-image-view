@@ -12,6 +12,9 @@ export interface ContentProps extends React.HTMLAttributes<HTMLDialogElement> {
  *  nothing to subscribe to — but the store contract requires a subscribe. */
 const subscribeNever = () => () => {}
 
+let scrollLockCount = 0
+let savedScrollStyles: [string, string] = ['', '']
+
 /**
  * Put focus back where it came from once the viewer closes.
  *
@@ -51,18 +54,16 @@ function useFocusReturn(open: boolean): void {
 function useScrollLock(open: boolean): void {
   React.useEffect(() => {
     if (!open) return
-
     const { body, documentElement: root } = document
-    const previousOverflow = body.style.overflow
-    const previousPadding = body.style.paddingRight
-    const gap = window.innerWidth - root.clientWidth
-
-    body.style.overflow = 'hidden'
-    if (gap > 0) body.style.paddingRight = `${gap}px`
-
+    if (!scrollLockCount++) {
+      savedScrollStyles = [body.style.overflow, body.style.paddingRight]
+      const gap = window.innerWidth - root.clientWidth
+      body.style.overflow = 'hidden'
+      if (gap > 0) body.style.paddingRight = `${gap}px`
+    }
     return () => {
-      body.style.overflow = previousOverflow
-      body.style.paddingRight = previousPadding
+      if (--scrollLockCount) return
+      ;[body.style.overflow, body.style.paddingRight] = savedScrollStyles
     }
   }, [open])
 }

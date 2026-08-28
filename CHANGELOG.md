@@ -43,14 +43,32 @@ checks.
 
 - The default error keeps `retry()` and `role="alert"`, but renders the action
   as an icon-only button with `aria-label` and `title`.
-- The full entry is 11.3 kB gzip (down from 13.2 kB), the primitives entry is
-  10.1 kB, and the minified CSS preset is 1.7 kB.
+- A real consumer bundle using the full preset is 11.6 kB gzip (down from
+  13.2 kB), a primitives composition is 10.4 kB, and the minified CSS preset
+  is 1.7 kB.
 - The build moved from unmaintained tsup to tsdown/Rolldown. ESM, CJS, paired
   declarations, `"use client"`, and sourcemap-free output are preserved.
 - The package and documentation site now share one pnpm workspace and lockfile.
 - The README, documentation landing pages, and Chinese design article now
   describe the headless/preset boundary precisely and compare alternatives by
   use case instead of relying on volatile bundle-size claims.
+- Documentation demos and fonts are self-hosted, removing Picsum and Google
+  Fonts as availability, privacy, and layout-stability dependencies.
+
+### Fixed
+
+- Wheel zoom now publishes its transform on the next animation frame, keeping
+  `useViewer()` and active toolbar states in sync with the painted image.
+- Pinch coordinates are relative to `Stage`, so embedded or offset viewers zoom
+  around the actual touch midpoint.
+- Trigger registration honours explicit indices regardless of asynchronous
+  mount order and refreshes when image metadata changes.
+- Calling `preventDefault()` in a slotted child's event handler now prevents
+  the component's built-in action as documented.
+- Scroll locking is reference-counted, so closing one of multiple open viewers
+  no longer unlocks the page behind the others.
+- `pointercancel` restores an interrupted page or dismiss gesture instead of
+  accidentally committing it.
 
 ## [0.2.1] — 2026-08-26
 

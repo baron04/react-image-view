@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, act, fireEvent } from '@testing-library/react'
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react'
 import { ImageView, useViewer, useLabels } from '../index'
 
 /**
@@ -145,6 +145,59 @@ describe('Root: images from registered triggers (L2)', () => {
 
     expect(document.querySelector('[data-image-view-counter]')?.textContent).toBe('1 / 3')
   })
+
+  it('uses explicit indices rather than asynchronous mount order', () => {
+    function OutOfOrder() {
+      const [first, setFirst] = React.useState(false)
+      return (
+        <ImageView.Root>
+          <ImageView.Trigger index={1} {...B}>
+            <img src={B.src} alt={B.name} data-testid="trigger-1" />
+          </ImageView.Trigger>
+          {first && (
+            <ImageView.Trigger index={0} {...A}>
+              <img src={A.src} alt={A.name} data-testid="trigger-0" />
+            </ImageView.Trigger>
+          )}
+          <button data-testid="mount-first" onClick={() => setFirst(true)}>
+            mount first
+          </button>
+          <ImageView.DefaultContent counter />
+        </ImageView.Root>
+      )
+    }
+
+    render(<OutOfOrder />)
+    fireEvent.click(screen.getByTestId('mount-first'))
+    openViewer(0)
+
+    expect(document.querySelector('[data-image-view-title]')?.textContent).toBe('a.png')
+    expect(document.querySelector('[data-image-view-counter]')?.textContent).toBe('1 / 2')
+  })
+
+  it('refreshes registered metadata when downloadUrl changes', () => {
+    function MutableItem() {
+      const [downloadUrl, setDownloadUrl] = React.useState('/first.png')
+      return (
+        <ImageView.Root>
+          <ImageView.Trigger index={0} {...A} downloadUrl={downloadUrl}>
+            <img src={A.src} alt={A.name} data-testid="trigger-0" />
+          </ImageView.Trigger>
+          <button data-testid="update-url" onClick={() => setDownloadUrl('/second.png')}>
+            update
+          </button>
+        </ImageView.Root>
+      )
+    }
+
+    render(<MutableItem />)
+    fireEvent.click(screen.getByTestId('update-url'))
+    openViewer()
+
+    expect(
+      document.querySelector<HTMLAnchorElement>('[data-image-view-control="download"]')?.pathname,
+    ).toBe('/second.png')
+  })
 })
 
 describe('Root: labels', () => {
@@ -258,6 +311,21 @@ describe('Trigger: keyboard access', () => {
     openViewer()
     expect(document.querySelector('dialog[data-image-view]')).toBeNull()
   })
+
+  it('lets the child prevent the viewer from opening', () => {
+    render(
+      <ImageView.Root images={IMAGES}>
+        <ImageView.Trigger index={0} {...A}>
+          <button data-testid="guarded" onClick={(event) => event.preventDefault()}>
+            guarded
+          </button>
+        </ImageView.Trigger>
+      </ImageView.Root>,
+    )
+
+    fireEvent.click(screen.getByTestId('guarded'))
+    expect(document.querySelector('dialog[data-image-view]')).toBeNull()
+  })
 })
 
 describe('Content: composition', () => {
@@ -319,6 +387,121 @@ describe('Content: composition', () => {
     fireEvent.click(retry)
     expect(screen.queryByRole('alert')).toBeNull()
     expect(screen.getByRole('status', { name: 'Loading' })).toBeTruthy()
+  })
+
+  it('keeps the page locked until the last viewer closes', () => {
+    function Pair({ first, second }: { first: boolean; second: boolean }) {
+      return (
+        <>
+          <ImageView.Root images={[A]} open={first} />
+          <ImageView.Root images={[B]} open={second} />
+        </>
+      )
+    }
+
+    document.body.style.overflow = 'auto'
+    const view = render(<Pair first second />)
+    expect(document.body.style.overflow).toBe('hidden')
+
+    view.rerender(<Pair first={false} second />)
+    expect(document.body.style.overflow).toBe('hidden')
+
+    view.rerender(<Pair first={false} second={false} />)
+    expect(document.body.style.overflow).toBe('auto')
+    document.body.style.overflow = ''
+  })
+})
+
+describe('Stage: continuous input', () => {
+  function Readout() {
+    const viewer = useViewer()
+    return (
+      <output data-testid="transform">
+        {viewer.scale},{viewer.transform.x},{viewer.transform.y}
+      </output>
+    )
+  }
+
+  function ComposedViewer() {
+    const image = { src: 'large.png', name: 'large.png', width: 2000, height: 1500 }
+    return (
+      <ImageView.Root images={[image]} defaultOpen>
+        <ImageView.Content>
+          <ImageView.Stage>
+            <ImageView.Image />
+            <Readout />
+          </ImageView.Stage>
+        </ImageView.Content>
+      </ImageView.Root>
+    )
+  }
+
+  function stageRect(this: Element): DOMRect {
+    if (this.hasAttribute('data-image-view-stage')) {
+      return {
+        x: 100,
+        y: 50,
+        left: 100,
+        top: 50,
+        right: 900,
+        bottom: 650,
+        width: 800,
+        height: 600,
+        toJSON: () => ({}),
+      } as DOMRect
+    }
+    return {
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      width: 0,
+      height: 0,
+      toJSON: () => ({}),
+    } as DOMRect
+  }
+
+  it('publishes wheel zoom to useViewer on the next frame', async () => {
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(stageRect)
+    render(<ComposedViewer />)
+    const stage = document.querySelector('[data-image-view-stage]')!
+
+    await waitFor(() =>
+      expect(Number(screen.getByTestId('transform').textContent!.split(',')[0])).toBeCloseTo(0.4),
+    )
+    const before = Number(screen.getByTestId('transform').textContent!.split(',')[0])
+    fireEvent(stage, new WheelEvent('wheel', { deltaY: -100, clientX: 500, clientY: 350 }))
+
+    await waitFor(() =>
+      expect(Number(screen.getByTestId('transform').textContent!.split(',')[0])).toBeGreaterThan(
+        before,
+      ),
+    )
+    rect.mockRestore()
+  })
+
+  it('computes pinch origin in Stage-local coordinates', async () => {
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(stageRect)
+    render(<ComposedViewer />)
+    const stage = document.querySelector('[data-image-view-stage]')!
+    await waitFor(() =>
+      expect(Number(screen.getByTestId('transform').textContent!.split(',')[0])).toBeCloseTo(0.4),
+    )
+
+    fireEvent.pointerDown(stage, { pointerId: 1, pointerType: 'touch', clientX: 400, clientY: 350 })
+    fireEvent.pointerDown(stage, { pointerId: 2, pointerType: 'touch', clientX: 600, clientY: 350 })
+    fireEvent.pointerMove(stage, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 350 })
+    fireEvent.pointerMove(stage, { pointerId: 2, pointerType: 'touch', clientX: 700, clientY: 350 })
+    fireEvent.pointerUp(stage, { pointerId: 1, pointerType: 'touch', clientX: 300, clientY: 350 })
+    fireEvent.pointerUp(stage, { pointerId: 2, pointerType: 'touch', clientX: 700, clientY: 350 })
+
+    await waitFor(() => {
+      const [, x] = screen.getByTestId('transform').textContent!.split(',').map(Number)
+      expect(x).toBeCloseTo(0, 5)
+    })
+    rect.mockRestore()
   })
 })
 

@@ -104,6 +104,7 @@ export const Trigger = React.forwardRef<HTMLElement, TriggerProps>(function Trig
     () =>
       ctx.registerTrigger({
         id,
+        index,
         item,
         getGeometry: () => readGeometry(nodeRef.current),
       }),
@@ -112,9 +113,22 @@ export const Trigger = React.forwardRef<HTMLElement, TriggerProps>(function Trig
     // depending on it re-ran this effect — re-registering, which now bumps
     // registryVersion — on every one of those, not just on a real change to
     // what's being registered.
-    // `item` is spread from props; re-registering on every field would thrash.
+    // Every ImageItem field matters in the no-`images` fallback. In particular,
+    // a late width/height or downloadUrl update must not leave the viewer with
+    // the registration's first snapshot. `ctx` and the spread `item` object
+    // are intentionally represented by their stable function/all fields.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ctx.registerTrigger, id, item.src, item.alt, item.name],
+    [
+      ctx.registerTrigger,
+      id,
+      index,
+      item.src,
+      item.alt,
+      item.name,
+      item.width,
+      item.height,
+      item.downloadUrl,
+    ],
   )
 
   const open = () => {

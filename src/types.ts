@@ -3,7 +3,7 @@ import type { Transform } from './core/types'
 export interface ImageItem {
   src: string
   alt?: string
-  /** Shown by `ImageView.Title`; falls back to `alt`, then to the filename. */
+  /** Shown by `ImageView.Title`; falls back to `alt`. */
   name?: string
   /** Skips a measurement round-trip and stops the layout jumping on load. */
   width?: number
