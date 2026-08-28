@@ -15,9 +15,16 @@ export default defineConfig({
   plugins: [react()],
   test: {
     root: '.',
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    environment: 'node',
-    environmentMatchGlobs: [['src/**/*.test.tsx', 'jsdom']],
     setupFiles: ['./src/test/setup.ts'],
+    projects: [
+      {
+        extends: true,
+        test: { name: 'core', include: ['src/**/*.test.ts'], environment: 'node' },
+      },
+      {
+        extends: true,
+        test: { name: 'react', include: ['src/**/*.test.tsx'], environment: 'jsdom' },
+      },
+    ],
   },
 })
