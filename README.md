@@ -1,5 +1,11 @@
 # react-img-view
 
+[简体中文](README.zh-CN.md)
+
+[![npm version](https://img.shields.io/npm/v/react-img-view.svg)](https://www.npmjs.com/package/react-img-view)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/react-img-view)](https://bundlephobia.com/package/react-img-view)
+[![license](https://img.shields.io/npm/l/react-img-view.svg)](LICENSE)
+
 A composable, headless **React image viewer** / image preview / lightbox
 component — built for reviewing document attachments and admin image
 fields, not photo galleries. Zoom, pan, pinch, rotate, fit-to-window and
@@ -46,64 +52,6 @@ A CSS preset (`react-img-view/styles.css`, works anywhere) or a
 Tailwind-classed [shadcn registry block](registry/) you install as real,
 editable source — same design, same tokens, your choice of distribution.
 
-## In this repo
-
-| Path | What it is |
-|---|---|
-| `src/` | The package — `core/` is framework-agnostic gesture math and the state machine (zero React dependency, unit tested); `react/` and `preset/` are the React layer. |
-| `docs-site/` | The documentation site (Astro Starlight — plain markdown/MDX to static HTML, no server, deployed to GitHub Pages). |
-| `registry/` | The shadcn registry source; `registry.json` is the manifest. |
-| `playground/` | A Vite app for developing against `src/` directly — real browser testing, not just unit tests. |
-| `e2e/` | Playwright smoke tests driven with real pointer events. |
-
-## Developing
-
-```bash
-pnpm install
-pnpm dev          # tsup --watch
-pnpm vite         # the playground, at localhost:5180
-pnpm test         # vitest
-pnpm e2e          # playwright (starts the playground itself)
-pnpm lint
-pnpm typecheck
-pnpm build        # ESM + CJS + .d.ts, minified, into dist/
-```
-
-`pnpm registry:build` regenerates the shadcn registry's served JSON into
-`docs-site/public/r/` — do this after changing `registry/image-view/
-image-view.tsx` or the `cssVars` in `registry.json`.
-
-## Releasing
-
-Bump `version` in `package.json`, merge, then run the **Release** workflow
-from the Actions tab. It lints, typechecks, unit-tests, builds, runs the e2e
-suite, refuses to republish a version that already exists, publishes to npm
-with provenance, tags the commit, and opens a GitHub release. It defaults to
-a dry run — untick it to publish for real.
-
-There is no npm token anywhere in this repository. Authentication is npm
-[trusted publishing](https://docs.npmjs.com/trusted-publishers/): npm
-exchanges the OIDC token GitHub mints for the workflow run for a
-short-lived credential, so there is no long-lived secret to leak, rotate,
-or accidentally grant to a fork. Publishing this way also attaches a
-provenance attestation automatically.
-
-One-time setup, on npmjs.com → the package → **Settings → Trusted
-Publisher**:
-
-| Field | Value |
-|---|---|
-| Publisher | GitHub Actions |
-| Organization or user | `baron04` |
-| Repository | `react-img-view` |
-| Workflow filename | `release.yml` |
-| Environment | *(leave empty)* |
-
-The workflow pins Node 24 deliberately: trusted publishing needs npm
-&ge; 11.5.1, and Node 22 still bundles npm 10.9.8. A version check runs
-before publishing so a future Node bump that regresses npm fails loudly
-instead of falling back to an unauthenticated publish.
-
 ## Known limitation
 
 Every gesture constant — how far a pan has to overshoot before it hands off
@@ -121,7 +69,8 @@ what device it was felt on, is exactly the kind of contribution this needs.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) — including two testing rules this
+Dev setup, repo layout, and the release process are in
+[CONTRIBUTING.md](CONTRIBUTING.md) — including two testing rules this
 codebase learned the hard way, both from bugs that reached npm.
 
 Release history is in [CHANGELOG.md](CHANGELOG.md).

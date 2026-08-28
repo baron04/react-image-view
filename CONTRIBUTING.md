@@ -19,6 +19,20 @@ pnpm vite           # the playground, at localhost:5180
 A pre-commit hook runs lint and typecheck. CI runs everything, on Node 22;
 releases run the same suite on Node 24, which is the version they publish from.
 
+`pnpm registry:build` regenerates the shadcn registry's served JSON into
+`docs-site/public/r/` — do this after changing `registry/image-view/
+image-view.tsx` or the `cssVars` in `registry.json`.
+
+## Repo layout
+
+| Path | What it is |
+|---|---|
+| `src/` | The package — see "The shape of the codebase" below. |
+| `docs-site/` | The documentation site (Astro Starlight — plain markdown/MDX to static HTML, no server, deployed to GitHub Pages). |
+| `registry/` | The shadcn registry source; `registry.json` is the manifest. |
+| `playground/` | A Vite app for developing against `src/` directly — real browser testing, not just unit tests. |
+| `e2e/` | Playwright smoke tests driven with real pointer events. |
+
 ## The shape of the codebase
 
 `src/core/` is framework-agnostic: gesture math, the reducer, spring and decay
@@ -91,5 +105,30 @@ most of this codebase's comments exist because someone would otherwise
 reasonably undo the thing they describe.
 
 Releases: bump `version` in `package.json`, update `CHANGELOG.md`, merge, then
-run the **Release** workflow from the Actions tab. It defaults to a dry run.
-Publishing uses npm trusted publishing, so there is no token to manage.
+run the **Release** workflow from the Actions tab. It lints, typechecks,
+unit-tests, builds, runs the e2e suite, refuses to republish a version that
+already exists, publishes to npm with provenance, tags the commit, and opens
+a GitHub release. It defaults to a dry run — untick it to publish for real.
+
+There is no npm token anywhere in this repository. Authentication is npm
+[trusted publishing](https://docs.npmjs.com/trusted-publishers/): npm
+exchanges the OIDC token GitHub mints for the workflow run for a short-lived
+credential, so there is no long-lived secret to leak, rotate, or accidentally
+grant to a fork. Publishing this way also attaches a provenance attestation
+automatically.
+
+One-time setup, on npmjs.com → the package → **Settings → Trusted
+Publisher**:
+
+| Field | Value |
+|---|---|
+| Publisher | GitHub Actions |
+| Organization or user | `baron04` |
+| Repository | `react-img-view` |
+| Workflow filename | `release.yml` |
+| Environment | *(leave empty)* |
+
+The workflow pins Node 24 deliberately: trusted publishing needs npm
+&ge; 11.5.1, and Node 22 still bundles npm 10.9.8. A version check runs
+before publishing so a future Node bump that regresses npm fails loudly
+instead of falling back to an unauthenticated publish.
