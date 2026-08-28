@@ -1,13 +1,20 @@
-import * as React from 'react';
-import { ImageView } from 'react-img-view';
-import 'react-img-view/styles.css';
+import * as React from 'react'
+import { ImageView } from 'react-img-view'
+import zhCN from 'react-img-view/locales/zh-CN'
+import 'react-img-view/styles.css'
+
+type DemoLocale = 'en' | 'zh-CN'
+
+function labelsFor(locale: DemoLocale) {
+  return locale === 'zh-CN' ? zhCN : undefined
+}
 
 /**
  * Lorem Picsum with a fixed seed per image, so the same photographs come back
  * on every build rather than the page looking different each visit.
  */
 function photo(seed: string, w: number, h: number) {
-  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`
 }
 
 /**
@@ -27,7 +34,7 @@ export const demoImages = [
   name: f.name,
   width: f.width,
   height: f.height,
-}));
+}))
 
 /**
  * Forwards its ref and spreads the rest of its props onto the `<figure>`.
@@ -47,18 +54,24 @@ const Thumb = React.forwardRef<
       <img src={src} alt={alt} />
       <figcaption>{label}</figcaption>
     </figure>
-  );
-});
+  )
+})
 
 /**
  * The attachment-list case the library is actually built for: a handful of
  * files in a row, click any one to review it. This is the whole L2 API — a
  * Root, a Trigger per image, no Content written at all.
  */
-export function AttachmentsDemo({ count = 4 }: { count?: number }) {
-  const images = demoImages.slice(0, count);
+export function AttachmentsDemo({
+  count = 4,
+  locale = 'en',
+}: {
+  count?: number
+  locale?: DemoLocale
+}) {
+  const images = demoImages.slice(0, count)
   return (
-    <ImageView.Root images={images}>
+    <ImageView.Root images={images} labels={labelsFor(locale)}>
       <div className="riv-demo-grid">
         {images.map((img, i) => (
           <ImageView.Trigger key={img.src} index={i} {...img}>
@@ -67,25 +80,32 @@ export function AttachmentsDemo({ count = 4 }: { count?: number }) {
         ))}
       </div>
     </ImageView.Root>
-  );
+  )
 }
 
 /** The one-line L1 entry point, for the single-image case. */
-export function SingleImageDemo() {
-  const img = demoImages[0];
+export function SingleImageDemo({ locale = 'en' }: { locale?: DemoLocale }) {
+  const img = demoImages[0]
   return (
     <div className="riv-demo-single">
-      <ImageView src={img.src} alt={img.alt} name={img.name} width={img.width} height={img.height}>
+      <ImageView
+        src={img.src}
+        alt={img.alt}
+        name={img.name}
+        width={img.width}
+        height={img.height}
+        labels={labelsFor(locale)}
+      >
         <Thumb src={img.thumb} alt={img.alt} label={img.name} />
       </ImageView>
     </div>
-  );
+  )
 }
 
 /** The same viewer with the optional thumbnail strip and counter turned on. */
-export function GalleryDemo() {
+export function GalleryDemo({ locale = 'en' }: { locale?: DemoLocale }) {
   return (
-    <ImageView.Root images={demoImages}>
+    <ImageView.Root images={demoImages} labels={labelsFor(locale)}>
       <div className="riv-demo-grid">
         {demoImages.map((img, i) => (
           <ImageView.Trigger key={img.src} index={i} {...img}>
@@ -95,29 +115,14 @@ export function GalleryDemo() {
       </div>
       <ImageView.DefaultContent counter thumbnails />
     </ImageView.Root>
-  );
+  )
 }
 
 /** Demonstrates the `labels` prop by running the whole UI in Chinese. */
 export function LocalizedDemo() {
-  const images = demoImages.slice(0, 2);
+  const images = demoImages.slice(0, 2)
   return (
-    <ImageView.Root
-      images={images}
-      labels={{
-        viewer: '图片预览',
-        close: '关闭',
-        download: '下载',
-        prev: '上一张',
-        next: '下一张',
-        zoomIn: '放大',
-        zoomOut: '缩小',
-        rotateLeft: '向左旋转',
-        rotateRight: '向右旋转',
-        fitToWindow: '适应窗口',
-        actualSize: '原始尺寸',
-      }}
-    >
+    <ImageView.Root images={images} labels={zhCN}>
       <div className="riv-demo-grid riv-demo-grid--two">
         {images.map((img, i) => (
           <ImageView.Trigger key={img.src} index={i} {...img}>
@@ -126,5 +131,5 @@ export function LocalizedDemo() {
         ))}
       </div>
     </ImageView.Root>
-  );
+  )
 }

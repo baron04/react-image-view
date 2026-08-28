@@ -9,6 +9,10 @@ description: 每个部件、每个属性，与发布内容一致 —— 与使�
 `ImageView.Root`、`ImageView.Trigger` 等等。如果你不想引入整个命名空间，
 `Root`、`Trigger` 这些也都有具名导出。
 
+自定义界面时，可以从 `react-img-view/primitives` 引入同一批语义部件。这个入口的
+`Root` 是纯 headless 的，不会自动注入 `DefaultContent`，因此默认外观和图标不会
+进入该入口。与框架无关的引擎位于 `react-img-view/core`。
+
 ## `<ImageView src alt>`
 
 L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发元素），
@@ -16,30 +20,30 @@ L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发�
 
 ## `<ImageView.Root>`
 
-| 属性 | 类型 | 默认值 | |
-|---|---|---|---|
-| `images` | `ImageItem[]` | 各 trigger 的注册顺序 | 不传则改为把 `Trigger` 作为子节点列出。 |
-| `open` / `defaultOpen` | `boolean` | `defaultOpen = false` | 受控 / 非受控。 |
-| `onOpenChange` | `(open: boolean) => void` | — | |
-| `index` / `defaultIndex` | `number` | `defaultIndex = 0` | |
-| `onIndexChange` | `(index: number) => void` | — | |
-| `container` | `HTMLElement \| null` | `document.body` | Portal 目标 —— 什么时候该指向一个带主题的祖先元素，见[安装](../installation/)。 |
-| `extensions` | `Extension[]` | `[]` | 见下方 [Extensions](#extension)。 |
-| `labels` | `Partial<ViewerLabels>` | 跟随浏览器语言 | 所有面向用户的文案。见 [`ViewerLabels`](#viewerlabels)。 |
+| 属性                     | 类型                      | 默认值                |                                                                                 |
+| ------------------------ | ------------------------- | --------------------- | ------------------------------------------------------------------------------- |
+| `images`                 | `ImageItem[]`             | 各 trigger 的注册顺序 | 不传则改为把 `Trigger` 作为子节点列出。                                         |
+| `open` / `defaultOpen`   | `boolean`                 | `defaultOpen = false` | 受控 / 非受控。                                                                 |
+| `onOpenChange`           | `(open: boolean) => void` | —                     |                                                                                 |
+| `index` / `defaultIndex` | `number`                  | `defaultIndex = 0`    |                                                                                 |
+| `onIndexChange`          | `(index: number) => void` | —                     |                                                                                 |
+| `container`              | `HTMLElement \| null`     | `document.body`       | Portal 目标 —— 什么时候该指向一个带主题的祖先元素，见[安装](../installation/)。 |
+| `extensions`             | `Extension[]`             | `[]`                  | 见下方 [Extensions](#extension)。                                               |
+| `labels`                 | `Partial<ViewerLabels>`   | 稳定的英文默认值      | 所有面向用户的文案。见 [`ViewerLabels`](#viewerlabels)。                        |
 
 ### `ImageItem`
 
 ```ts
 interface ImageItem {
-  src: string;
-  alt?: string;
+  src: string
+  alt?: string
   /** 由 Title 显示；依次回退到 alt、文件名。 */
-  name?: string;
+  name?: string
   /** 省掉一次测量往返，避免加载时布局跳动。 */
-  width?: number;
-  height?: number;
+  width?: number
+  height?: number
   /** 默认等于 src。下载需要提供另一个文件时设置。 */
-  downloadUrl?: string;
+  downloadUrl?: string
 }
 ```
 
@@ -47,17 +51,20 @@ interface ImageItem {
 
 `ImageItem` 加上：
 
-| 属性 | 类型 | |
-|---|---|---|
-| `index` | `number` | 在整组里的位置。不传时按注册顺序 —— 虚拟列表，或任何挂载顺序与视觉顺序可能不一致的场景，请显式传入。 |
-| `disabled` | `boolean` | |
-| `asChild` | — | 始终开启：`Trigger` 只渲染它的子元素，从不渲染自己的元素。 |
+| 属性       | 类型      |                                                                                                      |
+| ---------- | --------- | ---------------------------------------------------------------------------------------------------- |
+| `index`    | `number`  | 在整组里的位置。不传时按注册顺序 —— 虚拟列表，或任何挂载顺序与视觉顺序可能不一致的场景，请显式传入。 |
+| `disabled` | `boolean` |                                                                                                      |
+| 渲染方式   | —         | 始终复用唯一的子元素；`Trigger` 不接受 `asChild` 属性。                                              |
 
 ## `<ImageView.Content>`
 
 Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 传子节点来自己组合布局（L3），或者干脆不写，让 `Root` 补上
 `DefaultContent`（L2）。
+
+使用主入口时，请让 `Content` 或 `DefaultContent` 成为 `Root` 的直接子节点；
+只有这一层会参与是否补上预设的判断。primitives 入口的 `Root` 从不补预设。
 
 ## 布局区域
 
@@ -77,11 +84,11 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 
 ## 状态部件
 
-| 部件 | 渲染时机 |
-|---|---|
-| `<ImageView.Loading>` | `status === 'loading'` |
-| `<ImageView.Error>` | `status === 'error'`。children 可以是渲染函数：`{({ retry }) => …}`。 |
-| `<ImageView.Title>` | 始终渲染 —— 当前图片的 `name`，回退到 `alt`。 |
+| 部件                  | 渲染时机                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `<ImageView.Loading>` | `status === 'loading'`                                                                                             |
+| `<ImageView.Error>`   | `status === 'error'`。children 可以是渲染函数：`{({ retry }) => …}`。                                              |
+| `<ImageView.Title>`   | 始终渲染 —— 当前图片的 `name`，回退到 `alt`。                                                                      |
 | `<ImageView.Counter>` | 一旦渲染就始终显示 —— 默认不在 `DefaultContent` 里。形如 `"3 / 8"`，也可以传渲染函数 `{({ index, total }) => …}`。 |
 
 ## 控件
@@ -90,15 +97,15 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 接受 `asChild` 和标准的 button/anchor 属性，
 并在相关时暴露 `data-active` / `data-boundary` / `disabled`。
 
-| 组件 | `data-image-view-control` | 行为 |
-|---|---|---|
-| `Close` | `close` | `api.close()` |
-| `Prev` / `Next` | `prev` / `next` | `api.prev()` / `api.next()`；在两端会带 `data-boundary` 和 `disabled` |
-| `ZoomIn` / `ZoomOut` | `zoom-in` / `zoom-out` | `api.zoomBy(1.4)` / `api.zoomBy(1/1.4)`；到达缩放上下限时 `disabled` |
-| `RotateLeft` / `RotateRight` | `rotate-left` / `rotate-right` | `api.rotate(∓90)` |
-| `FitToWindow` | `fit` | `api.fit()`；`scale === fitScale` 时带 `data-active` |
-| `ActualSize` | `actual-size` | `api.actualSize()`；`scale === 1` 时带 `data-active` |
-| `Download` | `download` | 一个 `<a>`，`href`/`download` 取自当前图片 |
+| 组件                         | `data-image-view-control`      | 行为                                                                  |
+| ---------------------------- | ------------------------------ | --------------------------------------------------------------------- |
+| `Close`                      | `close`                        | `api.close()`                                                         |
+| `Prev` / `Next`              | `prev` / `next`                | `api.prev()` / `api.next()`；在两端会带 `data-boundary` 和 `disabled` |
+| `ZoomIn` / `ZoomOut`         | `zoom-in` / `zoom-out`         | `api.zoomBy(1.4)` / `api.zoomBy(1/1.4)`；到达缩放上下限时 `disabled`  |
+| `RotateLeft` / `RotateRight` | `rotate-left` / `rotate-right` | `api.rotate(∓90)`                                                     |
+| `FitToWindow`                | `fit`                          | `api.fit()`；`scale === fitScale` 时带 `data-active`                  |
+| `ActualSize`                 | `actual-size`                  | `api.actualSize()`；`scale === 1` 时带 `data-active`                  |
+| `Download`                   | `download`                     | 一个 `<a>`，`href`/`download` 取自当前图片                            |
 
 `FitToWindow` 和 `ActualSize` 刻意做成两个按钮而不是分段控件 ——
 分段控件断言总有一项被选中，而缩放到中间值时两者都不是当前状态。
@@ -108,8 +115,8 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 
 需要显式启用 —— `DefaultContent` 不会自动渲染它。
 
-| 属性 | 类型 | 默认值 |
-|---|---|---|
+| 属性   | 类型                            | 默认值   |
+| ------ | ------------------------------- | -------- |
 | `mode` | `'auto' \| 'always' \| 'never'` | `'auto'` |
 
 `auto` 在只有一张图时不渲染，并且无论图片数量多少，
@@ -123,13 +130,13 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 也可以显式使用，比如只想打开 `counter`/`thumbnails`
 而不想手写整个 L3：
 
-| 属性 | 类型 | 默认值 |
-|---|---|---|
-| `counter` | `boolean` | `false` |
+| 属性         | 类型                                       | 默认值                               |
+| ------------ | ------------------------------------------ | ------------------------------------ |
+| `counter`    | `boolean`                                  | `false`                              |
 | `thumbnails` | `boolean \| 'auto' \| 'always' \| 'never'` | `false` —— 传 `true` 等价于 `'auto'` |
 
-错误文案不在这里配置：包括它在内的所有面向用户的文案，
-都来自 `Root` 上的 [`labels`](#viewerlabels)。
+默认错误态刻意保持紧凑：一行错误文案和一个只显示图标的重试按钮。按钮的无障碍
+名称以及其余面向用户的文案都来自 `Root` 上的 [`labels`](#viewerlabels)。
 
 ## `ViewerLabels`
 
@@ -138,35 +145,41 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 属于无障碍缺陷而不是外观问题：无论页面的 `lang` 声明成什么，读屏软件都会
 照字面念出来。
 
-不传 `labels` 时，`Root` 会按 `navigator.language` 匹配内置的语言包（目前
-是 `en` 和 `zhCN`），匹配不到就用英文兜底。如果应用需要固定语言、不随访客
-浏览器变化，把 `labels` 传给 `Root`（或 L1 的 `<ImageView>`）即可覆盖，它是
-逐字段合并到探测出的语言包之上的。
+不传 `labels` 时，`Root` 始终使用稳定的英文默认值，保证服务端输出与 hydration
+完全一致，并把语言选择交给应用。把 `labels` 传给 `Root`（或 L1 的
+`<ImageView>`）即可覆盖；它按字段合并，没覆盖的字段继续使用英文默认值。
 
 ```ts
 interface ViewerLabels {
-  viewer: string;        // dialog 上的 aria-label
-  close: string;
-  prev: string;
-  next: string;
-  zoomIn: string;
-  zoomOut: string;
-  rotateLeft: string;
-  rotateRight: string;
-  fitToWindow: string;
-  actualSize: string;
-  download: string;
-  downloadOriginal: string; // 错误状态里的下载按钮
-  retry: string;
-  thumbnails: string;    // 缩略图轨上的 aria-label
-  thumbnailAt(index: number): string;
-  errorTitle: string;    // 唯一会显示成文字的一项
-  loading: string;
+  viewer: string // dialog 上的 aria-label
+  close: string
+  prev: string
+  next: string
+  zoomIn: string
+  zoomOut: string
+  rotateLeft: string
+  rotateRight: string
+  fitToWindow: string
+  actualSize: string
+  download: string
+  retry: string
+  thumbnails: string // 缩略图轨上的 aria-label
+  thumbnailAt(index: number): string
+  errorTitle: string // 唯一会显示成文字的一项
+  loading: string
 }
 ```
 
-内置的两个语言包以 `en`、`zhCN` 导出，`labelsForLocale(tag)` 按 BCP-47
-标签选一个；`defaultLabels` 保留作为 `en` 的兼容别名。
+主入口和 primitives 入口导出 `en`；`defaultLabels` 保留作为它的兼容别名。
+简体中文改为按需入口，不会增加默认包体积：
+
+```tsx
+import zhCN from 'react-img-view/locales/zh-CN'
+
+function ChineseViewer({ files }) {
+  return <ImageView.Root images={files} labels={zhCN} />
+}
+```
 
 ## `useLabels()`
 
@@ -179,29 +192,29 @@ interface ViewerLabels {
 
 ```ts
 interface ViewerApi {
-  readonly index: number;
-  readonly total: number;
-  readonly open: boolean;
-  readonly transform: Transform; // { scale, x, y, rotation }
-  readonly scale: number;
-  readonly rotation: number;
-  readonly fitScale: number;
-  readonly canZoomIn: boolean;
-  readonly canZoomOut: boolean;
-  readonly canPrev: boolean;
-  readonly canNext: boolean;
-  readonly status: 'idle' | 'loading' | 'ready' | 'error';
+  readonly index: number
+  readonly total: number
+  readonly open: boolean
+  readonly transform: Transform // { scale, x, y, rotation }
+  readonly scale: number
+  readonly rotation: number
+  readonly fitScale: number
+  readonly canZoomIn: boolean
+  readonly canZoomOut: boolean
+  readonly canPrev: boolean
+  readonly canNext: boolean
+  readonly status: 'idle' | 'loading' | 'ready' | 'error'
 
-  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void;
-  zoomBy(factor: number): void;
-  fit(): void;
-  actualSize(): void;
-  rotate(degrees: number): void;
-  go(index: number): void;
-  next(): void;
-  prev(): void;
-  close(): void;
-  retry(): void;
+  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void
+  zoomBy(factor: number): void
+  fit(): void
+  actualSize(): void
+  rotate(degrees: number): void
+  go(index: number): void
+  next(): void
+  prev(): void
+  close(): void
+  retry(): void
 }
 ```
 
@@ -211,14 +224,13 @@ interface ViewerApi {
 
 ## `Extension`
 
-组合方式够不着的行为才用它 —— 拦截手势、抢占某个按键。
-只有两个钩子，没有生命周期：任何需要**渲染**的东西都应该作为子节点放进树里。
+组合方式够不着的键盘行为才用它。任何需要**渲染**的东西都应该放进组件树；
+指针手势继续由 Stage 里经过测试的状态机统一管理。
 
 ```ts
 interface Extension {
-  name: string;
-  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void;
-  onGesture?(phase: 'start' | 'move' | 'end', api: ViewerApi): boolean | void;
+  name: string
+  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void
 }
 ```
 
@@ -226,7 +238,11 @@ interface Extension {
 
 ## `core`
 
-手势数学和状态机，导出给需要在 React 层之外做更多事情的人 ——
-`core.tuning`（所有影响手感的常数，集中在一处并带有注释）、
-`core.fitScale`、`core.maxScale`、`core` 里的手势 reducer，以及动画驱动。
-零 React 依赖；为什么要保持这样，见 `src/core/` 的源码。
+手势数学和状态机，导出给需要在 React 层之外做更多事情的人：
+
+```ts
+import { fitScale, tuning } from 'react-img-view/core'
+```
+
+这个入口没有 React 依赖，也能独立 tree-shake；为什么保持这种边界，见
+`src/core/` 的源码。

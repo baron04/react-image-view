@@ -48,14 +48,12 @@ export interface ViewerApi {
 /**
  * Every user-facing string the library can render, in one place.
  *
- * Almost all of them are `aria-label`s: the default UI renders icons, and the
- * only visible string left is `errorTitle`. That makes hardcoding a language
- * an accessibility bug rather than a cosmetic one — a screen reader announces
- * these verbatim whatever the page's `lang` says.
+ * Almost all of them are `aria-label`s: the default UI renders icon controls,
+ * while `errorTitle` is visible beside the retry icon. Hardcoding a language
+ * is therefore an accessibility bug rather than only a cosmetic one.
  *
- * Left unset, these follow the browser's language among the packs this
- * package ships (English and Simplified Chinese) — see src/labels.ts for why
- * the browser rather than the application. Pass `labels` to pin them.
+ * Left unset, these use the stable English defaults. Pass `labels` explicitly
+ * or import a locale subpath so SSR and hydration render the same language.
  *
  * Read anywhere below `Root` with `useLabels()`.
  */
@@ -72,32 +70,24 @@ export interface ViewerLabels {
   fitToWindow: string
   actualSize: string
   download: string
-  /** The error state's download action, which is about the original file. */
-  downloadOriginal: string
   retry: string
   /** `aria-label` on the thumbnail strip. */
   thumbnails: string
   /** Builds the `aria-label` for one thumbnail with no name of its own. */
   thumbnailAt(index: number): string
-  /** The one string the default UI still renders as visible text. */
+  /** Visible beside the default error state's retry icon. */
   errorTitle: string
   loading: string
 }
 
-export type GestureHookPhase = 'start' | 'move' | 'end'
-
 /**
- * The escape hatch for behaviour that composition cannot reach — intercepting
- * a gesture, claiming a key. Returning `true` marks the event consumed.
- *
- * Deliberately two hooks and no lifecycle: anything that needs to *render*
- * belongs in the tree as a child, not here. Widen this and it grows into the
- * plugin system this library exists to avoid.
+ * The narrow escape hatch for keyboard behaviour composition cannot reach.
+ * Returning `true` marks the event consumed. Visual extensions belong in the
+ * component tree; gestures stay owned by Stage's state machine.
  */
 export interface Extension {
   name: string
   onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void
-  onGesture?(phase: GestureHookPhase, api: ViewerApi): boolean | void
 }
 
 export interface ImageViewRootProps {
@@ -118,8 +108,9 @@ export interface ImageViewRootProps {
   container?: HTMLElement | null
   extensions?: Extension[]
   /**
-   * Override any user-facing string. Merged over the English defaults, so
-   * passing one field leaves the rest alone.
+   * Override any user-facing string. Merged over stable English defaults, so
+   * passing one field leaves the rest alone. Import a complete locale from a
+   * locale subpath when the application should use another language.
    */
   labels?: Partial<ViewerLabels>
   children?: React.ReactNode

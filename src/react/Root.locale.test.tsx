@@ -1,13 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import { ImageView } from '../index'
+import zhCN from '../locales/zh-CN'
 
 /**
- * `navigator.language` must be stubbed before the module under test ever
- * reads it — `Root`'s detector caches its result for the module's lifetime
- * (see the comment on `clientLabels` in Root.tsx), and vitest gives each test
- * file its own module registry, so this file is the only place that cache is
- * safe to poison with a non-English locale.
+ * Browser language is intentionally irrelevant: applications choose their
+ * locale explicitly, which keeps server and hydrated output deterministic.
  */
 vi.stubGlobal('navigator', { ...navigator, language: 'zh-CN' })
 
@@ -27,8 +25,8 @@ function Trigger() {
   )
 }
 
-describe('Root: labels auto-detected from the browser', () => {
-  it('picks the matching bundled pack when no `labels` prop is given', () => {
+describe('Root: explicit locale', () => {
+  it('keeps stable English defaults regardless of browser language', () => {
     render(
       <ImageView.Root images={[A]}>
         <Trigger />
@@ -37,19 +35,19 @@ describe('Root: labels auto-detected from the browser', () => {
     openViewer()
     expect(
       document.querySelector('[data-image-view-control="close"]')?.getAttribute('aria-label'),
-    ).toBe('关闭')
+    ).toBe('Close')
   })
 
-  it('still lets an explicit `labels` prop override the detected pack', () => {
+  it('accepts an opt-in locale with field-level overrides', () => {
     render(
-      <ImageView.Root images={[A]} labels={{ close: 'Fermer' }}>
+      <ImageView.Root images={[A]} labels={{ ...zhCN, close: 'Fermer' }}>
         <Trigger />
       </ImageView.Root>,
     )
     openViewer()
     const dialog = document.querySelector('[data-image-view-control="close"]')
     expect(dialog?.getAttribute('aria-label')).toBe('Fermer')
-    // Untouched keys still fall back to the detected pack, not English.
+    // Untouched keys come from the explicitly selected pack.
     expect(
       document.querySelector('[data-image-view-control="zoom-in"]')?.getAttribute('aria-label'),
     ).toBe('放大')

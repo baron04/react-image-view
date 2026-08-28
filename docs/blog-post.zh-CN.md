@@ -1,20 +1,24 @@
-# 为什么我重新写了一个 React 图片查看器
+# 为附件审阅而生：我如何设计一个可组合的 React 图片查看器
 
-React 生态里有图片查看器库，但用过之后你会发现一个共同的问题：**改不动**。想换个配色？得覆盖一堆内部样式。想把工具栏挪个位置？组件没暴露这个接口。想用自己的设计系统组件来渲染触发器？不行，它只接受 `<img>`。想加一个自定义按钮到工具栏里？要么 fork 源码，要么放弃。
+事情开始于一个看似普通的后台需求：点击采购单附件，放大核对编号，切到 1:1 看原始清晰度，再翻到下一张。真正做起来，却发现它和「浏览照片」并不是一回事。
 
-具体来看，主流库在定制能力上各有局限：
+审阅时，工具栏不能自动消失；鼠标向下拖动不该误关窗口；图片放大到边缘后，继续拖动应该自然接力到下一张。更重要的是，预览器必须能进入现有设计系统：按钮、工具栏、错误态和布局都不能锁死在库里。
 
-| 库 | 特点 | 定制痛点 |
-|---|---|---|
-| **PhotoSwipe** | 老牌全能，功能最全 | 原生 JS 操作 DOM，与 React 理念格格不入；内置样式难以彻底替换；React 包装层由社区维护，质量参差不齐 |
-| **react-photo-view** | React 原生，交互动画精致，7KB 轻量 | 支持 `toolbarRender` 自定义工具栏，但整体 UI 结构（遮罩、导航条、图片容器）不可拆分替换；样式通过 CSS 类名控制，深度定制需要覆盖大量选择器 |
-| **rc-image**（Ant Design） | 与 Ant Design 生态集成 | 功能最基础；样式和结构与 Ant Design 强绑定，脱离 Ant Design 使用成本高 |
-| **yet-another-react-lightbox** | 插件体系丰富，支持自定义 UI | 体积大（核心 + 常用插件 gzip 后 20KB+）；插件扩展功能方便，但整体架构复杂，深度定制需要理解多层抽象 |
-| **react-image-lightbox** | 轻量简单 | 已停止维护（GitHub archived）；样式写死在组件内，几乎无法定制 |
+于是有了 [react-img-view](https://github.com/baron04/react-img-view)：一个 headless-first、可组合，同时带可选默认界面的 React 图片查看器。**行为由库提供，呈现由应用决定。**
 
-它们的共同问题是：**行为和呈现绑在一起**。样式、布局、交互逻辑封装在组件内部，开发者能控制的只有几个 prop 和 render 函数。一旦需求超出了 prop 的覆盖范围——想换个布局、替换某个部件、接入自己的设计系统——就卡住了。
+![缩放、旋转、适应窗口，逐张审阅附件](../media/demo.gif)
 
-于是有了 [react-img-view](https://github.com/baron04/react-img-view)——一个无样式（headless）、可组合的 React 图片查看器。**行为由库提供，呈现由你决定。**
+React 生态里已经有很多成熟选择。差异不在于谁「最好」，而在于各自优化的任务：
+
+| 方案                                                                  | 更适合                                   | 主要取舍                                                        |
+| --------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------- |
+| [PhotoSwipe](https://photoswipe.com/react-image-gallery/)             | 功能完整的图片画廊                       | 核心是原生 JavaScript；React 有官方集成示例，但不是它的核心抽象 |
+| [react-photo-view](https://github.com/MinJieLiu/react-photo-view)     | 轻量、动画精致的照片预览                 | 提供工具栏渲染入口，但整体外壳仍由组件管理                      |
+| [@rc-component/image](https://github.com/react-component/image)       | Ant Design 生态中的图片与预览组          | 操作栏和图片可以定制，但结构与样式约定更贴近该生态              |
+| [Yet Another React Lightbox](https://yet-another-react-lightbox.com/) | 需要视频、缩略图、幻灯片等插件能力的画廊 | 能力面更广，使用完整能力时需要理解更多插件与配置                |
+| **react-img-view**                                                    | 文档附件、后台图片字段、接入自有设计系统 | 专注图片审阅，不提供视频、自动播放或画廊网格                    |
+
+这里不放一个容易过期的「谁比谁少几 KB」结论。不同库对缩放、CSS 和插件的默认包含范围并不相同；真正有意义的是固定版本、固定 import、排除 React 后做消费者构建。本文后面只报告 react-img-view 自己由 CI 重复测量的入口体积。
 
 ## Headless + 可组合：一个库，三种用法
 
@@ -23,32 +27,64 @@ React 生态里有图片查看器库，但用过之后你会发现一个共同�
 这意味着你可以用三种方式使用它，从一行代码到完全自定义，共享同一套底层实现：
 
 ```tsx
+import { ImageView, type ImageItem } from 'react-img-view'
+import * as Primitives from 'react-img-view/primitives'
+import zhCN from 'react-img-view/locales/zh-CN'
+import 'react-img-view/styles.css'
+
+const files: ImageItem[] = [
+  { src: '/invoice-1048.jpg', alt: '采购单 1048', width: 1600, height: 2200 },
+]
+
 // 第一层：单张图片，一行接入
-<ImageView src={full} alt={name}>
-  <img src={thumb} alt={name} />
-</ImageView>
+export function SingleAttachment() {
+  const file = files[0]!
+  return (
+    <ImageView {...file} labels={zhCN}>
+      <img src="/invoice-1048-thumb.jpg" alt={file.alt} />
+    </ImageView>
+  )
+}
 
 // 第二层：多图共享查看器，使用默认界面
-<ImageView.Root images={files}>
-  {files.map((f) => (
-    <ImageView.Trigger key={f.src} {...f}>
-      <img src={f.src} alt={f.alt} />
-    </ImageView.Trigger>
-  ))}
-</ImageView.Root>
+export function SharedViewer() {
+  return (
+    <ImageView.Root images={files} labels={zhCN}>
+      {files.map((file, index) => (
+        <ImageView.Trigger key={file.src} index={index} {...file}>
+          <img src={file.src} alt={file.alt} />
+        </ImageView.Trigger>
+      ))}
+    </ImageView.Root>
+  )
+}
 
-// 第三层：完全自己拼界面
-<ImageView.Root images={files}>
-  <ImageView.Content>
-    <ImageView.Header>…</ImageView.Header>
-    <ImageView.Stage><ImageView.Image /></ImageView.Stage>
-    <ImageView.Toolbar>…</ImageView.Toolbar>
-    <ImageView.Thumbnails />
-  </ImageView.Content>
-</ImageView.Root>
+// 第三层：从 primitives 入口完全自己拼界面
+export function CustomViewer() {
+  return (
+    <Primitives.Root images={files} labels={zhCN}>
+      <Primitives.Content>
+        <Primitives.Header>
+          <Primitives.Close>关闭</Primitives.Close>
+          <Primitives.Title />
+        </Primitives.Header>
+        <Primitives.Stage>
+          <Primitives.Image />
+          <Primitives.Toolbar>
+            <Primitives.ZoomIn>放大</Primitives.ZoomIn>
+            <Primitives.ActualSize>1:1</Primitives.ActualSize>
+          </Primitives.Toolbar>
+        </Primitives.Stage>
+      </Primitives.Content>
+    </Primitives.Root>
+  )
+}
 ```
 
-`Root` 只做一件事：检查子节点里有没有已经写好的 `<Content>`，有就什么都不补，没有就补上默认界面。第一层和第二层背后用的就是第三层组合出来的那套部件——**没有另一份「精简版」实现**。默认界面能做的事，手写组合也都能做，因为它们本来就是同一批积木。
+主入口的 `Root` 只负责一层很薄的组装：检查直接子节点里有没有已经写好的
+`<Content>`，有就什么都不补，没有就补上默认界面。真正管理状态、手势与语义的
+headless `Root` 位于 `react-img-view/primitives`，它从不依赖默认 UI。第一层和
+第二层背后仍然是第三层的同一批部件，但自定义界面不必再把 preset 和图标带进包里。
 
 这种设计带来的好处是实实在在的：
 
@@ -86,25 +122,25 @@ idle → tracking → panning / paging / dismissing / pinching
 
 动画系统同样讲究。弹簧动画的积分步长被限制在 1/240 秒以内——因为显式积分的 stiff spring 在步长过大时会发散（测试中图片曾飞到 38000px 宽）。退出动画的弹簧刚度（3600）远高于进入动画（340），因为「离场」必须干脆利落，任何拖沓都会让人觉得卡。
 
-## 每个部件都支持 `asChild`
+## 复用你的元素，而不是再包一层
 
-react-img-view 借鉴了 Radix UI 的 Slot 机制，每个部件都支持 `asChild` 模式。这意味着你可以用自己的组件来渲染任何部位：
+控件和布局区域支持 Radix 风格的 `asChild`；`Trigger` 更直接，它始终复用唯一的子元素，不需要也不接收 `asChild`：
 
 ```tsx
-<ImageView.Trigger asChild>
+<ImageView.Trigger src={file.src} alt={file.alt}>
   <MyDesignSystemCard image={file}>
     <img src={file.thumb} alt={file.alt} />
   </MyDesignSystemCard>
 </ImageView.Trigger>
 ```
 
-库贡献行为和 `data-*` 状态属性，永远不会 dictate 你用什么元素。`Trigger` 可以包 `next/image`、`<picture>`、设计系统的 Card 组件——它只负责把点击、键盘、焦点管理做好。
+库贡献行为和 `data-*` 状态属性，不限制你使用什么元素。`Trigger` 可以复用 `next/image`、`<picture>`、设计系统的 Card 组件——它只负责把点击、键盘和焦点管理做好。自定义 React 组件需要转发 `ref` 并把收到的 props 铺到真实 DOM 元素上。
 
 状态通过 `data-*` 属性暴露在外：`data-image-view-trigger`、`data-disabled`、`data-closing`… 你可以用 CSS 选择器精确控制任何状态下的样式，不需要依赖 JS 条件渲染。
 
 ## 两种拿到界面的方式
 
-无样式组件的一个常见争议是「到底该给多少默认样式」。react-img-view 给了两条路：
+headless 组件的一个常见争议是「到底该给多少默认样式」。react-img-view 给了两条路：
 
 - **CSS 预设**（`react-img-view/styles.css`）：自定义属性写在 `:root` 上，哪种技术栈都能用
 - **shadcn registry 区块**：Tailwind 写的源码，装进项目后就是可以直接改的代码——和 shadcn 自己那些组件对 Radix 的处理方式一样，行为留在依赖里，呈现层复制进你的仓库
@@ -113,21 +149,28 @@ react-img-view 借鉴了 Radix UI 的 Slot 机制，每个部件都支持 `asChi
 
 ## 体积与依赖
 
-- JS 运行时约 **13 kB**（gzip 后）
+以下数据由仓库的消费者构建脚本测量，口径为当前版本、排除 React、minify 后 gzip；CSS 单独计算：
+
+- 完整 JS 入口约 **11.3 kB**（gzip 后）
+- headless primitives 入口约 **10.1 kB**（gzip 后）
+- 压缩后的 CSS preset 约 **1.7 kB**（gzip 后）
 - 除 React 外**零运行时依赖**
 - 支持 React 18 和 19
 - TypeScript 编写，完整类型导出
-- 支持 SSR（`useSyncExternalStore` 处理了 hydration 的语言匹配问题）
+- 支持 SSR；默认文案固定，服务端与 hydration 不会因为浏览器语言产生差异
 
 ## 无障碍不是事后补丁
 
 界面文案基本都只以 `aria-label` 的形式存在——默认 UI 渲染的是图标，唯一的可见文字是错误标题。这意味着硬编码语言不只是美观问题，而是**无障碍 bug**：屏幕阅读器会照字面念出这些标签。
 
-默认跟随浏览器语言自动切换（内置英语和简体中文），需要固定语言时传一个 `labels` prop 就行。所有文案集中在 [`ViewerLabels`](https://github.com/baron04/react-img-view/blob/main/src/types.ts) 接口中，扩展新语言只需要实现这个接口。
+默认使用稳定的英文文案，语言由应用显式决定。简体中文可以从
+`react-img-view/locales/zh-CN` 按需引入，再通过 `labels` prop 传入；它不会进入
+默认 bundle。所有文案集中在 [`ViewerLabels`](https://github.com/baron04/react-img-view/blob/main/src/types.ts)
+接口中，扩展新语言只需要实现这个接口。
 
 ## 写在最后
 
-react-img-view 不是要做「最好的图片查看器」——这个定义取决于你的场景。它要做的是**最好定制的图片查看器**：通过 headless + 可组合的架构，让开发者能够精确控制每一个部件的行为和呈现，而不是在组件的限制里做妥协。
+react-img-view 不是要做适合所有人的图片查看器。它只想把一件事做好：在文档和附件审阅场景里，提供可靠的手势与语义，同时把界面的最终决定权留给应用。
 
 ```bash
 npm install react-img-view

@@ -5,48 +5,52 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-The default UI had drifted into needing a translation for every host app: eight
-strings rendered as visible text, and all of them were English regardless of
-the browser. This cuts that down to one string and lets the rest follow the
-visitor rather than the app.
+This release separates the preset from the headless entry, makes localisation
+deterministic, and puts the published size and package shape under automated
+checks.
 
 ### Breaking
 
-- **`ViewerLabels` no longer has `errorHint`.** The error state's explanatory
-  paragraph is gone — the alert icon plus `errorTitle` carry the state, and a
-  second sentence of body copy was rarely more than a screen-reader-only
-  restatement of it. Drop `errorHint` from any `labels` override; it is now
-  ignored by nothing, because the field itself no longer exists to pass.
-- **Close, header Download, Retry, and the error state's download-original
-  control are icon-only.** Their strings still exist — `labels.close`,
-  `labels.download`, `labels.retry`, `labels.downloadOriginal` — but now
-  surface only as `aria-label`/`title`, not as rendered text. `errorTitle` is
-  the one string `DefaultContent` still renders visibly.
-- **Labels default to the browser's language, not always English.** `Root`
-  auto-detects via `navigator.language` and picks a bundled pack — currently
-  `en` or `zhCN` — falling back to English for anything else. An app that must
-  stay in one language regardless of the visitor's browser should pass
-  `labels` explicitly (or spread a named pack: `labels={zhCN}`). See
-  [src/labels.ts](src/labels.ts) for why this follows the browser rather than
-  the app.
+- **`ViewerLabels` no longer has `errorHint` or `downloadOriginal`.** The
+  default error is now one short line plus a retry icon; it no longer renders
+  an explanatory paragraph, alert decoration, or a second download action.
+- **Labels no longer follow `navigator.language`.** Stable English defaults
+  keep SSR and hydration identical. Select another language explicitly via
+  `labels`; Simplified Chinese moved from the package root to the opt-in
+  `react-img-view/locales/zh-CN` entry.
+- **`zhCN`, `labelsForLocale`, and the `core` namespace are no longer exported
+  from the package root.** Import the locale and low-level functions from
+  `react-img-view/locales/zh-CN` and `react-img-view/core` respectively.
+- **`Extension.onGesture` was removed.** It was exposed in the type but never
+  called. Pointer gestures remain owned by Stage's state machine;
+  `Extension.onKeyDown` remains the keyboard escape hatch.
 
 ### Added
 
-- **`downloadOriginal` on `ViewerLabels`** — the error state's download
-  action, distinct from the header's `download` now that the two can carry
-  different copy (e.g. "Download the original file" vs "Download").
-- **`en`, `zhCN`, and `labelsForLocale` exports** from the package root, so an
-  app that wants one bundled pack regardless of the browser can import it
-  directly instead of relying on auto-detection.
+- **`react-img-view/primitives`** — semantic React parts and the pure headless
+  `Root`, without `SingleImage`, `DefaultContent`, preset icons, or automatic
+  chrome.
+- **`react-img-view/core`** and **`react-img-view/locales/zh-CN`** as explicit,
+  independently tree-shakeable public entries.
+- Gzip budgets for every public runtime entry and the CSS preset, plus real
+  consumer bundles that verify tree-shaking.
+- `publint` and Are the Types Wrong checks for both ESM and CJS declarations.
+- Documentation guards for stale API claims and broken local links, compiled
+  TypeScript examples, and generated-HTML checks for invalid MDX nesting and
+  production canonical URLs.
 
 ### Changed
 
-- **The published package no longer ships sourcemaps.** They were 458 KB of
-  a 641 KB tarball — 71% of every install's footprint spent on a file a
-  browser only fetches on demand, from devtools, for someone stepping into
-  this library specifically. `dist/*.js`/`dist/*.cjs` no longer carry a
-  `sourceMappingURL` comment either, rather than point at a file that isn't
-  there.
+- The default error keeps `retry()` and `role="alert"`, but renders the action
+  as an icon-only button with `aria-label` and `title`.
+- The full entry is 11.3 kB gzip (down from 13.2 kB), the primitives entry is
+  10.1 kB, and the minified CSS preset is 1.7 kB.
+- The build moved from unmaintained tsup to tsdown/Rolldown. ESM, CJS, paired
+  declarations, `"use client"`, and sourcemap-free output are preserved.
+- The package and documentation site now share one pnpm workspace and lockfile.
+- The README, documentation landing pages, and Chinese design article now
+  describe the headless/preset boundary precisely and compare alternatives by
+  use case instead of relying on volatile bundle-size claims.
 
 ## [0.2.1] — 2026-08-26
 
@@ -59,7 +63,7 @@ other landing in the wrong place. Neither changes any API.
   position was exact, so this survived a test that asserted only the endpoint.
   `[data-closing]` sets `display: none` on the header and toolbar, which
   reflows the dialog's column and drops the centred image by half the header's
-  height — and the flight was measured *before* that reflow, so it spent its
+  height — and the flight was measured _before_ that reflow, so it spent its
   whole length offset and agreed with the thumbnail only on the final frame,
   when removing the attribute restored the layout the numbers had assumed.
   That read as the image settling too high and then snapping into place. The
@@ -77,7 +81,7 @@ other landing in the wrong place. Neither changes any API.
 - **Closing landed on the trigger's box rather than the picture's.**
   `readGeometry` measured the trigger while reading `fit` from the `<img>`
   inside it. Those are the same element when the trigger is a bare `<img>`,
-  but the common shape is a card — a `<figure>` holding the image *and* a
+  but the common shape is a card — a `<figure>` holding the image _and_ a
   caption — and against that the flight flew to a box taller than the
   thumbnail by the height of the caption, so the close ended on a visible
   jump. Measured on the docs site: figure 225×222, image 223×167.

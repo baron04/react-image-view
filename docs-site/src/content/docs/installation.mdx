@@ -24,13 +24,14 @@ animation drivers, and the modal are built on nothing but React and the DOM.
 
 ## Styles
 
-Every part ships unstyled by default: behaviour and `data-*` state only.
-There are three ways to get a look.
+The primitive entry ships without the preset; the main entry supplies the
+default composition, and the stylesheet supplies its look. There are three
+ways to style it.
 
 ### The shipped preset
 
 ```tsx
-import 'react-img-view/styles.css';
+import 'react-img-view/styles.css'
 ```
 
 Everything is driven by CSS custom properties, set on `:root` and on the
@@ -64,7 +65,7 @@ and how it relates to the CSS preset.
 
 ### Neither
 
-Every part takes `asChild` and forwards `data-*` state, so you can style
-from scratch with attribute selectors, Tailwind's `data-[active]:…`
-variants, or your own design system's components. See
-[Customization](../customization/).
+Every part exposes stable `data-*` hooks. Controls and layout regions take
+`asChild`, while `Trigger` always reuses its only child. That is enough to
+style from scratch with attribute selectors, Tailwind's `data-[active]:…`
+variants, or your own design system's components. See [Customization](../customization/).

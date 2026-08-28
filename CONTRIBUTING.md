@@ -8,13 +8,16 @@ pnpm build          # the docs site imports dist/, so build once first
 pnpm vite           # the playground, at localhost:5180
 ```
 
-| Command | What it does |
-|---|---|
-| `pnpm test` | Vitest — `core/` in node, the React layer in jsdom |
-| `pnpm e2e` | Playwright; starts the playground itself |
-| `pnpm lint` | ESLint |
-| `pnpm typecheck` | `tsc --noEmit` |
-| `pnpm build` | ESM + CJS + `.d.ts` into `dist/` |
+| Command              | What it does                                                  |
+| -------------------- | ------------------------------------------------------------- |
+| `pnpm test`          | Vitest — `core/` in node, the React layer in jsdom            |
+| `pnpm e2e`           | Playwright; starts the playground itself                      |
+| `pnpm lint`          | ESLint                                                        |
+| `pnpm typecheck`     | `tsc --noEmit`                                                |
+| `pnpm build`         | tsdown/Rolldown: ESM + CJS + paired declarations into `dist/` |
+| `pnpm size`          | Gzip budgets plus consumer tree-shaking fixtures              |
+| `pnpm package:check` | `publint` and Are the Types Wrong                             |
+| `pnpm docs:build`    | Build the workspace documentation site                        |
 
 A pre-commit hook runs lint and typecheck. CI runs everything, on Node 22;
 releases run the same suite on Node 24, which is the version they publish from.
@@ -25,13 +28,13 @@ image-view.tsx` or the `cssVars` in `registry.json`.
 
 ## Repo layout
 
-| Path | What it is |
-|---|---|
-| `src/` | The package — see "The shape of the codebase" below. |
-| `docs-site/` | The documentation site (Astro Starlight — plain markdown/MDX to static HTML, no server, deployed to GitHub Pages). |
-| `registry/` | The shadcn registry source; `registry.json` is the manifest. |
-| `playground/` | A Vite app for developing against `src/` directly — real browser testing, not just unit tests. |
-| `e2e/` | Playwright smoke tests driven with real pointer events. |
+| Path          | What it is                                                                                                                  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `src/`        | The package — see "The shape of the codebase" below.                                                                        |
+| `docs-site/`  | The workspace documentation app (Astro Starlight — plain markdown/MDX to static HTML, no server, deployed to GitHub Pages). |
+| `registry/`   | The shadcn registry source; `registry.json` is the manifest.                                                                |
+| `playground/` | A Vite app for developing against `src/` directly — real browser testing, not just unit tests.                              |
+| `e2e/`        | Playwright smoke tests driven with real pointer events.                                                                     |
 
 ## The shape of the codebase
 
@@ -40,10 +43,15 @@ physics, the FLIP calculations. It has **no React dependency**, which is what
 makes it testable by replaying pointer-event sequences without a DOM. Keep it
 that way — if something needs React, it belongs a layer up.
 
-`src/react/` binds that to React. `src/preset/` is the assembled default UI.
-There is no private implementation under the preset: L1 and L2 are L3 with
-defaults filled in, so anything `DefaultContent` can do, hand-written
-composition can too.
+`src/react/` binds that to React. Its `Root` is headless and powers the
+`react-img-view/primitives` entry. `src/preset/` is the assembled default UI;
+its thin Root wrapper appends `DefaultContent` only for the main entry. There
+is no second behaviour implementation under the preset: L1 and L2 are still
+L3 with defaults filled in.
+
+The root package and `docs-site/` share `pnpm-workspace.yaml` and one root
+lockfile. `react-img-view` remains the only published package; subpath exports
+provide boundaries without independent versions.
 
 ## Testing: what actually catches things
 
@@ -99,7 +107,7 @@ the set of controls they expose and fails if they have drifted; it runs in CI.
 
 ## Commits and releases
 
-Commit messages are free-form prose, not Conventional Commits. Explain *why*
+Commit messages are free-form prose, not Conventional Commits. Explain _why_
 the change is right, especially when the reason is not obvious from the diff —
 most of this codebase's comments exist because someone would otherwise
 reasonably undo the thing they describe.
@@ -120,13 +128,13 @@ automatically.
 One-time setup, on npmjs.com → the package → **Settings → Trusted
 Publisher**:
 
-| Field | Value |
-|---|---|
-| Publisher | GitHub Actions |
-| Organization or user | `baron04` |
-| Repository | `react-img-view` |
-| Workflow filename | `release.yml` |
-| Environment | *(leave empty)* |
+| Field                | Value            |
+| -------------------- | ---------------- |
+| Publisher            | GitHub Actions   |
+| Organization or user | `baron04`        |
+| Repository           | `react-img-view` |
+| Workflow filename    | `release.yml`    |
+| Environment          | _(leave empty)_  |
 
 The workflow pins Node 24 deliberately: trusted publishing needs npm
 &ge; 11.5.1, and Node 22 still bundles npm 10.9.8. A version check runs

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, act } from '@testing-library/react'
+import { render, screen, act, fireEvent } from '@testing-library/react'
 import { ImageView, useViewer, useLabels } from '../index'
 
 /**
@@ -294,6 +294,31 @@ describe('Content: composition', () => {
     const announcer = document.querySelector('[data-image-view-announcer]')
     expect(announcer?.getAttribute('aria-live')).toBe('polite')
     expect(announcer?.textContent).toBe('a.png (1 / 3)')
+  })
+
+  it('renders a compact, labelled retry action on image failure', () => {
+    render(
+      <ImageView.Root images={IMAGES} defaultOpen>
+        <Triggers />
+      </ImageView.Root>,
+    )
+
+    const image = document.querySelector<HTMLImageElement>(
+      '[data-image-view-slide][data-current] img',
+    )
+    expect(image).not.toBeNull()
+    fireEvent.error(image!)
+
+    const alert = screen.getByRole('alert')
+    const retry = screen.getByRole('button', { name: 'Try again' })
+    expect(alert.textContent).toBe("This image couldn't be loaded")
+    expect(retry.getAttribute('title')).toBe('Try again')
+    expect(retry.textContent).toBe('')
+    expect(alert.querySelector('[data-image-view-control="download"]')).toBeNull()
+
+    fireEvent.click(retry)
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.getByRole('status', { name: 'Loading' })).toBeTruthy()
   })
 })
 

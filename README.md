@@ -6,11 +6,11 @@
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/react-img-view)](https://bundlephobia.com/package/react-img-view)
 [![license](https://img.shields.io/npm/l/react-img-view.svg)](LICENSE)
 
-A composable, headless **React image viewer** / image preview / lightbox
-component — built for reviewing document attachments and admin image
-fields, not photo galleries. Zoom, pan, pinch, rotate, fit-to-window and
-1:1, keyboard shortcuts, and touch gestures, with no styling you can't
-replace.
+A headless-first, composable **React image viewer** / image preview / lightbox
+with an optional polished preset — built for reviewing document attachments
+and admin image fields, not photo galleries. Zoom, pan, pinch, rotate,
+fit-to-window and 1:1, keyboard shortcuts, and touch gestures, with every
+visible part replaceable.
 
 **[Documentation](https://baron04.github.io/react-img-view/)** ·
 [Quick Start](https://baron04.github.io/react-img-view/quick-start/) ·
@@ -21,18 +21,39 @@ npm install react-img-view
 ```
 
 ```tsx
-import { ImageView } from 'react-img-view';
-import 'react-img-view/styles.css';
+import { ImageView } from 'react-img-view'
+import 'react-img-view/styles.css'
 
-<ImageView src={file.full} alt={file.name}>
-  <img src={file.thumb} alt={file.name} />
-</ImageView>
+function AttachmentPreview({ file }) {
+  return (
+    <ImageView src={file.full} alt={file.name}>
+      <img src={file.thumb} alt={file.name} />
+    </ImageView>
+  )
+}
 ```
 
 One line for a single image, one component for a shared gallery, full
 composition when you need it — see the
 [docs](https://baron04.github.io/react-img-view/quick-start/) for all
 three.
+
+The main entry is **11.3 kB gzip**. For custom chrome, import headless parts
+from `react-img-view/primitives` (**10.1 kB gzip**); low-level transforms and
+the gesture state machine live at `react-img-view/core` and tree-shake down
+to about **0.5 kB** when one helper is used. The minified CSS preset is
+**1.7 kB gzip**. CI enforces these budgets.
+
+English labels are deterministic by default. Choose another language
+explicitly so server and hydrated markup always agree:
+
+```tsx
+import zhCN from 'react-img-view/locales/zh-CN'
+
+function ChineseViewer({ files }) {
+  return <ImageView.Root images={files} labels={zhCN} />
+}
+```
 
 ![Zoom, rotate, fit, and page through attachments](media/demo.gif)
 

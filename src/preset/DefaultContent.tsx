@@ -5,13 +5,29 @@ import { Header, Toolbar, Title, Counter, Loading, ErrorState } from '../react/p
 import { Thumbnails, type ThumbnailsMode } from '../react/parts/Thumbnails'
 import { useLabels } from '../react/context'
 import {
-  Close, Prev, Next, ZoomIn, ZoomOut, RotateLeft, RotateRight,
-  FitToWindow, ActualSize, Download,
+  Close,
+  Prev,
+  Next,
+  ZoomIn,
+  ZoomOut,
+  RotateLeft,
+  RotateRight,
+  FitToWindow,
+  ActualSize,
+  Download,
 } from '../react/parts/controls'
 import {
-  CloseIcon, PrevIcon, NextIcon, ZoomInIcon, ZoomOutIcon,
-  RotateLeftIcon, RotateRightIcon, FitIcon, ActualSizeIcon,
-  DownloadIcon, RetryIcon, AlertIcon,
+  CloseIcon,
+  PrevIcon,
+  NextIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+  RotateLeftIcon,
+  RotateRightIcon,
+  FitIcon,
+  ActualSizeIcon,
+  DownloadIcon,
+  RetryIcon,
 } from './icons'
 
 export interface DefaultContentProps {
@@ -75,33 +91,27 @@ export function DefaultContent({ counter = false, thumbnails = false }: DefaultC
           <Loading aria-label={labels.loading}>
             <svg className="riv-spinner" viewBox="0 0 26 26" fill="none" aria-hidden="true">
               <circle cx="13" cy="13" r="10" stroke="var(--riv-line)" strokeWidth="2.4" />
-              <path d="M13 3a10 10 0 0 1 8.66 5" stroke="var(--riv-accent)" strokeWidth="2.4" strokeLinecap="round" />
+              <path
+                d="M13 3a10 10 0 0 1 8.66 5"
+                stroke="var(--riv-accent)"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
             </svg>
           </Loading>
           <ErrorState>
             {({ retry }) => (
               <>
-                <AlertIcon size={40} />
-                {/* The one visible string the default UI still renders. An
-                    alert glyph says something broke; it cannot say that it
-                    was *this image* rather than the viewer itself. */}
-                <div className="riv-error-copy">
-                  <div className="riv-error-title">{labels.errorTitle}</div>
-                </div>
-                <div className="riv-error-actions">
-                  <button
-                    type="button"
-                    data-image-view-control="retry"
-                    aria-label={labels.retry}
-                    title={labels.retry}
-                    onClick={retry}
-                  >
-                    <RetryIcon size={16} />
-                  </button>
-                  <Download aria-label={labels.downloadOriginal} title={labels.downloadOriginal}>
-                    <DownloadIcon size={16} />
-                  </Download>
-                </div>
+                <span className="riv-error-title">{labels.errorTitle}</span>
+                <button
+                  type="button"
+                  data-image-view-control="retry"
+                  aria-label={labels.retry}
+                  title={labels.retry}
+                  onClick={retry}
+                >
+                  <RetryIcon size={16} />
+                </button>
               </>
             )}
           </ErrorState>

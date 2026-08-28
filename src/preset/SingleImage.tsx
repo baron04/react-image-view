@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Root } from '../react/parts/Root'
+import { Root } from './Root'
 import { Trigger } from '../react/parts/Trigger'
 import type { ImageItem, ViewerLabels } from '../types'
 

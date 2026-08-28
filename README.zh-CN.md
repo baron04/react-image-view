@@ -6,9 +6,9 @@
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/react-img-view)](https://bundlephobia.com/package/react-img-view)
 [![license](https://img.shields.io/npm/l/react-img-view.svg)](LICENSE)
 
-一个可组合、无样式（headless）的 **React 图片查看器**组件——为审阅文档附件、
-后台图片字段这类场景设计，不是拿来做相册轮播的。缩放、拖拽、双指缩放、旋转、
-适应窗口与 1:1、键盘快捷键、触摸手势都有，样式完全交给你，没有一处是改不了的。
+一个 headless-first、可组合，同时提供可选精致预设的 **React 图片查看器**组件——
+为审阅文档附件、后台图片字段这类场景设计，不是拿来做相册轮播的。缩放、拖拽、
+双指缩放、旋转、适应窗口与 1:1、键盘快捷键、触摸手势都有，每一个可见部分都能替换。
 
 **[文档](https://baron04.github.io/react-img-view/zh/)** ·
 [快速开始](https://baron04.github.io/react-img-view/zh/quick-start/) ·
@@ -19,16 +19,35 @@ npm install react-img-view
 ```
 
 ```tsx
-import { ImageView } from 'react-img-view';
-import 'react-img-view/styles.css';
+import { ImageView } from 'react-img-view'
+import 'react-img-view/styles.css'
 
-<ImageView src={file.full} alt={file.name}>
-  <img src={file.thumb} alt={file.name} />
-</ImageView>
+function AttachmentPreview({ file }) {
+  return (
+    <ImageView src={file.full} alt={file.name}>
+      <img src={file.thumb} alt={file.name} />
+    </ImageView>
+  )
+}
 ```
 
 单张图片一行代码，一组图片一个组件，需要自定义界面时也能完全展开来写——三种
 用法都在[文档](https://baron04.github.io/react-img-view/zh/quick-start/)里。
+
+完整入口为 **11.3 kB gzip**。自定义界面可从
+`react-img-view/primitives` 引入无默认外观的部件（**10.1 kB gzip**）；底层变换
+与手势状态机位于 `react-img-view/core`，只使用一个 helper 时可 tree-shake 到约
+**0.5 kB**。压缩后的 CSS 预设为 **1.7 kB gzip**。这些数字都有 CI 体积门禁。
+
+默认文案固定为英文，不再读取浏览器语言，保证 SSR 与 hydration 一致。中文按需引入：
+
+```tsx
+import zhCN from 'react-img-view/locales/zh-CN'
+
+function ChineseViewer({ files }) {
+  return <ImageView.Root images={files} labels={zhCN} />
+}
+```
 
 ![缩放、旋转、适应窗口，逐张翻看附件](media/demo.gif)
 

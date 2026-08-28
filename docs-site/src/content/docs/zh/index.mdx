@@ -1,28 +1,33 @@
 ---
 title: react-img-view
-description: React 图片预览 / lightbox 组件：缩放、平移、双指捏合、旋转、适应窗口与 1:1。无样式绑定、可组合，为查阅文档附件与后台图片字段而做。
+description: Headless-first React 图片预览组件，带可选精致预设；支持缩放、平移、双指捏合、旋转、适应窗口与 1:1，专为文档与图片审阅而做。
 template: splash
 editUrl: false
 ---
 
-import { AttachmentsDemo } from '../../../components/Demo.tsx';
+import { AttachmentsDemo } from '../../../components/Demo.tsx'
 
 <div class="riv-landing">
 
 <section class="riv-hero">
-  <p class="riv-hero__eyebrow">MIT 协议 · 支持 React 18 与 19 · 约 13 kB（gzip 后）</p>
+  <p class="riv-hero__eyebrow">MIT 协议 · 支持 React 18 与 19 · 11.3 kB（gzip 后）</p>
 
-  <h1 class="riv-hero__title">无样式、可组合的 React 图片预览组件，专为查阅文档与图片而做</h1>
+<h1 class="riv-hero__title">为文档与图片审阅而生的可组合 React 图片预览组件</h1>
 
-  <p class="riv-hero__tagline">
-    缩放、拖拽、双指捏合、旋转、适应窗口与 1:1——完整的键盘与触摸支持，
-    样式没有一处是改不了的。
-  </p>
+<p class="riv-hero__tagline">
+  {
+    '从精致的默认界面开始，也可以整体换掉外壳。缩放、拖拽、双指捏合、旋转、适应窗口与 1:1 都已处理好。'
+  }
+</p>
 
-  <div class="riv-hero__actions">
-    <a class="riv-btn riv-btn--primary" href="quick-start/">快速开始</a>
-    <a class="riv-btn riv-btn--ghost" href="api-reference/">API 文档</a>
-  </div>
+<div class="riv-hero__actions">
+  <a class="riv-btn riv-btn--primary" href="quick-start/">
+    {'快速开始'}
+  </a>
+  <a class="riv-btn riv-btn--ghost" href="api-reference/">
+    {'API 文档'}
+  </a>
+</div>
 
   <code class="riv-install">npm install react-img-view</code>
 </section>
@@ -30,35 +35,31 @@ import { AttachmentsDemo } from '../../../components/Demo.tsx';
 <p class="riv-demo-caption">点击下面任意一张图片试试。</p>
 
 <div class="riv-demo-panel">
-  <AttachmentsDemo client:load />
+  <AttachmentsDemo locale="zh-CN" client:load />
 </div>
 
 <div class="riv-features">
   <div class="riv-feature">
     <h2>工具栏始终可见</h2>
     <p>
-      缩放、旋转、适应窗口，以及独立的 1:1 按钮，全程可见。
-      查阅文档是一项任务，不是随手划动。
+      {'缩放、旋转、适应窗口，以及独立的 1:1 按钮，全程可见。查阅文档是一项任务，不是随手划动。'}
     </p>
   </div>
   <div class="riv-feature">
     <h2>手势可以接力</h2>
-    <p>
-      双指缩放、拖拽平移；放大后拖到边缘会直接接力翻到下一张，中途不会卡顿。
-    </p>
+    <p>{'双指缩放、拖拽平移；放大后拖到边缘会直接接力翻到下一张，中途不会卡顿。'}</p>
   </div>
   <div class="riv-feature">
     <h2>没有不能替换的部分</h2>
     <p>
-      所有部件都对外导出，每个控件都支持 <code>asChild</code>，状态以 data-* 属性暴露。
-      重新配色、调整顺序，或整体重写外壳都可以。
+      {'所有部件都对外导出，每个控件都支持 '}
+      <code>asChild</code>
+      {'，状态以 data-* 属性暴露。重新配色、调整顺序，或整体重写外壳都可以。'}
     </p>
   </div>
   <div class="riv-feature">
     <h2>对输入方式很克制</h2>
-    <p>
-      下滑关闭只响应触摸与手写笔，鼠标拖拽永远不会误关预览。同时提供完整的键盘支持。
-    </p>
+    <p>{'下滑关闭只响应触摸与手写笔，鼠标拖拽永远不会误关预览。同时提供完整的键盘支持。'}</p>
   </div>
 </div>
 

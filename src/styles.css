@@ -88,12 +88,18 @@ dialog[data-image-view][data-closing]::backdrop {
 }
 
 @keyframes riv-backdrop-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  dialog[data-image-view]::backdrop { animation: none; }
+  dialog[data-image-view]::backdrop {
+    animation: none;
+  }
 }
 
 /* ==========================================================================
@@ -158,7 +164,9 @@ dialog[data-image-view][data-closing]::backdrop {
   font-size: 13px;
   cursor: pointer;
 }
-[data-image-view-control='close']:hover { background: var(--riv-hover); }
+[data-image-view-control='close']:hover {
+  background: var(--riv-hover);
+}
 
 [data-image-view-control='download'] {
   display: flex;
@@ -176,7 +184,9 @@ dialog[data-image-view][data-closing]::backdrop {
   cursor: pointer;
   flex: none;
 }
-[data-image-view-control='download']:hover { background: var(--riv-hover); }
+[data-image-view-control='download']:hover {
+  background: var(--riv-hover);
+}
 
 [data-image-view-stage] {
   flex: 1;
@@ -202,8 +212,12 @@ dialog[data-image-view][data-closing]::backdrop {
   cursor: pointer;
   z-index: 1;
 }
-[data-image-view-control='prev'] { left: 10px; }
-[data-image-view-control='next'] { right: 10px; }
+[data-image-view-control='prev'] {
+  left: 10px;
+}
+[data-image-view-control='next'] {
+  right: 10px;
+}
 [data-image-view-control='prev']:hover,
 [data-image-view-control='next']:hover {
   background: color-mix(in srgb, var(--riv-chrome) 74%, transparent);
@@ -231,37 +245,29 @@ dialog[data-image-view][data-closing]::backdrop {
 }
 
 [data-image-view-error] {
-  gap: 18px;
+  flex-direction: row;
+  gap: 10px;
   color: var(--riv-ink);
 }
-.riv-error-copy { display: flex; flex-direction: column; gap: 6px; }
-.riv-error-title { font-size: 15px; font-weight: 600; }
-.riv-error-hint { font-size: 13px; color: var(--riv-ink-muted); line-height: 1.6; max-width: 40ch; }
-.riv-error-actions { display: flex; align-items: center; gap: 10px; }
-.riv-error-actions button,
-.riv-error-actions a {
+.riv-error-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+[data-image-view-error] [data-image-view-control='retry'] {
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  width: 34px;
   height: 34px;
-  padding: 0 15px;
-  border-radius: 7px;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  text-decoration: none;
-}
-.riv-error-actions [data-image-view-control='retry'] {
+  padding: 0;
   border: 1px solid var(--riv-line);
   background: var(--riv-chrome);
   color: var(--riv-ink);
+  border-radius: 7px;
+  cursor: pointer;
 }
-.riv-error-actions [data-image-view-control='retry']:hover { background: var(--riv-hover); }
-.riv-error-actions [data-image-view-control='download'] {
-  border: 1px solid var(--riv-accent);
-  background: var(--riv-accent);
-  color: white;
-  height: 34px;
+[data-image-view-error] [data-image-view-control='retry']:hover {
+  background: var(--riv-hover);
 }
 
 .riv-spinner {
@@ -270,10 +276,14 @@ dialog[data-image-view][data-closing]::backdrop {
   animation: riv-spin 0.9s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .riv-spinner { animation-duration: 2.4s; }
+  .riv-spinner {
+    animation-duration: 2.4s;
+  }
 }
 @keyframes riv-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 [data-image-view-region='toolbar'] {
@@ -324,7 +334,9 @@ dialog[data-image-view][data-closing]::backdrop {
   color: var(--riv-ink);
   cursor: pointer;
 }
-[data-image-view-region='toolbar'] [data-image-view-control]:hover { background: var(--riv-hover); }
+[data-image-view-region='toolbar'] [data-image-view-control]:hover {
+  background: var(--riv-hover);
+}
 [data-image-view-region='toolbar'] [data-image-view-control][data-active] {
   background: var(--riv-accent-surface);
   color: var(--riv-accent);
@@ -390,7 +402,9 @@ dialog[data-image-view][data-closing]::backdrop {
   display: block;
   pointer-events: none;
 }
-[data-image-view-thumb]:hover { opacity: 0.85; }
+[data-image-view-thumb]:hover {
+  opacity: 0.85;
+}
 [data-image-view-thumb][data-active] {
   opacity: 1;
   border-color: var(--riv-accent);

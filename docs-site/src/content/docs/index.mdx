@@ -1,6 +1,6 @@
 ---
 title: react-img-view
-description: React image viewer and lightbox component — zoom, pan, pinch, rotate, fit-to-window and 1:1. Headless and composable, built for reviewing document attachments and admin image fields.
+description: A headless-first React image viewer with an optional preset — zoom, pan, pinch, rotate, fit-to-window and 1:1, built for document and image review.
 template: splash
 editUrl: false
 # No `hero:` block on purpose — Starlight's built-in hero renders a fixed
@@ -8,37 +8,33 @@ editUrl: false
 # point of this page. Declaring both would stack two hero sections.
 ---
 
-import { AttachmentsDemo } from '../../components/Demo.tsx';
-
-{/* Plain relative hrefs, not root-relative. Verified by building and
-    inspecting dist/*.html: Starlight's base-path rewrite only reaches its own
-    generated sidebar/pagination nav — neither a literal markdown link nor a
-    component's href prop gets touched by it, so anything root-relative written
-    here ships without /react-img-view. A relative path needs no rewriting at
-    all: it resolves against the page's own (already correct) URL. */}
+import { AttachmentsDemo } from '../../components/Demo.tsx'
 
 <div class="riv-landing">
 
 <section class="riv-hero">
-  <p class="riv-hero__eyebrow">MIT licensed · React 18 &amp; 19 · ~13 kB gzipped</p>
+  <p class="riv-hero__eyebrow">MIT licensed · React 18 &amp; 19 · 11.3 kB gzipped</p>
 
-  <h1 class="riv-hero__title">A headless, composable React image viewer for document and image review</h1>
+<h1 class="riv-hero__title">A composable React image viewer built for document and image review</h1>
 
-  <p class="riv-hero__tagline">
-    Zoom, pan, pinch, rotate, fit-to-window and 1:1 — full keyboard and touch
-    support, with no styling you can't replace.
-  </p>
+<p class="riv-hero__tagline">
+  {
+    'Start with the polished preset, or replace the entire shell. Zoom, pan, pinch, rotate, fit-to-window and 1:1 are already handled.'
+  }
+</p>
 
-  <div class="riv-hero__actions">
-    <a class="riv-btn riv-btn--primary" href="quick-start/">Get started</a>
-    <a class="riv-btn riv-btn--ghost" href="api-reference/">API reference</a>
-  </div>
+<div class="riv-hero__actions">
+  <a class="riv-btn riv-btn--primary" href="quick-start/">
+    {'Get started'}
+  </a>
+  <a class="riv-btn riv-btn--ghost" href="api-reference/">
+    {'API reference'}
+  </a>
+</div>
 
   <code class="riv-install">npm install react-img-view</code>
 </section>
 
-{/* The demo sits above the fold on purpose: the fastest way to judge an image
-    viewer is to open one. */}
 <p class="riv-demo-caption">Click any image below to try it.</p>
 
 <div class="riv-demo-panel">
@@ -49,29 +45,33 @@ import { AttachmentsDemo } from '../../components/Demo.tsx';
   <div class="riv-feature">
     <h2>The toolbar stays put</h2>
     <p>
-      Zoom, rotate, fit-to-window and a dedicated 1:1 control, visible the whole
-      time. Reviewing a document is a task, not a scroll.
+      {
+        'Zoom, rotate, fit-to-window and a dedicated 1:1 control, visible the whole time. Reviewing a document is a task, not a scroll.'
+      }
     </p>
   </div>
   <div class="riv-feature">
     <h2>Gestures that hand off</h2>
     <p>
-      Pinch to zoom, drag to pan, and a drag that runs out of room pages to the
-      next image mid-gesture — no stutter at the boundary.
+      {
+        'Pinch to zoom, drag to pan, and a drag that runs out of room pages to the next image mid-gesture — no stutter at the boundary.'
+      }
     </p>
   </div>
   <div class="riv-feature">
     <h2>Nothing you cannot replace</h2>
     <p>
-      Every part is exported, every control takes <code>asChild</code>, and state
-      ships as data-attributes. Restyle it, reorder it, or rebuild the whole shell.
+      {'Every part is exported, every control takes '}
+      <code>asChild</code>
+      {', and state ships as data-attributes. Restyle it, reorder it, or rebuild the whole shell.'}
     </p>
   </div>
   <div class="riv-feature">
     <h2>Careful about input</h2>
     <p>
-      Swipe-to-dismiss responds to touch and pen only, so a mouse drag never
-      closes the viewer by accident. Full keyboard support throughout.
+      {
+        'Swipe-to-dismiss responds to touch and pen only, so a mouse drag never closes the viewer by accident. Full keyboard support throughout.'
+      }
     </p>
   </div>
 </div>

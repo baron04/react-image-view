@@ -1,7 +1,7 @@
 {
   "name": "react-img-view",
   "version": "0.2.1",
-  "description": "React image viewer and lightbox component: zoom, pan, pinch, rotate, fit-to-window and 1:1, keyboard and touch. Headless and composable, built for previewing document attachments and admin image fields.",
+  "description": "Headless-first, composable React image viewer with an optional preset: zoom, pan, pinch, rotate, fit-to-window and 1:1, built for document attachments and admin image fields.",
   "homepage": "https://baron04.github.io/react-img-view",
   "repository": {
     "type": "git",
@@ -28,21 +28,62 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./primitives": {
+      "import": {
+        "types": "./dist/primitives.d.ts",
+        "default": "./dist/primitives.js"
+      },
+      "require": {
+        "types": "./dist/primitives.d.cts",
+        "default": "./dist/primitives.cjs"
+      }
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core.d.ts",
+        "default": "./dist/core.js"
+      },
+      "require": {
+        "types": "./dist/core.d.cts",
+        "default": "./dist/core.cjs"
+      }
+    },
+    "./locales/zh-CN": {
+      "import": {
+        "types": "./dist/locales/zh-CN.d.ts",
+        "default": "./dist/locales/zh-CN.js"
+      },
+      "require": {
+        "types": "./dist/locales/zh-CN.d.cts",
+        "default": "./dist/locales/zh-CN.cjs"
+      }
     },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsup && node scripts/postbuild.mjs",
-    "dev": "tsup --watch",
+    "prebuild": "node scripts/clean.mjs",
+    "build": "tsdown && node scripts/postbuild.mjs",
+    "predev": "node scripts/clean.mjs",
+    "dev": "tsdown --watch --on-success \"node scripts/postbuild.mjs\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "e2e": "playwright test",
     "registry:build": "shadcn build --output docs-site/public/r",
     "registry:check": "node scripts/check-registry.mjs",
+    "size": "node scripts/check-size.mjs",
+    "package:check": "node scripts/check-package.mjs",
+    "docs:check": "node scripts/check-docs.mjs && tsc -p tsconfig.docs.json",
+    "docs:build": "pnpm docs:check && pnpm --filter docs-site build && node scripts/check-built-docs.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -61,6 +102,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^6.1.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
@@ -72,7 +114,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "shadcn": "^4.19.0",
-    "tsup": "^8.3.5",
+    "@arethetypeswrong/cli": "^0.18.2",
+    "lightningcss": "^1.30.2",
+    "publint": "^0.3.12",
+    "tsdown": "0.22.14",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.68.0",
     "vite": "^8.2.2",
@@ -105,10 +150,5 @@
     "attachment",
     "document-viewer"
   ],
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  },
   "packageManager": "pnpm@10.28.1"
 }

@@ -58,17 +58,13 @@ export const RotateRightIcon = icon(
   </>,
 )
 export const FitIcon = icon(<path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4" />)
-export const DownloadIcon = icon(<path d="M10 3.5v8.5M6.6 8.8L10 12.2l3.4-3.4M4 14.2v2.3h12v-2.3" />)
+export const DownloadIcon = icon(
+  <path d="M10 3.5v8.5M6.6 8.8L10 12.2l3.4-3.4M4 14.2v2.3h12v-2.3" />,
+)
 export const RetryIcon = icon(
   <>
     <path d="M16.4 10a6.4 6.4 0 1 1-1.9-4.5" />
     <path d="M16.8 2.6v3.9h-3.9" />
-  </>,
-)
-export const AlertIcon = icon(
-  <>
-    <path d="M10 4.2L17.5 16.5h-15z" />
-    <path d="M10 9v3.2M10 14.4v.1" />
   </>,
 )
 

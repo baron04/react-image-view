@@ -1,28 +1,31 @@
 import * as React from 'react'
-import { ViewerProvider, type TriggerGeometry, type TriggerRegistration, type ViewerContextValue, type ViewerInternals } from '../context'
-import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerLabels, ViewerStatus } from '../../types'
+import {
+  ViewerProvider,
+  type TriggerGeometry,
+  type TriggerRegistration,
+  type ViewerContextValue,
+  type ViewerInternals,
+} from '../context'
+import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerStatus } from '../../types'
 import type { Size, SlideSize, Transform } from '../../core/types'
 import type { Crop, FlipFrame } from '../../core/flip'
-import { IDENTITY, clamp, fitScale as computeFit, maxScale as computeMax, zoomAbout } from '../../core/transform'
+import {
+  IDENTITY,
+  clamp,
+  fitScale as computeFit,
+  maxScale as computeMax,
+  zoomAbout,
+} from '../../core/transform'
 import { Ticker } from '../../core/ticker'
 import { animateFlipFrame, animateTransform } from '../../core/animate'
 import { NO_CROP, fittedFlipFrame, flipFrameFromRect, prefersReducedMotion } from '../../core/flip'
 import { tuning } from '../../core/tuning'
-import { en, labelsForLocale, mergeLabels } from '../../labels'
+import { en, mergeLabels } from '../../labels'
 import { paintCrop, paintImage, paintTrack } from '../paint'
-import { Content } from './Content'
-import { DefaultContent } from '../../preset/DefaultContent'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
 // See ../../core/tuning: exits run far stiffer than entrances on purpose.
 const EXIT_STIFFNESS = tuning.spring.exitStiffness
-
-// The browser's language cannot change without a reload, so there is nothing
-// to subscribe to — but the store contract requires a subscribe function.
-const subscribeNever = () => () => {}
-let cached: ViewerLabels | undefined
-const clientLabels = () => (cached ??= labelsForLocale(navigator.language))
-const serverLabels = () => en
 
 function useControllable<T>(
   controlled: T | undefined,
@@ -67,20 +70,7 @@ export function Root({
       prev.width === next.width && prev.height === next.height ? prev : next,
     )
   }, [])
-  // Follows the browser's language among the packs this package ships, and
-  // only when the caller has not pinned `labels` themselves.
-  //
-  // `useSyncExternalStore` rather than reading `navigator` during render: the
-  // server has no `navigator`, so a client that resolved Chinese while the
-  // server had emitted English would mismatch on every aria-label it
-  // hydrated. Giving the two sides an explicit snapshot each is what the API
-  // is for. `clientLabels` caches, so the snapshot is reference-stable and
-  // the store never re-fires.
-  const detected = React.useSyncExternalStore(subscribeNever, clientLabels, serverLabels)
-  const labels = React.useMemo(
-    () => mergeLabels(detected, labelsProp),
-    [detected, labelsProp],
-  )
+  const labels = React.useMemo(() => mergeLabels(en, labelsProp), [labelsProp])
   const [natural, setNaturalState] = React.useState<SlideSize | null>(null)
   // Image.tsx calls this on every layout pass that touches the current slide,
   // not only when the size actually changed — republishing a same-valued but
@@ -417,7 +407,25 @@ export function Root({
         setReloadToken((n) => n + 1)
       },
     }
-  }, [index, total, open, transform, fitScale, minScale, maxScale, status, natural, images, stageSize, getTriggerGeometry, setIndex, setOpen, glideTo, stopAnimations, ticker])
+  }, [
+    index,
+    total,
+    open,
+    transform,
+    fitScale,
+    minScale,
+    maxScale,
+    status,
+    natural,
+    images,
+    stageSize,
+    getTriggerGeometry,
+    setIndex,
+    setOpen,
+    glideTo,
+    stopAnimations,
+    ticker,
+  ])
 
   const internals = React.useMemo<ViewerInternals>(
     () => ({
@@ -437,7 +445,18 @@ export function Root({
       reloadToken,
       paint,
     }),
-    [ticker, stageSize, setStageSize, natural, setNatural, syncTransform, markDirty, stopAnimations, reloadToken, paint],
+    [
+      ticker,
+      stageSize,
+      setStageSize,
+      natural,
+      setNatural,
+      syncTransform,
+      markDirty,
+      stopAnimations,
+      reloadToken,
+      paint,
+    ],
   )
 
   // Which slide the current framing was computed for. A slide change always
@@ -469,7 +488,13 @@ export function Root({
 
     const rotation = transformRef.current.rotation
     const target = fittedFlipFrame(fitScale, rotation)
-    const from = flipFrameFromRect(origin.rect, stageEl.getBoundingClientRect(), natural, rotation, origin.fit)
+    const from = flipFrameFromRect(
+      origin.rect,
+      stageEl.getBoundingClientRect(),
+      natural,
+      rotation,
+      origin.fit,
+    )
 
     stopAnimations()
     animatingRef.current = true
@@ -547,7 +572,11 @@ export function Root({
     framedForRef.current = index
     if (Math.abs(transformRef.current.scale - fitScale) < 1e-6) return
 
-    const fitted: Transform = { ...IDENTITY, scale: fitScale, rotation: transformRef.current.rotation }
+    const fitted: Transform = {
+      ...IDENTITY,
+      scale: fitScale,
+      rotation: transformRef.current.rotation,
+    }
     transformRef.current = fitted
     setTransform(fitted)
     paintImage(imageRef.current, fitted)
@@ -573,32 +602,39 @@ export function Root({
   // dereferences `.current`; every consumer of `internals` only ever does
   // that outside its own render, same rule this file follows everywhere
   // else. The lint rule can't see across the component boundary to confirm
-  // that, hence the two disables below rather than a false "fixed" render
-  // read.
+  // that, hence the disable below rather than a false "fixed" render read.
   const value = React.useMemo<ViewerContextValue>(
-    // eslint-disable-next-line react-hooks/refs -- see comment above
-    () => ({ api, images, container, internals, extensions, labels, registerTrigger, indexOf, getTriggerGeometry, openAt }),
-    [api, images, container, internals, extensions, labels, registerTrigger, indexOf, getTriggerGeometry, openAt],
-  )
-
-  // L2 falls out of L3 rather than being a separate path: if the caller
-  // already placed a <Content> — or a <DefaultContent> configured
-  // differently, e.g. with the thumbnail strip on — this is a full
-  // composition and nothing more is added. Otherwise the reviewed default is
-  // appended, so `<Root><Trigger/>...</Root>` with no further markup is a
-  // complete, styled viewer — the "multi-image, shared preview" tier the
-  // architecture doc describes.
-  const hasContent = React.Children.toArray(children).some(
-    (child) => React.isValidElement(child) && (child.type === Content || child.type === DefaultContent),
+    () => ({
+      api,
+      images,
+      container,
+      // eslint-disable-next-line react-hooks/refs -- see comment above
+      internals,
+      extensions,
+      labels,
+      registerTrigger,
+      indexOf,
+      getTriggerGeometry,
+      openAt,
+    }),
+    [
+      api,
+      images,
+      container,
+      internals,
+      extensions,
+      labels,
+      registerTrigger,
+      indexOf,
+      getTriggerGeometry,
+      openAt,
+    ],
   )
 
   return (
     // Same as the `value` memo above: `value` carries ref objects, not
     // dereferenced ref values, out through context.
     // eslint-disable-next-line react-hooks/refs -- see the `value` memo's comment
-    <ViewerProvider value={value}>
-      {children}
-      {!hasContent && <DefaultContent />}
-    </ViewerProvider>
+    <ViewerProvider value={value}>{children}</ViewerProvider>
   )
 }

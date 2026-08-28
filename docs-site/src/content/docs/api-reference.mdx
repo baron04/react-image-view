@@ -10,6 +10,11 @@ Callable (the L1 entry point) with every part attached as a static —
 are also available as named exports if you'd rather not import the whole
 namespace.
 
+For custom chrome, import the same semantic parts from
+`react-img-view/primitives`. Its `Root` is headless and never injects
+`DefaultContent`, so the preset and its icons stay outside that entry. The
+framework-independent engine is available from `react-img-view/core`.
+
 ## `<ImageView src alt>`
 
 L1. Props are `ImageItem` (below) plus `children: ReactElement` (the
@@ -17,30 +22,30 @@ trigger element), and `container` / `labels`, both forwarded to `Root`.
 
 ## `<ImageView.Root>`
 
-| Prop | Type | Default | |
-|---|---|---|---|
-| `images` | `ImageItem[]` | triggers' own registration order | Omit it and list `Trigger`s as children instead. |
-| `open` / `defaultOpen` | `boolean` | `defaultOpen = false` | Controlled / uncontrolled. |
-| `onOpenChange` | `(open: boolean) => void` | — | |
-| `index` / `defaultIndex` | `number` | `defaultIndex = 0` | |
-| `onIndexChange` | `(index: number) => void` | — | |
-| `container` | `HTMLElement \| null` | `document.body` | Portal target — see [Installation](../installation/) for when to point this at a themed ancestor instead. |
-| `extensions` | `Extension[]` | `[]` | See [Extensions](#extension) below. |
-| `labels` | `Partial<ViewerLabels>` | detected from the browser | Every user-facing string. See [`ViewerLabels`](#viewerlabels). |
+| Prop                     | Type                      | Default                          |                                                                                                           |
+| ------------------------ | ------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `images`                 | `ImageItem[]`             | triggers' own registration order | Omit it and list `Trigger`s as children instead.                                                          |
+| `open` / `defaultOpen`   | `boolean`                 | `defaultOpen = false`            | Controlled / uncontrolled.                                                                                |
+| `onOpenChange`           | `(open: boolean) => void` | —                                |                                                                                                           |
+| `index` / `defaultIndex` | `number`                  | `defaultIndex = 0`               |                                                                                                           |
+| `onIndexChange`          | `(index: number) => void` | —                                |                                                                                                           |
+| `container`              | `HTMLElement \| null`     | `document.body`                  | Portal target — see [Installation](../installation/) for when to point this at a themed ancestor instead. |
+| `extensions`             | `Extension[]`             | `[]`                             | See [Extensions](#extension) below.                                                                       |
+| `labels`                 | `Partial<ViewerLabels>`   | stable English defaults          | Every user-facing string. See [`ViewerLabels`](#viewerlabels).                                            |
 
 ### `ImageItem`
 
 ```ts
 interface ImageItem {
-  src: string;
-  alt?: string;
+  src: string
+  alt?: string
   /** Shown by Title; falls back to alt, then the filename. */
-  name?: string;
+  name?: string
   /** Skips a measurement round-trip and stops the layout jumping on load. */
-  width?: number;
-  height?: number;
+  width?: number
+  height?: number
   /** Defaults to src. Set when the download should serve a different file. */
-  downloadUrl?: string;
+  downloadUrl?: string
 }
 ```
 
@@ -48,17 +53,21 @@ interface ImageItem {
 
 `ImageItem` plus:
 
-| Prop | Type | |
-|---|---|---|
-| `index` | `number` | Position in the set. Registration order is used when omitted — pass it explicitly for virtualised lists or anything where mount order and visual order can diverge. |
-| `disabled` | `boolean` | |
-| `asChild` | — | Always on: `Trigger` renders its child, never an element of its own. |
+| Prop       | Type      |                                                                                                                                                                     |
+| ---------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index`    | `number`  | Position in the set. Registration order is used when omitted — pass it explicitly for virtualised lists or anything where mount order and visual order can diverge. |
+| `disabled` | `boolean` |                                                                                                                                                                     |
+| Rendering  | —         | Always child-based: `Trigger` renders its only child and does not accept an `asChild` prop.                                                                         |
 
 ## `<ImageView.Content>`
 
 The `<dialog>`, portalled. Renders nothing extra — pass children to compose
 your own layout (L3), or omit it entirely and let `Root` supply
 `DefaultContent` (L2).
+
+With the main entry, keep `Content` or `DefaultContent` as a direct child of
+`Root`; only that level is inspected when deciding whether to append the preset.
+The primitives `Root` never appends it.
 
 ## Layout regions
 
@@ -80,11 +89,11 @@ slides stay mounted either side of the current one (default `1`).
 
 ## Status
 
-| Part | Renders when |
-|---|---|
-| `<ImageView.Loading>` | `status === 'loading'` |
-| `<ImageView.Error>` | `status === 'error'`. Children may be a render function: `{({ retry }) => …}`. |
-| `<ImageView.Title>` | Always — current image's `name`, falling back to `alt`. |
+| Part                  | Renders when                                                                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `<ImageView.Loading>` | `status === 'loading'`                                                                                                   |
+| `<ImageView.Error>`   | `status === 'error'`. Children may be a render function: `{({ retry }) => …}`.                                           |
+| `<ImageView.Title>`   | Always — current image's `name`, falling back to `alt`.                                                                  |
 | `<ImageView.Counter>` | Always, once rendered — not in `DefaultContent` by default. `"3 / 8"`, or a render function `{({ index, total }) => …}`. |
 
 ## Controls
@@ -93,15 +102,15 @@ Every control below is a `<button>` (or `<a>` for `Download`) accepting
 `asChild`, standard button/anchor props, and publishing `data-active` /
 `data-boundary` / `disabled` where relevant.
 
-| Component | `data-image-view-control` | Behaviour |
-|---|---|---|
-| `Close` | `close` | `api.close()` |
-| `Prev` / `Next` | `prev` / `next` | `api.prev()` / `api.next()`; `data-boundary` and `disabled` at either end of the set |
-| `ZoomIn` / `ZoomOut` | `zoom-in` / `zoom-out` | `api.zoomBy(1.4)` / `api.zoomBy(1/1.4)`; `disabled` at the zoom ceiling/floor |
-| `RotateLeft` / `RotateRight` | `rotate-left` / `rotate-right` | `api.rotate(∓90)` |
-| `FitToWindow` | `fit` | `api.fit()`; `data-active` when `scale === fitScale` |
-| `ActualSize` | `actual-size` | `api.actualSize()`; `data-active` when `scale === 1` |
-| `Download` | `download` | An `<a>` with `href`/`download` set from the current image |
+| Component                    | `data-image-view-control`      | Behaviour                                                                            |
+| ---------------------------- | ------------------------------ | ------------------------------------------------------------------------------------ |
+| `Close`                      | `close`                        | `api.close()`                                                                        |
+| `Prev` / `Next`              | `prev` / `next`                | `api.prev()` / `api.next()`; `data-boundary` and `disabled` at either end of the set |
+| `ZoomIn` / `ZoomOut`         | `zoom-in` / `zoom-out`         | `api.zoomBy(1.4)` / `api.zoomBy(1/1.4)`; `disabled` at the zoom ceiling/floor        |
+| `RotateLeft` / `RotateRight` | `rotate-left` / `rotate-right` | `api.rotate(∓90)`                                                                    |
+| `FitToWindow`                | `fit`                          | `api.fit()`; `data-active` when `scale === fitScale`                                 |
+| `ActualSize`                 | `actual-size`                  | `api.actualSize()`; `data-active` when `scale === 1`                                 |
+| `Download`                   | `download`                     | An `<a>` with `href`/`download` set from the current image                           |
 
 `FitToWindow` and `ActualSize` are deliberately two buttons, not a
 segmented control — a segmented control asserts one option is always
@@ -112,8 +121,8 @@ selected, but a mid-zoom image has neither active. See
 
 Opt-in — never rendered by `DefaultContent` automatically.
 
-| Prop | Type | Default |
-|---|---|---|
+| Prop   | Type                            | Default  |
+| ------ | ------------------------------- | -------- |
 | `mode` | `'auto' \| 'always' \| 'never'` | `'auto'` |
 
 `auto` renders nothing for a single image, and hides under a 640px
@@ -126,13 +135,14 @@ What `Root` renders automatically when you don't supply your own
 `Content`. Also usable explicitly, e.g. to turn on `counter`/`thumbnails`
 without writing the rest of L3 by hand:
 
-| Prop | Type | Default |
-|---|---|---|
-| `counter` | `boolean` | `false` |
+| Prop         | Type                                       | Default                         |
+| ------------ | ------------------------------------------ | ------------------------------- |
+| `counter`    | `boolean`                                  | `false`                         |
 | `thumbnails` | `boolean \| 'auto' \| 'always' \| 'never'` | `false` — `true` means `'auto'` |
 
-Error copy is not configured here: every user-facing string, this one
-included, comes from [`labels`](#viewerlabels) on `Root`.
+The default error is deliberately compact: visible error copy and an icon-only
+retry button. Its accessible name and every other user-facing string come from
+[`labels`](#viewerlabels) on `Root`.
 
 ## `ViewerLabels`
 
@@ -142,37 +152,43 @@ otherwise icon-only controls, so leaving them untranslated is an
 accessibility problem, not a cosmetic one: a screen reader announces them
 verbatim whatever the page's `lang` says.
 
-Left unset, `Root` picks a bundled pack — currently `en` or `zhCN` — by
-matching `navigator.language`, falling back to English. Pass `labels` to
-`Root` (or to the L1 `<ImageView>`) to pin a language regardless of the
-visitor's browser; it is merged field by field over the detected pack, so
-overriding one key leaves the rest alone.
+Left unset, `Root` always uses stable English defaults. This keeps server and
+hydrated markup identical and leaves language choice to the application. Pass
+`labels` to `Root` (or to the L1 `<ImageView>`); overrides merge field by
+field, so overriding one key leaves the English defaults for the rest.
 
 ```ts
 interface ViewerLabels {
-  viewer: string;        // aria-label on the dialog
-  close: string;
-  prev: string;
-  next: string;
-  zoomIn: string;
-  zoomOut: string;
-  rotateLeft: string;
-  rotateRight: string;
-  fitToWindow: string;
-  actualSize: string;
-  download: string;
-  downloadOriginal: string; // the error state's download action
-  retry: string;
-  thumbnails: string;    // aria-label on the thumbnail strip
-  thumbnailAt(index: number): string;
-  errorTitle: string;    // the one string rendered as visible text
-  loading: string;
+  viewer: string // aria-label on the dialog
+  close: string
+  prev: string
+  next: string
+  zoomIn: string
+  zoomOut: string
+  rotateLeft: string
+  rotateRight: string
+  fitToWindow: string
+  actualSize: string
+  download: string
+  retry: string
+  thumbnails: string // aria-label on the thumbnail strip
+  thumbnailAt(index: number): string
+  errorTitle: string // the one string rendered as visible text
+  loading: string
 }
 ```
 
-`en` and `zhCN` are exported as the two bundled packs, `labelsForLocale(tag)`
-picks one by BCP-47 tag, and `defaultLabels` is kept as a deprecated alias
-for `en`.
+`en` is exported from the main and primitives entries; `defaultLabels` remains
+as its deprecated alias. Simplified Chinese is opt-in and adds nothing to the
+default bundle:
+
+```tsx
+import zhCN from 'react-img-view/locales/zh-CN'
+
+function ChineseViewer({ files }) {
+  return <ImageView.Root images={files} labels={zhCN} />
+}
+```
 
 ## `useLabels()`
 
@@ -187,29 +203,29 @@ Returns the live `ViewerApi` — safe to call from any component inside
 
 ```ts
 interface ViewerApi {
-  readonly index: number;
-  readonly total: number;
-  readonly open: boolean;
-  readonly transform: Transform; // { scale, x, y, rotation }
-  readonly scale: number;
-  readonly rotation: number;
-  readonly fitScale: number;
-  readonly canZoomIn: boolean;
-  readonly canZoomOut: boolean;
-  readonly canPrev: boolean;
-  readonly canNext: boolean;
-  readonly status: 'idle' | 'loading' | 'ready' | 'error';
+  readonly index: number
+  readonly total: number
+  readonly open: boolean
+  readonly transform: Transform // { scale, x, y, rotation }
+  readonly scale: number
+  readonly rotation: number
+  readonly fitScale: number
+  readonly canZoomIn: boolean
+  readonly canZoomOut: boolean
+  readonly canPrev: boolean
+  readonly canNext: boolean
+  readonly status: 'idle' | 'loading' | 'ready' | 'error'
 
-  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void;
-  zoomBy(factor: number): void;
-  fit(): void;
-  actualSize(): void;
-  rotate(degrees: number): void;
-  go(index: number): void;
-  next(): void;
-  prev(): void;
-  close(): void;
-  retry(): void;
+  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void
+  zoomBy(factor: number): void
+  fit(): void
+  actualSize(): void
+  rotate(degrees: number): void
+  go(index: number): void
+  next(): void
+  prev(): void
+  close(): void
+  retry(): void
 }
 ```
 
@@ -220,15 +236,14 @@ would push a 60fps render loop onto every consumer. Read them from
 
 ## `Extension`
 
-The escape hatch for behaviour composition can't reach — intercepting a
-gesture, claiming a keystroke. Two hooks, no lifecycle: anything that needs
-to *render* belongs in the tree as a child instead.
+The narrow escape hatch for keyboard behaviour composition can't reach.
+Anything that needs to render belongs in the tree, while pointer gestures stay
+owned by Stage's tested state machine.
 
 ```ts
 interface Extension {
-  name: string;
-  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void;
-  onGesture?(phase: 'start' | 'move' | 'end', api: ViewerApi): boolean | void;
+  name: string
+  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void
 }
 ```
 
@@ -238,8 +253,11 @@ Return `true` to mark the event consumed. Pass an array via `Root`'s
 ## `core`
 
 The gesture math and state machine, exported for anyone building past what
-the React layer offers — `core.tuning` (every constant that shapes how the
-viewer feels, in one documented place), `core.fitScale`, `core.maxScale`,
-the reducer in `core` gesture machine, and the animation drivers. Zero React
-dependency; see the source in `src/core/`
-for why it's kept that way.
+the React layer offers:
+
+```ts
+import { fitScale, tuning } from 'react-img-view/core'
+```
+
+This entry has zero React dependency and tree-shakes independently; see the
+source in `src/core/` for why it stays that way.

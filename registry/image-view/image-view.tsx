@@ -101,12 +101,6 @@ const RetryIcon = (p: { size?: number }) => (
     <path d="M16.8 2.6v3.9h-3.9" />
   </Icon>
 )
-const AlertIcon = (p: { size?: number }) => (
-  <Icon {...p}>
-    <path d="M10 4.2L17.5 16.5h-15z" />
-    <path d="M10 9v3.2M10 14.4v.1" />
-  </Icon>
-)
 /** "1:1" as a lettered glyph in a stroked frame — see the design notes: a
  *  bare-text button was the one outlier in an all-icon toolbar, and a
  *  wordless pictogram had no agreed meaning to lean on. */
@@ -148,7 +142,8 @@ const controlBase =
   'focus-visible:outline-2 focus-visible:outline-[color:var(--riv-accent)] focus-visible:outline-offset-2'
 
 const toolbarButton =
-  controlBase + ' data-[active]:bg-[color:var(--riv-accent-surface)] data-[active]:text-[color:var(--riv-accent)]'
+  controlBase +
+  ' data-[active]:bg-[color:var(--riv-accent-surface)] data-[active]:text-[color:var(--riv-accent)]'
 
 /* -------------------------------- shell ----------------------------------- */
 
@@ -218,40 +213,45 @@ export function ImagePreview({
               <NextIcon size={22} />
             </ImageView.Next>
 
-            <ImageView.Loading className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[color:var(--riv-ink-muted)]">
-              <svg className="h-[26px] w-[26px] animate-spin motion-reduce:animate-[spin_2.4s_linear_infinite]" viewBox="0 0 26 26" fill="none">
-                <circle cx="13" cy="13" r="10" className="stroke-[color:var(--riv-line)]" strokeWidth="2.4" />
-                <path d="M13 3a10 10 0 0 1 8.66 5" className="stroke-[color:var(--riv-accent)]" strokeWidth="2.4" strokeLinecap="round" />
+            <ImageView.Loading
+              aria-label="Loading"
+              className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[color:var(--riv-ink-muted)]"
+            >
+              <svg
+                className="h-[26px] w-[26px] animate-spin motion-reduce:animate-[spin_2.4s_linear_infinite]"
+                viewBox="0 0 26 26"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="13"
+                  cy="13"
+                  r="10"
+                  className="stroke-[color:var(--riv-line)]"
+                  strokeWidth="2.4"
+                />
+                <path
+                  d="M13 3a10 10 0 0 1 8.66 5"
+                  className="stroke-[color:var(--riv-accent)]"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                />
               </svg>
             </ImageView.Loading>
 
-            <ImageView.Error className="absolute inset-0 flex flex-col items-center justify-center gap-[18px] px-6 text-center text-[color:var(--riv-ink)]">
+            <ImageView.Error className="absolute inset-0 flex items-center justify-center gap-2.5 px-6 text-center text-[color:var(--riv-ink)]">
               {({ retry }) => (
                 <>
-                  <AlertIcon size={40} />
-                  <div className="flex flex-col gap-1.5">
-                    <div className="text-[15px] font-semibold">
-                      This image couldn&apos;t be loaded
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={retry}
-                      aria-label="Try again"
-                      title="Try again"
-                      className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[color:var(--riv-line)] bg-[color:var(--riv-chrome)] px-4 text-sm hover:bg-[color:var(--riv-hover)]"
-                    >
-                      <RetryIcon size={16} />
-                    </button>
-                    <ImageView.Download
-                      aria-label="Download the original file"
-                      title="Download the original file"
-                      className="inline-flex h-[34px] items-center gap-1.5 rounded-lg border border-[color:var(--riv-accent)] bg-[color:var(--riv-accent)] px-4 text-sm text-white no-underline"
-                    >
-                      <DownloadIcon size={16} />
-                    </ImageView.Download>
-                  </div>
+                  <span className="text-sm font-medium">This image couldn&apos;t be loaded</span>
+                  <button
+                    type="button"
+                    onClick={retry}
+                    aria-label="Try again"
+                    title="Try again"
+                    className="inline-flex size-[34px] items-center justify-center rounded-lg border border-[color:var(--riv-line)] bg-[color:var(--riv-chrome)] hover:bg-[color:var(--riv-hover)]"
+                  >
+                    <RetryIcon size={16} />
+                  </button>
                 </>
               )}
             </ImageView.Error>
