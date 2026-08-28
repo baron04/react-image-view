@@ -6,7 +6,14 @@ export default defineConfig({
   ignoreWatch: ['**/*.test.ts'],
   format: ['esm', 'cjs'],
   dts: true,
-  sourcemap: true,
+  // Off, not just excluded from `files`: with `sourcemap: true` the maps
+  // were 71% of the published tarball's unpacked size — every install paid
+  // that even though a browser only fetches a .map on demand, from
+  // devtools, and only for someone stepping into this library specifically.
+  // Turning generation off entirely (rather than building maps and dropping
+  // them from `files`) avoids shipping a `sourceMappingURL` comment with
+  // nothing on the other end of it.
+  sourcemap: false,
   clean: true,
   treeshake: true,
   target: 'es2020',

@@ -39,6 +39,15 @@ visitor rather than the app.
   app that wants one bundled pack regardless of the browser can import it
   directly instead of relying on auto-detection.
 
+### Changed
+
+- **The published package no longer ships sourcemaps.** They were 458 KB of
+  a 641 KB tarball — 71% of every install's footprint spent on a file a
+  browser only fetches on demand, from devtools, for someone stepping into
+  this library specifically. `dist/*.js`/`dist/*.cjs` no longer carry a
+  `sourceMappingURL` comment either, rather than point at a file that isn't
+  there.
+
 ## [0.2.1] — 2026-08-26
 
 Both open/close transitions were wrong in 0.2.0 — one silently absent, the
