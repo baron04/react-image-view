@@ -10,8 +10,7 @@ import type { Crop } from '../core/flip'
  */
 export function paintImage(el: HTMLElement | null, t: Transform): void {
   if (!el) return
-  el.style.transform =
-    `translate3d(${t.x}px, ${t.y}px, 0) scale(${t.scale}) rotate(${t.rotation}deg)`
+  el.style.transform = `translate3d(${t.x}px, ${t.y}px, 0) scale(${t.scale}) rotate(${t.rotation}deg)`
 }
 
 /**
@@ -24,13 +23,11 @@ export function paintTrack(el: HTMLElement | null, index: number, offsetPx: numb
 }
 
 /**
- * Crop the image to a natural-pixel window, via `clip-path` on the element
- * itself. `clip-path: inset(...)` resolves against the element's own
- * (untransformed) border box — which for our `<img>` is laid out at natural
- * size — so a crop expressed in natural pixels here scales correctly along
- * with whatever `scale()` `paintImage` is applying, without the two having
- * to coordinate. All-zero is cheap to leave in place; it's equivalent to no
- * clip at all.
+ * Crop the media to a natural-pixel window. The crop layer has the image's
+ * natural layout size and sits inside the independently transformed layer, so
+ * these values scale with the media without putting `clip-path` and
+ * `transform` on the image itself. Keeping them together can force expensive
+ * re-rasterisation while a large image is moving.
  */
 export function paintCrop(el: HTMLElement | null, crop: Crop): void {
   if (!el) return
@@ -39,4 +36,9 @@ export function paintCrop(el: HTMLElement | null, crop: Crop): void {
     top === 0 && right === 0 && bottom === 0 && left === 0
       ? ''
       : `inset(${top}px ${right}px ${bottom}px ${left}px)`
+}
+
+/** Set or clear the compositor transition used by shared-element flights. */
+export function paintTransition(el: HTMLElement | null, value: string): void {
+  if (el) el.style.transition = value
 }

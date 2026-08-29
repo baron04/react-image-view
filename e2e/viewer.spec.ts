@@ -12,8 +12,8 @@ import { test, expect } from '@playwright/test'
 
 function currentTransform(page: import('@playwright/test').Page) {
   return page.evaluate(() => {
-    const img = document.querySelector('[data-image-view-slide][data-current] img')
-    return img ? getComputedStyle(img).transform : null
+    const media = document.querySelector('[data-image-view-slide][data-current] > div')
+    return media ? getComputedStyle(media).transform : null
   })
 }
 
@@ -24,7 +24,9 @@ test.beforeEach(async ({ page }) => {
 test('L2: opens on the clicked thumbnail, shows its title', async ({ page }) => {
   await page.click('[data-testid="default-thumb-0"]')
   await expect(page.locator('dialog[data-image-view]')).toHaveAttribute('data-state', 'open')
-  await expect(page.locator('[data-image-view-title]')).toHaveText('site-survey-north-elevation.jpg')
+  await expect(page.locator('[data-image-view-title]')).toHaveText(
+    'site-survey-north-elevation.jpg',
+  )
 })
 
 test('toolbar buttons respond to a real pointer click', async ({ page }) => {
@@ -45,6 +47,48 @@ test('rotate changes the image transform', async ({ page }) => {
   await expect.poll(() => currentTransform(page)).not.toBe(before)
 })
 
+test('wheel zoom and fit share one transform layer', async ({ page }) => {
+  await page.click('[data-testid="default-thumb-3"]')
+  const stage = page.locator('[data-image-view-stage]')
+  const box = await stage.boundingBox()
+  expect(box).not.toBeNull()
+
+  const before = await currentTransform(page)
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2)
+  await page.mouse.wheel(0, -120)
+  await expect.poll(() => currentTransform(page)).not.toBe(before)
+
+  const image = page.locator('[data-image-view-slide][data-current] img')
+  await expect(image).toHaveCSS('transform', 'none')
+
+  await page.click('[data-image-view-control="fit"]')
+  await expect(page.locator('[data-image-view-control="fit"]')).toHaveAttribute('data-active', '')
+
+  const fitted = await image.boundingBox()
+  const fittedStage = await stage.boundingBox()
+  expect(fitted).not.toBeNull()
+  expect(fittedStage).not.toBeNull()
+  expect(fitted!.width).toBeLessThanOrEqual(fittedStage!.width + 1)
+  expect(fitted!.height).toBeLessThanOrEqual(fittedStage!.height + 1)
+})
+
+test('reopening uses the new Stage size rather than closing geometry', async ({ page }) => {
+  for (let open = 0; open < 2; open++) {
+    await page.click('[data-testid="default-thumb-3"]')
+    await expect(page.locator('[data-image-view-control="fit"]')).toHaveAttribute('data-active', '')
+
+    const stage = await page.locator('[data-image-view-stage]').boundingBox()
+    const image = await page.locator('[data-image-view-slide][data-current] img').boundingBox()
+    expect(stage).not.toBeNull()
+    expect(image).not.toBeNull()
+    expect(image!.width).toBeLessThanOrEqual(stage!.width + 1)
+    expect(image!.height).toBeLessThanOrEqual(stage!.height + 1)
+
+    await page.click('[data-image-view-control="close"]')
+    await expect(page.locator('dialog[data-image-view]')).toHaveCount(0)
+  }
+})
+
 test('next/prev page through the set and update the title', async ({ page }) => {
   await page.click('[data-testid="default-thumb-0"]')
   await page.waitForSelector('dialog[data-image-view]')
@@ -53,7 +97,9 @@ test('next/prev page through the set and update the title', async ({ page }) => 
   await expect(page.locator('[data-image-view-title]')).toHaveText('damage-report-wide.jpg')
 
   await page.click('[data-image-view-control="prev"]')
-  await expect(page.locator('[data-image-view-title]')).toHaveText('site-survey-north-elevation.jpg')
+  await expect(page.locator('[data-image-view-title]')).toHaveText(
+    'site-survey-north-elevation.jpg',
+  )
 })
 
 test('close unmounts the dialog', async ({ page }) => {
@@ -79,7 +125,10 @@ test('ships English labels by default, on visible text and aria-labels alike', a
   await page.click('[data-testid="default-thumb-0"]')
   await page.waitForSelector('dialog[data-image-view]')
 
-  await expect(page.locator('dialog[data-image-view]')).toHaveAttribute('aria-label', 'Image viewer')
+  await expect(page.locator('dialog[data-image-view]')).toHaveAttribute(
+    'aria-label',
+    'Image viewer',
+  )
   await expect(page.locator('[data-image-view-control="zoom-in"]')).toHaveAttribute(
     'aria-label',
     'Zoom in',
@@ -120,7 +169,7 @@ test('closing lands on the picture, not on the wrapper around it', async ({ page
   await page.click('[data-testid="card-0"]')
   await page.waitForSelector('dialog[data-image-view]')
 
-  const live = page.locator('[data-image-view-slide][data-current] img')
+  const live = page.locator('[data-image-view-slide][data-current] > div')
   await page.click('[data-image-view-control="close"]')
 
   // Sample the flight's last frame, just before the dialog unmounts.
@@ -134,6 +183,7 @@ test('closing lands on the picture, not on the wrapper around it', async ({ page
     const visible = () => {
       const r = el.getBoundingClientRect()
       const style = getComputedStyle(el)
+      const cropStyle = getComputedStyle(el.firstElementChild!)
       const m = new DOMMatrixReadOnly(style.transform)
       const scaleX = Math.hypot(m.a, m.b) || 1
       const scaleY = Math.hypot(m.c, m.d) || 1
@@ -141,7 +191,7 @@ test('closing lands on the picture, not on the wrapper around it', async ({ page
       // its shortest form — `inset(425px 0px)` here, meaning top/bottom then
       // left/right. Reading that as four values silently drops `bottom`, which
       // is exactly half the crop and made this test fail against correct code.
-      const match = /inset\(([^)]+)\)/.exec(style.clipPath)
+      const match = /inset\(([^)]+)\)/.exec(cropStyle.clipPath)
       const v = match ? match[1].split(/\s+/).map((n) => parseFloat(n) || 0) : [0]
       const [top, right, bottom, left] =
         v.length === 1
@@ -187,29 +237,45 @@ test('opening animates from the thumbnail rather than appearing', async ({ page 
   // that comparison is `null !== 0`. So it cancelled the flight and snapped to
   // the fitted scale before a frame was painted — opening looked instant while
   // closing animated normally, which is a hard difference to notice by eye.
-  const scales = await page.evaluate(async () => {
-    const seen = new Set<string>()
+  // Warm the full-size image first. Chromium may set `complete` only after
+  // the mount layout effect even for a memory-cache hit; reopening must still
+  // preserve the shared-element flight when load wins before the first paint.
+  await page.getByTestId('default-thumb-0').click()
+  await page.getByRole('button', { name: 'Close', exact: true }).click()
+  await expect(page.locator('dialog[data-image-view]')).toHaveCount(0)
+
+  const samples = await page.evaluate(async () => {
+    const computed = new Set<string>()
+    const inline = new Set<string>()
+    const durations = new Set<string>()
     const sample = () => {
-      const img = document.querySelector('[data-image-view-slide][data-current] img')
-      if (!img) return
-      const m = new DOMMatrixReadOnly(getComputedStyle(img).transform)
-      seen.add(Math.hypot(m.a, m.b).toFixed(4))
+      const media = document.querySelector('[data-image-view-slide][data-current] > div')
+      if (!media) return
+      const style = getComputedStyle(media)
+      const m = new DOMMatrixReadOnly(style.transform)
+      computed.add(Math.hypot(m.a, m.b).toFixed(4))
+      inline.add((media as HTMLElement).style.transform)
+      durations.add(style.transitionDuration)
     }
     const started = performance.now()
     ;(document.querySelector('[data-testid="default-thumb-0"]') as HTMLElement).click()
-    return new Promise<number>((resolve) => {
+    return new Promise<{ computed: number; inline: number; durations: string[] }>((resolve) => {
       const tick = () => {
         sample()
         if (performance.now() - started < 900) requestAnimationFrame(tick)
-        else resolve(seen.size)
+        else resolve({ computed: computed.size, inline: inline.size, durations: [...durations] })
       }
       requestAnimationFrame(tick)
     })
   })
 
-  // A real spring passes through dozens of intermediate scales; a cancelled
-  // one reports exactly 1, the destination.
-  expect(scales).toBeGreaterThan(8)
+  // A real flight passes through many computed scales, but its inline style
+  // only receives the two endpoints. Writing every intermediate value from
+  // rAF makes Chromium repeatedly rasterise a growing large-image layer and
+  // can expose missing tiles for a frame.
+  expect(samples.computed).toBeGreaterThan(8)
+  expect(samples.inline).toBeLessThanOrEqual(3)
+  expect(samples.durations).toContain('0.36s')
 })
 
 test('the close animation settles smoothly, with no jump on the last frame', async ({ page }) => {
@@ -226,35 +292,37 @@ test('the close animation settles smoothly, with no jump on the last frame', asy
   await page.click('[data-testid="card-0"]')
   await page.waitForSelector('dialog[data-image-view]')
 
-  const tail = await page
-    .locator('[data-image-view-slide][data-current] img')
-    .evaluate((el) => {
-      const visibleTop = () => {
-        const r = el.getBoundingClientRect()
-        const s = getComputedStyle(el)
-        const m = new DOMMatrixReadOnly(s.transform)
-        const scaleY = Math.hypot(m.c, m.d) || 1
-        const match = /inset\(([^)]+)\)/.exec(s.clipPath)
-        const v = match ? match[1].split(/\s+/).map((n) => parseFloat(n) || 0) : [0]
-        const top = v[0]
-        return r.y + top * scaleY
-      }
+  const result = await page.locator('[data-image-view-slide][data-current] > div').evaluate((el) => {
+    const visibleTop = () => {
+      const r = el.getBoundingClientRect()
+      const s = getComputedStyle(el)
+      const m = new DOMMatrixReadOnly(s.transform)
+      const scaleY = Math.hypot(m.c, m.d) || 1
+      const crop = getComputedStyle(el.firstElementChild!)
+      const match = /inset\(([^)]+)\)/.exec(crop.clipPath)
+      const v = match ? match[1].split(/\s+/).map((n) => parseFloat(n) || 0) : [0]
+      const top = v[0]
+      return r.y + top * scaleY
+    }
 
-      const seen: number[] = []
-      ;(document.querySelector('[data-image-view-control="close"]') as HTMLElement).click()
-      return new Promise<number[]>((resolve) => {
-        const tick = () => {
-          if (!el.isConnected) return resolve(seen)
-          seen.push(visibleTop())
-          requestAnimationFrame(tick)
-        }
-        tick()
-      })
+    const seen: number[] = []
+    const durations = new Set<string>()
+    ;(document.querySelector('[data-image-view-control="close"]') as HTMLElement).click()
+    return new Promise<{ seen: number[]; durations: string[] }>((resolve) => {
+      const tick = () => {
+        if (!el.isConnected) return resolve({ seen, durations: [...durations] })
+        seen.push(visibleTop())
+        durations.add(getComputedStyle(el).transitionDuration)
+        requestAnimationFrame(tick)
+      }
+      tick()
     })
+  })
 
   // The last handful of frames must already be sitting on the thumbnail, not
   // arriving there in one step.
-  const last = tail.slice(-5)
+  expect(result.durations).toContain('0.18s')
+  const last = result.seen.slice(-5)
   expect(last.length).toBeGreaterThan(2)
   for (const y of last) {
     expect(Math.abs(y - before!.y)).toBeLessThan(3)

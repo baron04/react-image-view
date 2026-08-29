@@ -57,10 +57,8 @@ export const tuning = {
      *  seconds, so 340 is a little over a third of a second — quick enough
      *  a press feels answered, slow enough to still read as motion. */
     settleStiffness: 340,
-    /** The close flight runs harder than everything else: an entrance shows
-     *  where the image came from, so it can take its time; an exit is
-     *  getting out of the way, and anything lingering there reads as a
-     *  stall. ~3600 settles in well under 100ms. */
+    /** High-stiffness option for short exits driven through
+     *  `animateFlipFrame`; ~3600 settles in well under 100ms. */
     exitStiffness: 3600,
     /**
      * Longest slice the spring integrator advances in one step (seconds).
