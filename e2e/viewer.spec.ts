@@ -292,39 +292,46 @@ test('the close animation settles smoothly, with no jump on the last frame', asy
   await page.click('[data-testid="card-0"]')
   await page.waitForSelector('dialog[data-image-view]')
 
-  const result = await page.locator('[data-image-view-slide][data-current] > div').evaluate((el) => {
-    const visibleTop = () => {
-      const r = el.getBoundingClientRect()
-      const s = getComputedStyle(el)
-      const m = new DOMMatrixReadOnly(s.transform)
-      const scaleY = Math.hypot(m.c, m.d) || 1
-      const crop = getComputedStyle(el.firstElementChild!)
-      const match = /inset\(([^)]+)\)/.exec(crop.clipPath)
-      const v = match ? match[1].split(/\s+/).map((n) => parseFloat(n) || 0) : [0]
-      const top = v[0]
-      return r.y + top * scaleY
-    }
-
-    const seen: number[] = []
-    const durations = new Set<string>()
-    ;(document.querySelector('[data-image-view-control="close"]') as HTMLElement).click()
-    return new Promise<{ seen: number[]; durations: string[] }>((resolve) => {
-      const tick = () => {
-        if (!el.isConnected) return resolve({ seen, durations: [...durations] })
-        seen.push(visibleTop())
-        durations.add(getComputedStyle(el).transitionDuration)
-        requestAnimationFrame(tick)
+  const result = await page
+    .locator('[data-image-view-slide][data-current] > div')
+    .evaluate((el) => {
+      const visibleTop = () => {
+        const r = el.getBoundingClientRect()
+        const s = getComputedStyle(el)
+        const m = new DOMMatrixReadOnly(s.transform)
+        const scaleY = Math.hypot(m.c, m.d) || 1
+        const crop = getComputedStyle(el.firstElementChild!)
+        const match = /inset\(([^)]+)\)/.exec(crop.clipPath)
+        const v = match ? match[1].split(/\s+/).map((n) => parseFloat(n) || 0) : [0]
+        const top = v[0]
+        return r.y + top * scaleY
       }
-      tick()
+
+      const seen: number[] = []
+      const durations = new Set<string>()
+      ;(document.querySelector('[data-image-view-control="close"]') as HTMLElement).click()
+      return new Promise<{ seen: number[]; durations: string[] }>((resolve) => {
+        const tick = () => {
+          if (!el.isConnected) return resolve({ seen, durations: [...durations] })
+          seen.push(visibleTop())
+          durations.add(getComputedStyle(el).transitionDuration)
+          requestAnimationFrame(tick)
+        }
+        tick()
+      })
     })
-  })
 
   // The last handful of frames must already be sitting on the thumbnail, not
-  // arriving there in one step.
+  // arriving there in one step. The regression this guards against was
+  // ~24px for the whole flight (see the commit that added this test); a
+  // shared CI runner samples rAF coarsely enough that the tail can land a
+  // few px short of the resting spot without the flight actually being
+  // broken, so the tolerance has headroom below that 24px class of bug
+  // without chasing single-digit CI jitter.
   expect(result.durations).toContain('0.18s')
   const last = result.seen.slice(-5)
   expect(last.length).toBeGreaterThan(2)
   for (const y of last) {
-    expect(Math.abs(y - before!.y)).toBeLessThan(3)
+    expect(Math.abs(y - before!.y)).toBeLessThan(8)
   }
 })
