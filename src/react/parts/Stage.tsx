@@ -33,11 +33,11 @@ function localPoint(event: React.PointerEvent<HTMLDivElement>) {
  * The gesture host: measures itself, translates pointer events through the
  * reducer, and carries out the commands it returns.
  *
- * The two transforms it drives never interfere. Zoom and pan live on the image;
- * page position lives on the track. That is what lets the edge handoff be
- * continuous — control passing from one to the other only changes which layer
- * a frame's movement is booked against, so neither layer is ever reset
- * mid-drag.
+ * The two transforms it drives never interfere. Zoom and pan live on the
+ * media layer; page position lives on the track. That is what lets the edge
+ * handoff be continuous — control passing from one to the other only changes
+ * which layer a frame's movement is booked against, so neither layer is ever
+ * reset mid-drag.
  */
 export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage(
   { children, style, ...rest },
@@ -45,6 +45,7 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
 ) {
   const ctx = useViewerContext('Stage')
   const { internals, api } = ctx
+  const { setStageSize } = internals
   const hostRef = React.useRef<HTMLDivElement | null>(null)
   const velocity = React.useRef(new VelocityTracker())
   const gesture = React.useRef<GestureState>(createState(IDENTITY))
@@ -111,8 +112,8 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
     const el = hostRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
-    internals.setStageSize({ width: rect.width, height: rect.height })
-  }, [internals])
+    setStageSize({ width: rect.width, height: rect.height })
+  }, [setStageSize])
 
   React.useEffect(() => {
     const el = hostRef.current
@@ -120,11 +121,16 @@ export const Stage = React.forwardRef<HTMLDivElement, StageProps>(function Stage
     const observer = new ResizeObserver(([entry]) => {
       if (!entry) return
       const { width, height } = entry.contentRect
-      internals.setStageSize({ width, height })
+      setStageSize({ width, height })
     })
     observer.observe(el)
-    return () => observer.disconnect()
-  }, [internals])
+    return () => {
+      observer.disconnect()
+      // Closing temporarily expands Stage after the chrome disappears. Do not
+      // let that return-flight geometry seed the next opening animation.
+      setStageSize({ width: 0, height: 0 })
+    }
+  }, [setStageSize])
 
   const gestureContext = React.useCallback((): GestureContext => {
     const natural = internals.natural ?? { width: 1, height: 1 }

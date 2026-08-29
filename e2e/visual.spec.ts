@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 /**
- * Wait for the spring to stop moving rather than for a fixed duration.
+ * Wait for the animation to stop moving rather than for a fixed duration.
  * Sleeping a guessed number of milliseconds is how a visual suite becomes
  * flaky on a slower CI machine.
  */
@@ -37,14 +37,14 @@ async function settled(page: import('@playwright/test').Page) {
 
   await page.waitForFunction(
     () => {
-      const el = document.querySelector('[data-image-view-slide][data-current] img')
+      const el = document.querySelector('[data-image-view-slide][data-current] > div')
       if (!el) return false
       const now = getComputedStyle(el).transform
       const w = window as unknown as { __last?: string; __stable?: number }
       w.__stable = now === w.__last ? (w.__stable ?? 0) + 1 : 0
       w.__last = now
       // Five consecutive identical frames. Three was enough to catch the
-      // spring still running, but not enough to rule out the pause between
+      // animation still running, but not enough to rule out the pause between
       // one animation finishing and the next being scheduled.
       return (w.__stable ?? 0) >= 5
     },

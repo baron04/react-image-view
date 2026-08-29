@@ -4,6 +4,8 @@ import { useViewerContext } from '../context'
 import { paintImage, paintTrack } from '../paint'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
+const ENTRY_LOAD_GRACE_MS = 100
+
 export interface ImageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Slides kept mounted either side of the current one. */
   overscan?: number
@@ -40,7 +42,7 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
   // `internals` is rebuilt on every render. Depending on the container would
   // re-run the effect below on every frame of a drag and reset the track
   // underneath the gesture painting it.
-  const { trackRef } = internals
+  const { trackRef, imageRef, flip } = internals
   const viewportRef = React.useRef<HTMLDivElement | null>(null)
 
   /**
@@ -61,8 +63,8 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
 
   const from = Math.max(0, index - overscan)
   const to = Math.min(images.length - 1, index + overscan)
-  const window: number[] = []
-  for (let i = from; i <= to; i++) window.push(i)
+  const slides: number[] = []
+  for (let i = from; i <= to; i++) slides.push(i)
 
   // Settle the track on the current slide whenever the index changes under us,
   // whether from a drag, a keystroke, or a controlled prop.
@@ -97,17 +99,26 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
   // Keep the rendered image in step with the transform after every render, and
   // republish it so anything painting from outside reaches the right element.
   useIsomorphicLayoutEffect(() => {
-    const el = currentImage()
-    internals.imageRef.current = el
-    paintImage(el, internals.transformRef.current)
+    paintImage(imageRef.current, internals.transformRef.current)
   })
 
-  // A decoded neighbour is ready the moment it becomes current, so status has
+  // A loaded neighbour is ready the moment it becomes current, so status has
   // to be settled here rather than waiting on a load event that will not fire.
-  React.useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const el = currentImage()
-    setStatus(el?.complete && el.naturalWidth ? 'ready' : 'loading')
-  }, [index, reloadToken, setStatus, currentImage])
+    if (el?.complete && el.naturalWidth) {
+      setStatus('ready')
+    } else {
+      setStatus('loading')
+      // A memory/disk-cache hit can still spend a few frames decoding. Treat
+      // short waits as one continuous opening; only a sustained loading state
+      // cancels the shared-element flight.
+      const timer = setTimeout(() => {
+        flip.current = false
+      }, ENTRY_LOAD_GRACE_MS)
+      return () => clearTimeout(timer)
+    }
+  }, [index, reloadToken, setStatus, currentImage, flip])
 
   return (
     <div
@@ -138,7 +149,7 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
           willChange: 'transform',
         }}
       >
-        {window.map((i) => {
+        {slides.map((i) => {
           const item = images[i]
           if (!item) return null
           const isCurrent = i === index
@@ -146,7 +157,6 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
             src: item.src,
             alt: item.alt ?? item.name ?? '',
             draggable: false,
-            decoding: 'async',
             onLoad: (event) => {
               if (!isCurrent) return
               const el = event.currentTarget
@@ -168,10 +178,10 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
                   height: 'auto',
                   maxWidth: 'none',
                   maxHeight: 'none',
-                  transformOrigin: 'center center',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  willChange: 'transform',
+                  display: 'block',
+                  // Progressive images may expose partial scan data before
+                  // `load`. Reveal only a complete frame at its fitted size.
+                  visibility: api.status !== 'ready' ? 'hidden' : undefined,
                 }
               : {
                   // Neighbours are only ever seen fitted, so CSS contain is
@@ -183,8 +193,6 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
                   width: 'auto',
                   height: 'auto',
                   objectFit: 'contain',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
                 },
           }
           return (
@@ -207,7 +215,23 @@ export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image
                 overflow: 'hidden',
               }}
             >
-              {renderImage ? (
+              {isCurrent ? (
+                <div
+                  ref={imageRef}
+                  style={{
+                    flex: 'none',
+                    willChange: 'transform',
+                  }}
+                >
+                  <div>
+                    {renderImage ? (
+                      renderImage({ item, index: i, isCurrent, imageProps })
+                    ) : (
+                      <img {...imageProps} />
+                    )}
+                  </div>
+                </div>
+              ) : renderImage ? (
                 renderImage({ item, index: i, isCurrent, imageProps })
               ) : (
                 <img {...imageProps} />

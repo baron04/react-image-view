@@ -20,6 +20,22 @@ const B = { src: 'b.png', name: 'b.png', width: 100, height: 100 }
 const C = { src: 'c.png', name: 'c.png', width: 100, height: 100 }
 const IMAGES = [A, B, C]
 
+function viewerRect(this: Element): DOMRect {
+  const width = this.hasAttribute('data-image-view-stage') ? 800 : 100
+  const height = this.hasAttribute('data-image-view-stage') ? 600 : 100
+  return {
+    x: 0,
+    y: 0,
+    left: 0,
+    top: 0,
+    right: width,
+    bottom: height,
+    width,
+    height,
+    toJSON: () => ({}),
+  } as DOMRect
+}
+
 function openViewer(index = 0) {
   act(() => {
     screen.getByTestId(`trigger-${index}`).click()
@@ -53,7 +69,80 @@ describe('SingleImage (L1)', () => {
 
     fireEvent.click(screen.getByTestId('single-trigger'))
 
-    expect(screen.getByTestId('full-size-image').getAttribute('data-source')).toBe(A.src)
+    const image = screen.getByTestId('full-size-image')
+    const media = image.closest('[data-current]')?.firstElementChild as HTMLElement | null
+    const crop = media?.firstElementChild as HTMLElement | null
+
+    expect(image.getAttribute('data-source')).toBe(A.src)
+    expect(media).not.toBeNull()
+    expect(crop).not.toBeNull()
+    // Keep these on separate HTML layers. Combining transform and clip-path on
+    // a large image can make Chromium drop frames or briefly paint blank.
+    expect(media?.style.transform).not.toBe('')
+    expect(image.style.transform).toBe('')
+    expect(image.style.clipPath).toBe('')
+  })
+
+  it('reveals a delayed image without replaying the opening flight', () => {
+    const rect = vi
+      .spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockImplementation(viewerRect)
+    let loadingDeadline: TimerHandler | undefined
+    const deadline = vi.spyOn(window, 'setTimeout').mockImplementation((callback) => {
+      loadingDeadline = callback
+      return 1
+    })
+    const frame = vi.spyOn(window, 'requestAnimationFrame')
+    render(
+      <ImageView src={A.src} width={A.width} height={A.height}>
+        <button>preview</button>
+      </ImageView>,
+    )
+    fireEvent.click(screen.getByText('preview'))
+
+    const image = document.querySelector<HTMLImageElement>(
+      '[data-image-view-slide][data-current] img',
+    )!
+    expect(image.style.visibility).toBe('hidden')
+    // Let the decode grace period pass: loading is now a sustained state
+    // rather than a cache hit whose load event arrived slightly late.
+    act(() => {
+      if (typeof loadingDeadline === 'function') loadingDeadline()
+    })
+    frame.mockClear()
+    fireEvent.load(image)
+    expect(image.style.visibility).toBe('')
+    // Loading completion reveals the fitted image directly; it must not start
+    // a delayed shared-element flight from the thumbnail.
+    expect(frame).not.toHaveBeenCalled()
+    deadline.mockRestore()
+    frame.mockRestore()
+    rect.mockRestore()
+  })
+
+  it('keeps the opening flight when decoding finishes within the grace period', () => {
+    const rect = vi
+      .spyOn(Element.prototype, 'getBoundingClientRect')
+      .mockImplementation(viewerRect)
+    const deadline = vi.spyOn(window, 'setTimeout').mockImplementation(() => 1)
+    const frame = vi.spyOn(window, 'requestAnimationFrame')
+    render(
+      <ImageView src={A.src} width={A.width} height={A.height}>
+        <button>preview</button>
+      </ImageView>,
+    )
+    fireEvent.click(screen.getByText('preview'))
+
+    const image = document.querySelector<HTMLImageElement>(
+      '[data-image-view-slide][data-current] img',
+    )!
+    frame.mockClear()
+    fireEvent.load(image)
+    expect(frame).toHaveBeenCalled()
+
+    frame.mockRestore()
+    deadline.mockRestore()
+    rect.mockRestore()
   })
 })
 

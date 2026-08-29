@@ -8,7 +8,7 @@ import {
 } from '../context'
 import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerStatus } from '../../types'
 import type { Size, SlideSize, Transform } from '../../core/types'
-import type { Crop, FlipFrame } from '../../core/flip'
+import type { Crop } from '../../core/flip'
 import {
   IDENTITY,
   clamp,
@@ -17,15 +17,15 @@ import {
   zoomAbout,
 } from '../../core/transform'
 import { Ticker } from '../../core/ticker'
-import { animateFlipFrame, animateTransform } from '../../core/animate'
+import { animateTransform } from '../../core/animate'
 import { NO_CROP, fittedFlipFrame, flipFrameFromRect, prefersReducedMotion } from '../../core/flip'
-import { tuning } from '../../core/tuning'
 import { en, mergeLabels } from '../../labels'
-import { paintCrop, paintImage, paintTrack } from '../paint'
+import { paintCrop, paintImage, paintTrack, paintTransition } from '../paint'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 
-// See ../../core/tuning: exits run far stiffer than entrances on purpose.
-const EXIT_STIFFNESS = tuning.spring.exitStiffness
+const ENTRY_DURATION_MS = 360
+const ENTRY_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
+const EXIT_DURATION_MS = 180
 
 function useControllable<T>(
   controlled: T | undefined,
@@ -107,7 +107,7 @@ export function Root({
   const ticker = tickerRef.current
 
   const transformRef = React.useRef<Transform>(IDENTITY)
-  const imageRef = React.useRef<HTMLImageElement | null>(null)
+  const imageRef = React.useRef<HTMLDivElement | null>(null)
   const trackRef = React.useRef<HTMLDivElement | null>(null)
   // Kept in sync via a layout effect rather than written directly here —
   // writing during render is exactly what this ref exists to avoid needing
@@ -137,6 +137,11 @@ export function Root({
   // stopAnimations below) — an interrupted flight must never leave the image
   // visibly cropped once the user is just looking at or dragging it normally.
   const cropRef = React.useRef<Crop>(NO_CROP)
+  // Shared-element flights use compositor transitions instead of repainting a
+  // large image layer from JavaScript on every frame. Chromium otherwise can
+  // briefly present an incomplete tile set while the layer grows.
+  const flightFrameRef = React.useRef(0)
+  const flightTimerRef = React.useRef(0)
   // True while an animation owns the transform. The refit effect below re-runs
   // whenever geometry resolves, which lands right on top of an entry animation
   // and snaps it to its destination — so it has to know to keep its hands off.
@@ -217,19 +222,24 @@ export function Root({
    * need the controls updated call `syncTransform` themselves.
    */
   const stopAnimations = React.useCallback(() => {
+    cancelAnimationFrame(flightFrameRef.current)
+    clearTimeout(flightTimerRef.current)
+    flightFrameRef.current = 0
+    flightTimerRef.current = 0
+    paintTransition(imageRef.current, '')
+    paintTransition(imageRef.current?.firstElementChild as HTMLElement | null, '')
     ticker.cancelAll()
     animatingRef.current = false
     // A flight cut short must not leave the image looking cropped once
     // gestures or a plain zoom take over — those never touch crop themselves.
     if (cropRef.current !== NO_CROP) {
       cropRef.current = NO_CROP
-      paintCrop(imageRef.current, NO_CROP)
+      paintCrop(imageRef.current?.firstElementChild as HTMLElement | null, NO_CROP)
     }
   }, [ticker])
   const markDirty = React.useCallback(() => {
     pristineRef.current = false
   }, [])
-
   /** Animate to a target and mirror it into state once it arrives. */
   const glideTo = React.useCallback(
     (target: Transform) => {
@@ -343,7 +353,6 @@ export function Root({
         }
 
         const rotation = transformRef.current.rotation
-        const from: FlipFrame = { transform: transformRef.current, crop: cropRef.current }
         stopAnimations()
         closingRef.current = true
         animatingRef.current = true
@@ -372,17 +381,27 @@ export function Root({
           rotation,
           target.fit,
         )
-        animateFlipFrame(
-          ticker,
-          from,
-          to,
-          (frame) => {
-            transformRef.current = frame.transform
-            cropRef.current = frame.crop
-            paintImage(imageRef.current, frame.transform)
-            paintCrop(imageRef.current, frame.crop)
-          },
-          () => {
+        const media = imageRef.current
+        const crop = media?.firstElementChild as HTMLElement | null
+        if (!media || !crop) {
+          closingRef.current = false
+          animatingRef.current = false
+          setOpen(false)
+          return
+        }
+
+        paintTransition(media, 'none')
+        paintTransition(crop, 'none')
+        flightFrameRef.current = requestAnimationFrame(() => {
+          flightFrameRef.current = 0
+          paintTransition(media, `transform ${EXIT_DURATION_MS}ms ${ENTRY_EASING}`)
+          paintTransition(crop, `clip-path ${EXIT_DURATION_MS}ms ${ENTRY_EASING}`)
+          transformRef.current = to.transform
+          cropRef.current = to.crop
+          paintImage(media, to.transform)
+          paintCrop(crop, to.crop)
+          flightTimerRef.current = setTimeout(() => {
+            flightTimerRef.current = 0
             closingRef.current = false
             animatingRef.current = false
             setOpen(false)
@@ -400,11 +419,11 @@ export function Root({
             requestAnimationFrame(() => {
               if (dialogEl?.isConnected) dialogEl.removeAttribute('data-closing')
             })
-          },
-          EXIT_STIFFNESS,
-        )
+          }, EXIT_DURATION_MS)
+        })
       },
       retry: () => {
+        flipPendingRef.current = false
         setStatus('loading')
         setReloadToken((n) => n + 1)
       },
@@ -426,7 +445,6 @@ export function Root({
     setOpen,
     glideTo,
     stopAnimations,
-    ticker,
   ])
 
   const internals = React.useMemo<ViewerInternals>(
@@ -434,6 +452,7 @@ export function Root({
       ticker,
       transformRef,
       imageRef,
+      flip: flipPendingRef,
       trackRef,
       indexRef,
       stageSize,
@@ -480,8 +499,10 @@ export function Root({
       flipPendingRef.current = false
       return
     }
-    // Geometry is not ready yet; keep the claim and wait for the next pass.
-    if (!natural || !stageSize.width) return
+    // Geometry and a complete image both have to be ready. Starting from width
+    // and height metadata alone lets the flight run while the media layer is
+    // still empty, so its first image frame appears as a flash mid-flight.
+    if (!natural || !stageSize.width || status !== 'ready') return
 
     const origin = originGeometryRef.current
     const stageEl = imageRef.current?.closest('[data-image-view-stage]')
@@ -501,7 +522,7 @@ export function Root({
     stopAnimations()
     animatingRef.current = true
 
-    // Claim the framing for this slide before handing off to the ticker.
+    // Claim the framing for this slide before starting the flight.
     //
     // The refit effect below treats `framedForRef.current !== index` as a
     // slide change, and a slide change deliberately overrides every guard —
@@ -517,31 +538,49 @@ export function Root({
     transformRef.current = from.transform
     cropRef.current = from.crop
     paintImage(imageRef.current, from.transform)
-    paintCrop(imageRef.current, from.crop)
+    paintCrop(imageRef.current?.firstElementChild as HTMLElement | null, from.crop)
 
-    animateFlipFrame(
-      ticker,
-      from,
-      target,
-      (frame) => {
-        transformRef.current = frame.transform
-        cropRef.current = frame.crop
-        paintImage(imageRef.current, frame.transform)
-        paintCrop(imageRef.current, frame.crop)
-      },
-      () => {
-        animatingRef.current = false
-        syncTransform()
-      },
-    )
-    // Every ref access above runs either synchronously inside this layout
-    // effect's own body, or inside animateFlipFrame's frame/completion
-    // callbacks — which fire later, on animation frames, never during a
-    // render. useIsomorphicLayoutEffect is `React.useLayoutEffect` itself
-    // behind a plain variable, not a wrapper the plugin's static analysis
-    // can see through, which is why it doesn't recognise this as an effect.
-    // eslint-disable-next-line react-hooks/refs -- see comment above
-  }, [open, index, natural, stageSize, fitScale, ticker, stopAnimations, syncTransform])
+    const media = imageRef.current
+    const crop = media?.firstElementChild as HTMLElement | null
+    if (!media || !crop) {
+      animatingRef.current = false
+      return
+    }
+
+    // Give the browser one painted start frame before revealing the target.
+    // With a CSS transition the compositor knows the largest scale up front
+    // and can prepare it; the old rAF spring only disclosed one slightly
+    // larger scale at a time, which made a 3200x2400 layer checkerboard while
+    // Chromium raced to rasterise its next set of tiles.
+    paintTransition(media, 'none')
+    paintTransition(crop, 'none')
+
+    flightFrameRef.current = requestAnimationFrame(() => {
+      // A single rAF still runs before the browser's next paint. Waiting for a
+      // second one guarantees the start transform has been presented and its
+      // layers can be rasterised before they begin moving.
+      flightFrameRef.current = requestAnimationFrame(() => {
+        flightFrameRef.current = 0
+        if (!media.isConnected) {
+          animatingRef.current = false
+          return
+        }
+        paintTransition(media, `transform ${ENTRY_DURATION_MS}ms ${ENTRY_EASING}`)
+        paintTransition(crop, `clip-path ${ENTRY_DURATION_MS}ms ${ENTRY_EASING}`)
+        transformRef.current = target.transform
+        cropRef.current = target.crop
+        paintImage(media, target.transform)
+        paintCrop(crop, target.crop)
+        flightTimerRef.current = setTimeout(() => {
+          flightTimerRef.current = 0
+          paintTransition(media, '')
+          paintTransition(crop, '')
+          animatingRef.current = false
+          syncTransform()
+        }, ENTRY_DURATION_MS)
+      })
+    })
+  }, [open, index, natural, stageSize, fitScale, status, stopAnimations, syncTransform])
 
   /**
    * Fit whenever the framing changes underneath us — a new image arrives, the
@@ -584,13 +623,14 @@ export function Root({
     paintImage(imageRef.current, fitted)
   }, [natural, stageSize, fitScale, index, open, stopAnimations])
 
-  React.useEffect(() => () => ticker.cancelAll(), [ticker])
+  React.useEffect(() => () => stopAnimations(), [stopAnimations])
 
   const openAt = React.useCallback(
     (at: number, from: TriggerGeometry | null) => {
       originGeometryRef.current = from
       flipPendingRef.current = from !== null && !prefersReducedMotion()
       pristineRef.current = true
+      setStatus('loading')
       setIndex(at)
       setOpen(true)
     },

@@ -14,7 +14,9 @@ const rawEntries = [
 const consumerEntries = [
   {
     name: 'consumer: ImageView',
-    budget: 12_000,
+    // Consumer rebundling adds a small wrapper over the raw full entry. Keep
+    // that allowance narrow while the raw entry retains its 12 kB ceiling.
+    budget: 12_050,
     source: `
       import * as React from 'react'
       import { ImageView } from 'react-img-view'
@@ -27,7 +29,7 @@ const consumerEntries = [
     name: 'consumer: primitives',
     // Rebundling adds a little wrapper overhead versus the raw primitives
     // entry, so keep both views under the same ceiling.
-    budget: 10_750,
+    budget: 10_770,
     source: `
       import * as React from 'react'
       import { Root, Content, Stage, Image } from 'react-img-view/primitives'

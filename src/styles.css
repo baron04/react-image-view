@@ -48,7 +48,6 @@ dialog[data-image-view]::backdrop {
   /* --riv-dismiss falls toward 0 as a pull-down progresses, so letting go of
      the image visibly lets go of the whole layer. */
   background: rgb(0 0 0 / calc(0.32 * var(--riv-dismiss, 1)));
-  animation: riv-backdrop-in 220ms ease-out;
 }
 
 /* On close the modal goes at once and only the image travels. Fading the
@@ -85,21 +84,6 @@ dialog[data-image-view][data-closing] [data-image-view-error] {
 
 dialog[data-image-view][data-closing]::backdrop {
   background: transparent;
-}
-
-@keyframes riv-backdrop-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  dialog[data-image-view]::backdrop {
-    animation: none;
-  }
 }
 
 /* ==========================================================================

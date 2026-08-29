@@ -9,10 +9,9 @@ function labelsFor(locale: DemoLocale) {
   return locale === 'zh-CN' ? zhCN : undefined
 }
 
-/** Self-hosted so the demo is deterministic, private, and available wherever
- * the documentation itself loads. Astro's base handles GitHub Pages. */
-function photo(seed: string) {
-  return `${import.meta.env.BASE_URL}demo/${seed}.svg`
+/** Astro's base keeps self-hosted demo assets working under GitHub Pages. */
+function photo(file: string) {
+  return `${import.meta.env.BASE_URL}demo/${file}`
 }
 
 /**
@@ -21,14 +20,38 @@ function photo(seed: string) {
  * fit-to-window, 1:1, and the pan bounds only visibly differ when the images do.
  */
 export const demoImages = [
-  { seed: 'riv-survey', name: 'site-survey-north-elevation.jpg', width: 1400, height: 1900 },
-  { seed: 'riv-damage', name: 'damage-report-wide.jpg', width: 2400, height: 1400 },
-  { seed: 'riv-plate', name: 'serial-plate-closeup.jpg', width: 1000, height: 1400 },
-  { seed: 'riv-delivery', name: 'delivery-condition.jpg', width: 3200, height: 2400 },
+  {
+    file: 'camera-portrait',
+    name: 'camera-portrait.webp',
+    alt: 'Woman holding a vintage camera',
+    width: 1400,
+    height: 1900,
+  },
+  {
+    file: 'geothermal-landscape',
+    name: 'geothermal-landscape.webp',
+    alt: 'Steam rising across a green geothermal landscape',
+    width: 2400,
+    height: 1400,
+  },
+  {
+    file: 'forest-journal',
+    name: 'forest-journal.webp',
+    alt: 'Woman writing in a journal in a sunlit forest',
+    width: 1000,
+    height: 1400,
+  },
+  {
+    file: 'starry-night',
+    name: 'starry-night.webp',
+    alt: 'Star-filled night sky above a forest',
+    width: 3200,
+    height: 2400,
+  },
 ].map((f) => ({
-  src: photo(f.seed),
-  thumb: photo(f.seed),
-  alt: f.name,
+  src: photo(`${f.file}.webp`),
+  thumb: photo(`${f.file}-thumb.webp`),
+  alt: f.alt,
   name: f.name,
   width: f.width,
   height: f.height,

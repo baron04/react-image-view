@@ -68,8 +68,8 @@ export function flipFrameFromRect(
   const scale = Math.max(origin.width / o.width, origin.height / o.height)
 
   // Crop amounts below are along the ORIENTED (visual) axes — swapped back
-  // onto the image's own local width/height (what clip-path actually measures
-  // against, since it applies before the `rotate()` in the transform) only at
+  // onto the media layer's local width/height (what clip-path actually measures
+  // against, since it sits inside the transformed layer) only at
   // the very end, and only when the turn is 90/270.
   const overflowOrientedW = Math.max(0, o.width - origin.width / scale)
   const overflowOrientedH = Math.max(0, o.height - origin.height / scale)

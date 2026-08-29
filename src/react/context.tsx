@@ -35,7 +35,10 @@ export interface TriggerRegistration {
 export interface ViewerInternals {
   ticker: Ticker
   transformRef: React.MutableRefObject<Transform>
-  imageRef: React.MutableRefObject<HTMLImageElement | null>
+  /** HTML layer that owns translate/scale/rotation for the current image. */
+  imageRef: React.MutableRefObject<HTMLDivElement | null>
+  /** Whether the current image still owns an opening flight. */
+  flip: React.MutableRefObject<boolean>
   trackRef: React.MutableRefObject<HTMLDivElement | null>
   /** Always-current slide index; closures capture stale ones. */
   indexRef: React.MutableRefObject<number>
