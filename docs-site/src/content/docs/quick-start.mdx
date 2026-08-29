@@ -7,7 +7,7 @@ import { Aside } from '@astrojs/starlight/components'
 
 import { SingleImageDemo, ImageListDemo } from '../../components/Demo.tsx'
 
-## Single image (L1)
+## Single image
 
 Wrap any element — the thumbnail can be a plain `<img>`, `next/image`,
 `<picture>`, or a component from your own design system. `ImageView` only
@@ -29,7 +29,7 @@ function SingleImagePreview({ image }: { image: { thumb: string; full: string; n
 
 <SingleImageDemo client:load />
 
-## Several images, shared viewer (L2)
+## Several images, shared viewer
 
 `Root` collects every `Trigger` beneath it into one set. Clicking any one
 opens the viewer positioned on that image, with arrow keys and swipe moving
@@ -62,7 +62,20 @@ function ImageList({ images }: { images: { src: string; name: string }[] }) {
   first frame is drawn at the right size instead of being corrected a frame later.
 </Aside>
 
-### Imperative API
+### Turning on the counter or the thumbnail strip
+
+Both are off by default — for a short set, the arrows say enough.
+Turn them on for a longer set, where the arrows alone do not say
+enough:
+
+```tsx
+<ImageView.Root images={images}>
+  {/* triggers */}
+  <ImageView.DefaultContent counter thumbnails />
+</ImageView.Root>
+```
+
+## Imperative API
 
 Use the imperative API when you do not want to manage `open` and `index`
 yourself:
@@ -83,7 +96,7 @@ active. The viewer cleans itself up after closing.
 An imperative call has no corresponding thumbnail element, so the viewer opens
 directly without the thumbnail-to-image transition.
 
-### Controlled open state
+## Controlled open state
 
 Open the viewer from anywhere else in the app — a "View" button in a table
 row, say — by controlling `open` and `index` yourself. Prefer this form when
@@ -108,20 +121,7 @@ const [index, setIndex] = useState(0);
 </Button>
 ```
 
-### Turning on the counter or the thumbnail strip
-
-Both are off by default — see
-[the design decisions](../design-and-registry/) for why. Turn them on
-for a longer set, where the arrows alone do not say enough:
-
-```tsx
-<ImageView.Root images={images}>
-  {/* triggers */}
-  <ImageView.DefaultContent counter thumbnails />
-</ImageView.Root>
-```
-
-## Full composition (L3)
+## Full composition
 
 Build your own layout from the same parts `DefaultContent` uses. Controls and
 layout regions take `asChild`; `Trigger` always reuses its child. Every control

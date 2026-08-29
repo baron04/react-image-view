@@ -44,11 +44,6 @@ export default defineConfig({
         { label: 'Quick Start', slug: 'quick-start', translations: { 'zh-CN': '快速开始' } },
         { label: 'Customization', slug: 'customization', translations: { 'zh-CN': '自定义' } },
         { label: 'API Reference', slug: 'api-reference', translations: { 'zh-CN': 'API 文档' } },
-        {
-          label: 'Design & Registry',
-          slug: 'design-and-registry',
-          translations: { 'zh-CN': '设计与 Registry' },
-        },
       ],
     }),
   ],

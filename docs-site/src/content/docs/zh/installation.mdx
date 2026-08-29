@@ -55,9 +55,12 @@ import 'react-img-view/styles.css'
 npx shadcn add https://baron04.github.io/react-img-view/r/image-view.json
 ```
 
-它具体装了什么、和 CSS 预设是什么关系，见[设计与 Registry](../design-and-registry/)。
+它和 CSS 预设是同一套设计的两种分发方式：预设用 CSS 自定义属性，
+区块用 Tailwind 工具类。复制进项目的只有呈现层；行为（手势、弹窗、
+键盘、开关动画）仍然是对 `react-img-view` 的真实依赖——和 shadcn
+自己的区块对 Radix 的拆分方式一致。
 
-### 两个都不用
+### 不用预设，从零写样式
 
 所有部件都暴露稳定的 `data-*` 钩子；控件和布局区域支持 `asChild`，`Trigger` 则始终
 直接复用唯一的子元素。因此你可以从零开始写样式：用属性选择器、Tailwind 的

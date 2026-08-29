@@ -60,10 +60,13 @@ any other component:
 npx shadcn add https://baron04.github.io/react-img-view/r/image-view.json
 ```
 
-See [Design & Registry](../design-and-registry/) for what that installs
-and how it relates to the CSS preset.
+The block is the same design shipped another way: the CSS preset uses custom
+properties, the block uses Tailwind utility classes. Only the presentation
+layer is copied into your project — behaviour (gestures, the modal, keyboard,
+the open/close animation) stays a real `react-img-view` dependency, the same
+split shadcn's own blocks use for Radix.
 
-### Neither
+### Neither: styling from scratch
 
 Every part exposes stable `data-*` hooks. Controls and layout regions take
 `asChild`, while `Trigger` always reuses its only child. That is enough to

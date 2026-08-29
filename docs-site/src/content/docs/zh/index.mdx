@@ -1,6 +1,6 @@
 ---
 title: react-img-view
-description: Headless-first、可组合的 React 图片预览组件；默认界面开箱即用，每一个可见部件也都可以替换。
+description: Headless-first 的可组合 React 图片预览组件：缩放、拖拽、双指捏合、旋转、适应窗口与 1:1 都由库处理，界面上的每个部件都能替换。
 template: splash
 editUrl: false
 ---
@@ -10,13 +10,13 @@ import { ImageListDemo } from '../../../components/Demo.tsx'
 <div class="riv-landing">
 
 <section class="riv-hero">
-  <p class="riv-hero__eyebrow">MIT 协议 · 支持 React 18 与 19 · 11.6 kB（gzip 后）</p>
+  <p class="riv-hero__eyebrow">MIT 协议 · 支持 React 18 与 19 · 无运行时依赖</p>
 
-<h1 class="riv-hero__title">默认界面开箱即用，也能完全自定义的 React 图片预览组件</h1>
+<h1 class="riv-hero__title">Headless、可组合的 React 图片预览组件</h1>
 
 <p class="riv-hero__tagline">
   {
-    '从精致的默认界面开始，也可以整体换掉外壳。缩放、拖拽、双指捏合、旋转、适应窗口与 1:1 都已处理好。'
+    '缩放、拖拽、双指捏合、旋转、适应窗口与 1:1 都由库处理；默认界面开箱即用，而它完全由对外导出的部件拼成——任何一处都能换成你自己的。'
   }
 </p>
 
@@ -32,7 +32,7 @@ import { ImageListDemo } from '../../../components/Demo.tsx'
   <code class="riv-install">npm install react-img-view</code>
 </section>
 
-<p class="riv-demo-caption">点击下面任意一张图片试试。</p>
+<p class="riv-demo-caption">点开任意一张：滚轮对着光标缩放，拖拽平移，方向键翻页。</p>
 
 <div class="riv-demo-panel">
   <ImageListDemo locale="zh-CN" client:load />
@@ -40,24 +40,32 @@ import { ImageListDemo } from '../../../components/Demo.tsx'
 
 <div class="riv-features">
   <div class="riv-feature">
-    <h2>工具栏始终可见</h2>
-    <p>{'缩放、旋转、适应窗口，以及独立的 1:1 按钮，全程可见，不必先唤出隐藏工具栏。'}</p>
-  </div>
-  <div class="riv-feature">
-    <h2>手势可以接力</h2>
-    <p>{'双指缩放、拖拽平移；放大后拖到边缘会直接接力翻到下一张，中途不会卡顿。'}</p>
-  </div>
-  <div class="riv-feature">
-    <h2>没有不能替换的部分</h2>
+    <h2>交互：难的部分已经替你写好</h2>
     <p>
-      {'所有部件都对外导出，每个控件都支持 '}
-      <code>asChild</code>
-      {'，状态以 data-* 属性暴露。重新配色、调整顺序，或整体重写外壳都可以。'}
+      {
+        '滚轮缩放始终跟随光标，放大后拖到边缘直接接力翻到下一张；双指捏合、下滑关闭、旋转的手感向原生应用看齐。这些在多数同类库里要么没有，要么各有各的毛病。'
+      }
     </p>
   </div>
   <div class="riv-feature">
-    <h2>对输入方式很克制</h2>
-    <p>{'下滑关闭只响应触摸与手写笔，鼠标拖拽永远不会误关预览。同时提供完整的键盘支持。'}</p>
+    <h2>接入：支持多种接入方式</h2>
+    <p>{'支持单图、多图、函数式调用。界面可选：CSS 预设、shadcn 源码，或者完全自己拼。'}</p>
+  </div>
+  <div class="riv-feature">
+    <h2>定制：通过组合式设计实现高度定制化</h2>
+    <p>
+      {
+        '工具栏、按钮、标题、缩略图轨都是独立部件，可以随意增删、重排，或者换成你设计系统里的组件。默认界面本身就是这么拼出来的。'
+      }
+    </p>
+  </div>
+  <div class="riv-feature">
+    <h2>工程：拿生产环境当默认标准</h2>
+    <p>
+      {
+        '零运行时依赖，TypeScript 全量类型，React 18 与 19 都支持；焦点管理、读屏文案、加载失败重试、SSR 安全，下滑关闭只响应触摸与手写笔——这些在别的库里常是事后补丁，在这里是设计目标。'
+      }
+    </p>
   </div>
 </div>
 

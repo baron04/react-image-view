@@ -3,7 +3,7 @@
 Notable changes to `react-img-view`. Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] — 2026-08-30
 
 This release separates the preset from the headless entry, makes localisation
 deterministic, and puts the published size and package shape under automated
@@ -192,6 +192,7 @@ considered unfit for production.
 First publish. Withdrawn in practice: the toolbar was non-functional under a
 mouse.
 
+[0.3.0]: https://github.com/baron04/react-img-view/releases/tag/v0.3.0
 [0.2.1]: https://github.com/baron04/react-img-view/releases/tag/v0.2.1
 [0.2.0]: https://github.com/baron04/react-img-view/releases/tag/v0.2.0
 [0.1.1]: https://github.com/baron04/react-img-view/releases/tag/v0.1.1

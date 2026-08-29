@@ -6,12 +6,12 @@ description: 改样式、替换按钮或大图、增加自己的控件，以及�
 import { Aside } from '@astrojs/starlight/components'
 import { LocalizedDemo, GalleryDemo } from '../../../components/Demo.tsx'
 
-这里把常见需求按改动范围列出来：改样式、替换按钮或大图、增加自己的控件，
+这里按改动范围列出常见需求：改样式、替换按钮或大图、增加自己的控件，
 以及翻译文案。每一项都先给出改动最小的做法，大多数情况下不需要退到完全组合。
 
-## 你到底需要改多少？
+## 改动范围速查
 
-| 你想要…                    | 用什么                                    | 需要重写界面吗           |
+| 想做什么                   | 用什么                                    | 需要重写界面吗           |
 | -------------------------- | ----------------------------------------- | ------------------------ |
 | 换颜色、圆角、间距         | [CSS 自定义属性](#1-css-自定义属性)       | 不需要                   |
 | 深度重写某个部件的样式     | [`data-*` 选择器](#2-data-属性)           | 不需要                   |
@@ -51,8 +51,8 @@ import { LocalizedDemo, GalleryDemo } from '../../../components/Demo.tsx'
 
 ## 2. data-\* 属性
 
-每个部件都会把自己的身份和状态以 `data-*` 暴露出来，
-所以你可以用原生 CSS 或 Tailwind 变体直接命中，不需要知道任何类名。
+每个部件都通过 `data-*` 暴露自己的身份和状态，
+你可以用原生 CSS 或 Tailwind 变体直接命中，不需要知道任何类名。
 
 ```css
 /* 某一个具体控件 */
@@ -93,7 +93,7 @@ import { LocalizedDemo, GalleryDemo } from '../../../components/Demo.tsx'
 
 要换掉控件的**元素本身** —— 比如换成你设计系统里的按钮，或者外面包一层 tooltip ——
 传 `asChild` 并把元素交给它。控件会把行为、`aria-label` 和 `data-*`
-合并到你的子元素上，而不再渲染自己的 `<button>`。
+合并到你的子元素上，不再渲染自己的 `<button>`。
 
 ```tsx
 import { Button } from '@/components/ui/button'
@@ -118,8 +118,8 @@ function ZoomButton() {
 ```
 
 <Aside type="caution" title="asChild 的子组件必须转发 props 和 ref">
-  控件是通过 Slot 克隆子元素来传递点击处理函数、测量动画用的 ref 和 `data-*`
-  的。如果你的子组件把不认识的 props 丢掉了，这些东西会被一起吞掉 ——
+  控件通过 Slot 克隆子元素，把点击处理函数、测量动画用的 ref 和 `data-*`
+  传给它。如果你的子组件丢弃了不认识的 props，这些东西也会一并丢失 ——
   表现是缩略图渲染正常，但点了没有任何反应，而且不会报错。用 `React.forwardRef` 并把 `...rest`
   铺到真实 DOM 节点上。
 </Aside>
@@ -127,12 +127,11 @@ function ZoomButton() {
 ## 4. 自己组合 Content
 
 要增加、删除或重排按钮，就自己写外壳。用的是 `DefaultContent`
-所用的同一批部件 —— 它底下没有任何私有实现 —— 所以这么做不会损失什么。
+所用的同一批部件 —— 它底下没有任何私有实现 —— 所以这么做不会损失任何能力。
 
 主入口的规则是：**如果 `Root` 在直接子节点里找到了 `<ImageView.Content>`（或
 `<DefaultContent>`），它就什么都不再补。** 不要把这一层藏进包装组件。
-如果希望自定义界面的包尽可能小，使用下面的 headless 入口；其中的 `Root`
-从不引入或补上默认 preset。
+想让自定义界面尽可能轻，就用下面的 headless 入口：它的 `Root` 从不引入默认预设。
 
 ```tsx
 import * as ImageView from 'react-img-view/primitives'
@@ -182,8 +181,8 @@ function CustomViewer({ images }) {
 ```
 
 <Aside title="只想保留大部分默认界面">
-  需要 preset 时，从主入口 `react-img-view` 引入 `ImageView`。如果只是想开关内置选项， 显式渲染
-  `DefaultContent`，并传入 `counter` 和 `thumbnails` 即可。
+  需要默认预设时，从主入口 `react-img-view` 引入 `ImageView`。只是想打开计数器或
+  缩略图轨的话不必自己拼界面，显式渲染 `DefaultContent` 并传入 `counter`、 `thumbnails` 即可。
 </Aside>
 
 <GalleryDemo locale="zh-CN" client:load />
@@ -241,7 +240,7 @@ const [index, setIndex] = useState(0);
 
 需要给大图增加 `referrerPolicy`、`srcSet` 等属性，换成自己的图片组件，或者记录
 加载成功与失败事件时，使用 `renderImage`。库会把维持尺寸、加载状态、重试和变换
-所需的 `imageProps` 交给你；最终渲染的 `<img>` 必须接收这些属性。
+所需的 `imageProps` 交给你；最终渲染出的 `<img>` 需要把它们透传进去。
 
 ```tsx
 const renderImage = ({ item, imageProps }) => (
@@ -270,7 +269,7 @@ const renderImage = ({ item, imageProps }) => (
 
 ## 6. Extensions
 
-对于组合方式够不着的键盘行为，传一个 extension。返回 `true` 表示事件已被消费，
+组合方式覆盖不到的键盘行为，用 extension 补充。返回 `true` 表示事件已被消费，
 内置处理会被跳过。
 
 ```tsx
@@ -290,14 +289,14 @@ function Viewer({ images }) {
 ```
 
 指针手势继续由 Stage 中经过测试的状态机统一管理。任何需要**渲染**的东西都应该
-作为子节点放进树里；extension 是窄范围的键盘逃生口，不是一套插件系统。
+作为子节点放进组件树；extension 只是键盘行为的补充入口，不是一套插件系统。
 
 ## 7. Labels
 
-所有面向用户的文案都来自同一份记录。其中大多数只以 `aria-label` 的形式存在
+所有面向用户的文案都来自同一份配置。其中大多数只以 `aria-label` 的形式出现
 ——`errorTitle` 是默认界面里唯一还会显示成文字的一项。不传 `labels` 时，
-`Root` 使用稳定的英文默认值。显式传入 `labels` 即可覆盖；它逐字段合并，
-只覆盖其中一个不会影响其余。
+`Root` 使用稳定的英文默认值。显式传入 `labels` 即可覆盖；它按字段合并，
+只覆盖传入的字段，其余不受影响。
 
 ```tsx
 <ImageView.Root images={images} labels={{ close: '关闭', download: '下载', zoomIn: '放大' }} />
