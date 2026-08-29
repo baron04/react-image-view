@@ -47,8 +47,8 @@ export async function loadImage(src: string, signal?: AbortSignal): Promise<Load
 /**
  * Browsers already apply EXIF orientation to `naturalWidth`/`naturalHeight`
  * when `image-orientation: from-image` is in effect, which is the default.
- * Kept as a seam: phone-photographed documents arrive rotated often enough
- * that any browser disagreeing here needs one place to be corrected.
+ * Kept as a seam: phone photos arrive rotated often enough that any browser
+ * disagreeing here needs one place to be corrected.
  */
 export function respectsExifOrientation(): boolean {
   return true

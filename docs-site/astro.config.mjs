@@ -23,7 +23,7 @@ export default defineConfig({
       title: 'react-img-view',
       customCss: ['./src/styles/custom.css'],
       description:
-        'Headless-first, composable React image viewer with an optional preset: zoom, pan, pinch, rotate, fit-to-window and 1:1, built for document attachments and admin image fields.',
+        'Headless-first, composable React image viewer with an optional preset: zoom, pan, pinch, rotate, fit-to-window and 1:1.',
       // English is the default and lives at the root; Chinese is served
       // from /zh. Starlight resolves the pair itself, so a page with no
       // translation falls back to English rather than 404ing.

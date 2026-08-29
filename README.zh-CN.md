@@ -6,9 +6,9 @@
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/react-img-view)](https://bundlephobia.com/package/react-img-view)
 [![license](https://img.shields.io/npm/l/react-img-view.svg)](LICENSE)
 
-一个 headless-first、可组合，同时提供可选精致预设的 **React 图片查看器**组件——
-为审阅文档附件、后台图片字段这类场景设计，不是拿来做相册轮播的。缩放、拖拽、
-双指缩放、旋转、适应窗口与 1:1、键盘快捷键、触摸手势都有，每一个可见部分都能替换。
+一个 headless-first、可组合，同时提供可选精致预设的 **React 图片预览组件**。
+缩放、拖拽、双指缩放、旋转、适应窗口与 1:1、键盘快捷键、触摸手势都有，
+每一个可见部分都能替换。
 
 **[文档](https://baron04.github.io/react-img-view/zh/)** ·
 [快速开始](https://baron04.github.io/react-img-view/zh/quick-start/) ·
@@ -22,10 +22,10 @@ npm install react-img-view
 import { ImageView } from 'react-img-view'
 import 'react-img-view/styles.css'
 
-function AttachmentPreview({ file }) {
+function ImagePreviewExample({ image }) {
   return (
-    <ImageView src={file.full} alt={file.name}>
-      <img src={file.thumb} alt={file.name} />
+    <ImageView src={image.full} alt={image.name}>
+      <img src={image.thumb} alt={image.name} />
     </ImageView>
   )
 }
@@ -34,8 +34,8 @@ function AttachmentPreview({ file }) {
 单张图片一行代码，一组图片一个组件，需要自定义界面时也能完全展开来写——三种
 用法都在[文档](https://baron04.github.io/react-img-view/zh/quick-start/)里。
 
-需要函数式调用时，从 `react-img-view/imperative` 引入 `ImagePreview`，直接调用
-`ImagePreview.open({ images, index })`。不需要 Provider；关闭后临时宿主会自动清理。
+也支持函数式调用：从 `react-img-view/imperative` 引入 `ImagePreview`，调用
+`ImagePreview.open({ images, index })`。预览器关闭后会自动清理。
 
 完整入口为 **11.6 kB gzip**。自定义界面可从
 `react-img-view/primitives` 引入无默认外观的部件（**10.4 kB gzip**）；底层变换
@@ -47,20 +47,20 @@ function AttachmentPreview({ file }) {
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
 
-function ChineseViewer({ files }) {
-  return <ImageView.Root images={files} labels={zhCN} />
+function ChineseViewer({ images }) {
+  return <ImageView.Root images={images} labels={zhCN} />
 }
 ```
 
-![缩放、旋转、适应窗口，逐张翻看附件](media/demo.gif)
+![缩放、旋转、适应窗口，逐张预览图片](media/demo.gif)
 
 ## 为什么做这个
 
-市面上大多数 React 图片查看器是照着"刷图"的场景做的：工具栏会自动隐藏、支持
-自动播放、随手一划就能关掉。但审阅文档附件是另一回事——工具栏得一直留在那，
-需要一个专门的 **1:1** 按钮，双指缩放要能在手势进行到一半时无缝切换到翻页，
-划走关闭也只认触摸操作，鼠标拖拽误触不会把查看器关掉。每一处默认行为背后的
-取舍，写在了[设计与 Registry](https://baron04.github.io/react-img-view/zh/design-and-registry/)里。
+很多 React 图片查看器更偏向相册浏览：工具栏会自动隐藏、支持自动播放、随手一划
+就能关掉。react-img-view 更关注可嵌入产品界面的通用图片预览：工具栏保持可见，
+提供独立的 **1:1** 按钮，双指缩放可以在手势中途无缝切换到翻页，下滑关闭只响应
+触摸操作，鼠标拖拽不会误关预览。每一处默认行为背后的取舍，写在了
+[设计与 Registry](https://baron04.github.io/react-img-view/zh/design-and-registry/)里。
 
 ## 两种拿到界面的方式
 

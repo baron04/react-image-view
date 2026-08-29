@@ -16,14 +16,16 @@ description: 完整说明公开部件与属性，并用可编译示例持续校�
 ## `<ImageView src alt>`
 
 L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发元素），
-以及会转发给 `Root` 的 `container` 和 `labels`。
+会转发给 `Root` 的 `container` 和 `labels`，以及用于替换大图的 `renderImage`。
 
 ## 函数式调用
 
 从 `react-img-view/imperative` 引入 `ImagePreview`。这个独立入口不会增加
-常规入口的体积，也不需要 Provider：
+常规入口的体积：
 
 ```tsx
+import { ImagePreview } from 'react-img-view/imperative'
+
 const viewer = ImagePreview.open({ images, index: 0 })
 viewer.go(2)
 viewer.next()
@@ -31,24 +33,27 @@ viewer.prev()
 viewer.close()
 ```
 
-`open()` 接收 `ImageItem[]` 和可选的初始序号。再次调用会替换当前图片组；
+`open()` 接收包含 `images: ImageItem[]` 和可选初始序号的配置对象。再次调用会替换当前预览；
 传入空数组时不会打开，序号越界时会自动调整到有效范围。无论通过句柄、预设
-关闭按钮还是 Escape 关闭，React Root 和临时宿主都会自动卸载。
+关闭按钮还是 Escape 关闭，预览器都会自动清理。请只在点击事件、Effect 等浏览器环境中调用。
 
-| `open()` 参数                         | 类型              | 默认值  |                                                 |
-| ------------------------------------- | ----------------- | ------- | ----------------------------------------------- |
-| `images`                              | `ImageItem[]`     | —       | 要打开的图片。                                  |
-| `index`                               | `number`          | `0`     | 初始序号，越界时自动调整。                      |
-| `content`                             | `ReactNode`       | 预设    | 用 `ImageView.Content` 等部件组合的自定义界面。 |
-| `counter`                             | `boolean`         | `false` | 是否显示预设计数器。                            |
-| `thumbnails`                          | `boolean \| mode` | `false` | 是否显示预设缩略图轨。                          |
-| `renderImage`                         | 函数              | —       | 与 `ImageView.Image` 相同的图片渲染函数。       |
-| `container` / `extensions` / `labels` | 与 `Root` 相同    | —       | 转发给内部托管的 `Root`。                       |
+| `open()` 参数                         | 类型                                       | 默认值  |                                                 |
+| ------------------------------------- | ------------------------------------------ | ------- | ----------------------------------------------- |
+| `images`                              | `ImageItem[]`                              | —       | 要打开的图片。                                  |
+| `index`                               | `number`                                   | `0`     | 初始序号，越界时自动调整。                      |
+| `content`                             | `ReactNode`                                | 预设    | 用 `ImageView.Content` 等部件组合的自定义界面。 |
+| `counter`                             | `boolean`                                  | `false` | 是否显示预设计数器。                            |
+| `thumbnails`                          | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | 是否显示预设缩略图轨。                          |
+| `renderImage`                         | 函数                                       | —       | 与 `ImageView.Image` 相同的图片渲染函数。       |
+| `container` / `extensions` / `labels` | 与 `Root` 相同                             | —       | 转发给内部托管的 `Root`。                       |
 
 返回的句柄只控制这次调用创建的预览；之后再次 `open()` 时，旧句柄不会误操作新预览。
 `ImagePreview.close()` 关闭当前函数式预览。自定义 `content` 内仍然可以使用
 `useViewer()` 读取状态、控制缩放和旋转。函数式调用没有对应的缩略图位置，因此会
 直接打开，不播放缩略图到大图的过渡动画。
+
+传入 `content` 会替换整个默认界面，因此 `counter`、`thumbnails` 和 `renderImage`
+只在使用预设时生效。自定义 `content` 时，请直接在其中组合相应部件和图片渲染方式。
 
 ## `<ImageView.Root>`
 
@@ -228,8 +233,8 @@ interface ViewerLabels {
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
 
-function ChineseViewer({ files }) {
-  return <ImageView.Root images={files} labels={zhCN} />
+function ChineseViewer({ images }) {
+  return <ImageView.Root images={images} labels={zhCN} />
 }
 ```
 

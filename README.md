@@ -7,10 +7,9 @@
 [![license](https://img.shields.io/npm/l/react-img-view.svg)](LICENSE)
 
 A headless-first, composable **React image viewer** / image preview / lightbox
-with an optional polished preset — built for reviewing document attachments
-and admin image fields, not photo galleries. Zoom, pan, pinch, rotate,
-fit-to-window and 1:1, keyboard shortcuts, and touch gestures, with every
-visible part replaceable.
+with an optional polished preset. Zoom, pan, pinch, rotate, fit-to-window and
+1:1, keyboard shortcuts, and touch gestures, with every visible part
+replaceable.
 
 **[Documentation](https://baron04.github.io/react-img-view/)** ·
 [Quick Start](https://baron04.github.io/react-img-view/quick-start/) ·
@@ -24,10 +23,10 @@ npm install react-img-view
 import { ImageView } from 'react-img-view'
 import 'react-img-view/styles.css'
 
-function AttachmentPreview({ file }) {
+function ImagePreviewExample({ image }) {
   return (
-    <ImageView src={file.full} alt={file.name}>
-      <img src={file.thumb} alt={file.name} />
+    <ImageView src={image.full} alt={image.name}>
+      <img src={image.thumb} alt={image.name} />
     </ImageView>
   )
 }
@@ -38,9 +37,9 @@ composition when you need it — see the
 [docs](https://baron04.github.io/react-img-view/quick-start/) for all
 three.
 
-For a true function call, import `ImagePreview` from
+For function-style use, import `ImagePreview` from
 `react-img-view/imperative` and call `ImagePreview.open({ images, index })`.
-No Provider is required; closing automatically removes the temporary host.
+The viewer cleans itself up after closing.
 
 The main entry is **11.6 kB gzip**. For custom chrome, import headless parts
 from `react-img-view/primitives` (**10.4 kB gzip**); low-level transforms and
@@ -54,21 +53,21 @@ explicitly so server and hydrated markup always agree:
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
 
-function ChineseViewer({ files }) {
-  return <ImageView.Root images={files} labels={zhCN} />
+function ChineseViewer({ images }) {
+  return <ImageView.Root images={images} labels={zhCN} />
 }
 ```
 
-![Zoom, rotate, fit, and page through attachments](media/demo.gif)
+![Zoom, rotate, fit, and page through images](media/demo.gif)
 
 ## Why
 
-Most React image viewers are built for browsing — fading chrome, autoplay,
-swipe-anything-to-dismiss. Reviewing a document attachment is a different
-job: the toolbar stays visible, there's a dedicated **1:1** control, pinch
-zoom hands off to the next slide mid-gesture instead of stuttering, and
-swipe-to-dismiss only responds to touch so a mouse drag never closes the
-viewer by accident. The reasoning behind every default is written up in
+Many React image viewers lean toward gallery browsing — fading chrome,
+autoplay, swipe-anything-to-dismiss. react-img-view focuses on a general image
+preview that fits into product interfaces: the toolbar stays visible, there's
+a dedicated **1:1** control, pinch zoom hands off to the next slide
+mid-gesture instead of stuttering, and swipe-to-dismiss only responds to touch
+so a mouse drag never closes the viewer by accident. The reasoning behind every default is written up in
 [Design & Registry](https://baron04.github.io/react-img-view/design-and-registry/).
 
 ## Two ways to get the look

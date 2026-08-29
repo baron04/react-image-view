@@ -14,11 +14,9 @@ export interface ThumbnailsProps extends Omit<React.HTMLAttributes<HTMLDivElemen
 }
 
 /**
- * A horizontal strip of every image in the set. Downgraded to P1 for this
- * library's primary scenario — reviewing a handful of attachments, where the
- * counter already answers "how many, where am I" — so it is never part of
- * `DefaultContent` automatically; add it explicitly where a longer set (a
- * gallery, a product's photos) makes jumping around worth the space.
+ * A horizontal strip of every image in the set. It is never part of
+ * `DefaultContent` automatically; add it explicitly where direct navigation
+ * through a larger set is worth the space.
  */
 export const Thumbnails = React.forwardRef<HTMLDivElement, ThumbnailsProps>(function Thumbnails(
   { mode = 'auto', ...rest },

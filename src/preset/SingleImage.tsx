@@ -2,12 +2,15 @@ import * as React from 'react'
 import { Root } from './Root'
 import { Trigger } from '../react/parts/Trigger'
 import type { ImageItem, ViewerLabels } from '../types'
+import { DefaultContent, type DefaultContentProps } from './DefaultContent'
 
 export interface SingleImageProps extends ImageItem {
   children: React.ReactElement
   /** Forwarded to Root — see ImageViewRootProps for what they do. */
   container?: HTMLElement | null
   labels?: Partial<ViewerLabels>
+  /** Customize the full-size image while keeping the one-line preset. */
+  renderImage?: DefaultContentProps['renderImage']
 }
 
 /**
@@ -17,12 +20,19 @@ export interface SingleImageProps extends ImageItem {
  * `ImageView.Root` directly only matters once there is more than one image or
  * the default UI needs replacing.
  */
-export function SingleImage({ children, container, labels, ...item }: SingleImageProps) {
+export function SingleImage({
+  children,
+  container,
+  labels,
+  renderImage,
+  ...item
+}: SingleImageProps) {
   return (
     <Root images={[item]} container={container} labels={labels}>
       <Trigger index={0} {...item}>
         {children}
       </Trigger>
+      <DefaultContent renderImage={renderImage} />
     </Root>
   )
 }

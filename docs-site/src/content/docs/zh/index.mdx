@@ -1,18 +1,18 @@
 ---
 title: react-img-view
-description: Headless-first React 图片预览组件，带可选精致预设；支持缩放、平移、双指捏合、旋转、适应窗口与 1:1，专为文档与图片审阅而做。
+description: Headless-first、可组合的 React 图片预览组件；默认界面开箱即用，每一个可见部件也都可以替换。
 template: splash
 editUrl: false
 ---
 
-import { AttachmentsDemo } from '../../../components/Demo.tsx'
+import { ImageListDemo } from '../../../components/Demo.tsx'
 
 <div class="riv-landing">
 
 <section class="riv-hero">
   <p class="riv-hero__eyebrow">MIT 协议 · 支持 React 18 与 19 · 11.6 kB（gzip 后）</p>
 
-<h1 class="riv-hero__title">为文档与图片审阅而生的可组合 React 图片预览组件</h1>
+<h1 class="riv-hero__title">默认界面开箱即用，也能完全自定义的 React 图片预览组件</h1>
 
 <p class="riv-hero__tagline">
   {
@@ -35,15 +35,13 @@ import { AttachmentsDemo } from '../../../components/Demo.tsx'
 <p class="riv-demo-caption">点击下面任意一张图片试试。</p>
 
 <div class="riv-demo-panel">
-  <AttachmentsDemo locale="zh-CN" client:load />
+  <ImageListDemo locale="zh-CN" client:load />
 </div>
 
 <div class="riv-features">
   <div class="riv-feature">
     <h2>工具栏始终可见</h2>
-    <p>
-      {'缩放、旋转、适应窗口，以及独立的 1:1 按钮，全程可见。查阅文档是一项任务，不是随手划动。'}
-    </p>
+    <p>{'缩放、旋转、适应窗口，以及独立的 1:1 按钮，全程可见，不必先唤出隐藏工具栏。'}</p>
   </div>
   <div class="riv-feature">
     <h2>手势可以接力</h2>

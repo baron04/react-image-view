@@ -6,15 +6,14 @@ description: Why the defaults are what they are, and the two ways to get the loo
 This page records the decisions behind the defaults — what was chosen, and
 what was deliberately left out.
 
-## Review-oriented, not gallery-oriented
+## Image preview, not a gallery system
 
-The library is built for looking at document attachments and admin image
-fields — 1 to maybe 5 images per set, opened to check something specific.
-That's a different job from a photo gallery, and several conventions
-gallery libraries treat as default were deliberately left out or narrowed:
+react-img-view owns the experience after an image is opened. It does not own
+album management, the grid before the viewer, or slideshow playback. Several
+conventions gallery libraries treat as defaults are therefore deliberately
+left out or narrowed:
 
-- **No autoplay slideshow.** Nobody wants a purchase-order scan to advance
-  itself.
+- **No autoplay slideshow.** Image preview is opened and advanced by the user.
 - **No image editing, no gallery/grid layout.** Both are out of scope by
   design — pair a grid layout library with this for the "before" half of
   the flow.
@@ -25,11 +24,10 @@ gallery libraries treat as default were deliberately left out or narrowed:
 
 ## Why the counter and thumbnails are off by default
 
-Both answer "how many, where am I" — a real question in a 40-photo gallery,
-much less of one across the 1–5 attachments this library is built around,
-where the arrows already say whether there's more. Both are one prop away
-(`counter`, `thumbnails` on `DefaultContent`) for the sets where they do
-earn their space.
+Both answer "how many, where am I." The preset keeps the image and toolbar
+uncluttered by default, while the arrows already show whether a previous or
+next image exists. For larger sets that need faster navigation, enable either
+feature with `counter` and `thumbnails` on `DefaultContent`.
 
 ## Two buttons, not a segmented control
 

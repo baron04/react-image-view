@@ -4,11 +4,11 @@ import { ImagePreview } from '../../../src/imperative'
 import * as Primitives from '../../../src/primitives'
 import zhCN from '../../../src/locales/zh-CN'
 
-const files: ImageItem[] = [
+const images: ImageItem[] = [
   {
-    src: '/invoice-full.jpg',
-    alt: 'Invoice 1048',
-    name: 'invoice-1048.jpg',
+    src: '/photo-full.jpg',
+    alt: 'Mountain lake',
+    name: 'mountain-lake.jpg',
     width: 1600,
     height: 2200,
   },
@@ -16,18 +16,18 @@ const files: ImageItem[] = [
 
 export function SingleImageExample() {
   return (
-    <ImageView src={files[0]!.src} alt={files[0]!.alt} labels={zhCN}>
-      <img src="/invoice-thumb.jpg" alt={files[0]!.alt} />
+    <ImageView src={images[0]!.src} alt={images[0]!.alt} labels={zhCN}>
+      <img src="/photo-thumb.jpg" alt={images[0]!.alt} />
     </ImageView>
   )
 }
 
 export function SharedViewerExample() {
   return (
-    <ImageView.Root images={files} labels={zhCN}>
-      {files.map((file, index) => (
-        <ImageView.Trigger key={file.src} index={index} {...file}>
-          <img src={file.src} alt={file.alt} />
+    <ImageView.Root images={images} labels={zhCN}>
+      {images.map((image, index) => (
+        <ImageView.Trigger key={image.src} index={index} {...image}>
+          <img src={image.src} alt={image.alt} />
         </ImageView.Trigger>
       ))}
     </ImageView.Root>
@@ -35,8 +35,22 @@ export function SharedViewerExample() {
 }
 
 export function FunctionStyleExample() {
+  return <button onClick={() => ImagePreview.open({ images, labels: zhCN })}>查看图片</button>
+}
+
+export function CustomImageExample() {
   return (
-    <button onClick={() => ImagePreview.open({ images: files, labels: zhCN })}>查看附件</button>
+    <ImageView
+      {...images[0]!}
+      renderImage={({ item, imageProps }) => (
+        <picture>
+          <source srcSet={`${item.src}.webp`} type="image/webp" />
+          <img {...imageProps} referrerPolicy="no-referrer" />
+        </picture>
+      )}
+    >
+      <img src="/photo-thumb.jpg" alt={images[0]!.alt} />
+    </ImageView>
   )
 }
 
@@ -59,7 +73,7 @@ const pageWithSpace = {
 
 export function ComposedViewerExample() {
   return (
-    <Primitives.Root images={files} labels={zhCN} extensions={[pageWithSpace]}>
+    <Primitives.Root images={images} labels={zhCN} extensions={[pageWithSpace]}>
       <Primitives.Content>
         <Primitives.Header>
           <Primitives.Close>关闭</Primitives.Close>

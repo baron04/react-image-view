@@ -1,27 +1,27 @@
 ---
 title: Customization
-description: Restyle the viewer, replace or remove a button, add your own controls, and translate every string.
+description: Restyle the viewer, replace a button or image, add your own controls, and translate every string.
 ---
 
 import { Aside } from '@astrojs/starlight/components'
 
 import { LocalizedDemo, GalleryDemo } from '../../components/Demo.tsx'
 
-Three questions come up constantly, so they are answered in order here:
-**how do I restyle it**, **how do I replace one button**, and **how do I add
-something of my own**. Each has a smallest possible answer — you rarely need
-to drop to full composition.
+The common changes are ordered by scope: restyling, replacing a button or the
+full-size image, adding your own controls, and translating the interface. Each
+starts with the smallest available change; full composition is rarely needed.
 
 ## How much do you need to change?
 
-| You want to…                      | Reach for                                                        | Rebuild the UI?              |
-| --------------------------------- | ---------------------------------------------------------------- | ---------------------------- |
-| Different colours, radii, spacing | [CSS custom properties](#1-css-custom-properties)                | No                           |
-| Restyle one part heavily          | [`data-*` selectors](#2-data-attributes)                         | No                           |
-| Swap a button's element or icon   | [`asChild` / children](#3-aschild)                               | No                           |
-| Add, remove, or reorder buttons   | [Compose `DefaultContent` yourself](#4-compose-your-own-content) | Yes, but from the same parts |
-| Add a keyboard shortcut           | [Extensions](#5-extensions)                                      | No                           |
-| Translate the interface           | [`labels`](#6-labels)                                            | No                           |
+| You want to…                                   | Reach for                                                        | Rebuild the UI?              |
+| ---------------------------------------------- | ---------------------------------------------------------------- | ---------------------------- |
+| Different colours, radii, spacing              | [CSS custom properties](#1-css-custom-properties)                | No                           |
+| Restyle one part heavily                       | [`data-*` selectors](#2-data-attributes)                         | No                           |
+| Swap a button's element or icon                | [`asChild` / children](#3-aschild)                               | No                           |
+| Add, remove, or reorder buttons                | [Compose `DefaultContent` yourself](#4-compose-your-own-content) | Yes, but from the same parts |
+| Replace the image component or observe loading | [`renderImage`](#5-renderimage)                                  | No                           |
+| Add a keyboard shortcut                        | [Extensions](#6-extensions)                                      | No                           |
+| Translate the interface                        | [`labels`](#7-labels)                                            | No                           |
 
 ---
 
@@ -143,9 +143,9 @@ never imports or appends the preset.
 ```tsx
 import * as ImageView from 'react-img-view/primitives'
 
-function ReviewViewer({ files }) {
+function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={files}>
+    <ImageView.Root images={images}>
       {/* triggers */}
 
       <ImageView.Content className="riv-dialog">
@@ -217,25 +217,69 @@ function PrintButton() {
 }
 ```
 
-Opening it from somewhere else entirely — a table row's "View" button —
-means controlling `open` and `index` yourself:
+To open from outside `Root` — from a table row's "View" button, for example —
+call the imperative API directly:
+
+```tsx
+import { ImagePreview } from 'react-img-view/imperative'
+
+function ViewButton({ images }) {
+  return <Button onClick={() => ImagePreview.open({ images, index: 2 })}>View image 3</Button>
+}
+```
+
+Use controlled state instead when the surrounding component needs to read or
+persist the open state and current index:
 
 ```tsx
 const [open, setOpen] = useState(false);
 const [index, setIndex] = useState(0);
 
 <ImageView.Root
-  images={files}
+  images={images}
   open={open}
   index={index}
   onOpenChange={setOpen}
   onIndexChange={setIndex}
 />
 
-<Button onClick={() => { setIndex(2); setOpen(true); }}>View file 3</Button>
+<Button onClick={() => { setIndex(2); setOpen(true); }}>View image 3</Button>
 ```
 
-## 5. Extensions
+## 5. `renderImage`
+
+Use `renderImage` to add attributes such as `referrerPolicy` or `srcSet` to the
+full-size image, render your own image component, or observe load and error
+events. The library supplies the `imageProps` required for sizing, loading,
+retry, and transforms; the final `<img>` must receive them.
+
+```tsx
+const renderImage = ({ item, imageProps }) => (
+  <picture>
+    <source srcSet={`${item.src}.webp`} type="image/webp" />
+    <img
+      {...imageProps}
+      referrerPolicy="no-referrer"
+      onLoad={(event) => {
+        imageProps.onLoad?.(event)
+        analytics.track('image_loaded', { src: item.src })
+      }}
+    />
+  </picture>
+)
+
+<ImageView.Root images={images}>
+  {/* triggers */}
+  <ImageView.DefaultContent renderImage={renderImage} />
+</ImageView.Root>
+```
+
+When overriding `onLoad` or `onError`, call the original handler from
+`imageProps` as shown; dropping it disconnects loading state and retry. The same
+renderer can be passed to the single-image `<ImageView>` entry,
+`ImageView.Image`, or `ImagePreview.open()`.
+
+## 6. Extensions
 
 For keyboard behaviour that composition cannot reach, pass an extension.
 Returning `true` marks the event consumed so the built-in handling is skipped.
@@ -251,8 +295,8 @@ const pageWithSpace = {
   },
 }
 
-function Viewer({ files }) {
-  return <ImageView.Root images={files} extensions={[pageWithSpace]} />
+function Viewer({ images }) {
+  return <ImageView.Root images={images} extensions={[pageWithSpace]} />
 }
 ```
 
@@ -260,7 +304,7 @@ Pointer gestures stay owned by Stage's tested state machine. Anything that
 needs to render belongs in the tree as a child instead — extensions are a
 narrow keyboard escape hatch, not a plugin system.
 
-## 6. Labels
+## 7. Labels
 
 Every user-facing string comes from one record. Most surface only as
 `aria-label` on an otherwise icon-only control — `errorTitle` is the one the
@@ -270,7 +314,7 @@ overriding one leaves the rest alone.
 
 ```tsx
 <ImageView.Root
-  images={files}
+  images={images}
   labels={{ close: 'Fermer', download: 'Télécharger', zoomIn: 'Agrandir' }}
 />
 ```
@@ -280,8 +324,8 @@ For Simplified Chinese, import the complete locale instead of repeating keys:
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
 
-function ChineseViewer({ files }) {
-  return <ImageView.Root images={files} labels={zhCN} />
+function ChineseViewer({ images }) {
+  return <ImageView.Root images={images} labels={zhCN} />
 }
 ```
 

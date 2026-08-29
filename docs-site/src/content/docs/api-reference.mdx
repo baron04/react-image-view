@@ -18,14 +18,17 @@ framework-independent engine is available from `react-img-view/core`.
 ## `<ImageView src alt>`
 
 L1. Props are `ImageItem` (below) plus `children: ReactElement` (the
-trigger element), and `container` / `labels`, both forwarded to `Root`.
+trigger element), `container` / `labels` forwarded to `Root`, and `renderImage`
+for replacing the full-size image.
 
 ## Imperative API
 
 Import `ImagePreview` from `react-img-view/imperative`. This separate entry
-adds nothing to the regular bundle and requires no Provider:
+adds nothing to the regular bundle:
 
 ```tsx
+import { ImagePreview } from 'react-img-view/imperative'
+
 const viewer = ImagePreview.open({ images, index: 0 })
 viewer.go(2)
 viewer.next()
@@ -33,20 +36,21 @@ viewer.prev()
 viewer.close()
 ```
 
-`open()` takes `ImageItem[]` and an optional initial index. Calling it again
-replaces the current set. An empty set stays closed, and an out-of-range index
-is adjusted to the nearest valid value. Closing from the handle, the preset UI,
-or Escape automatically unmounts the React root and removes its temporary host.
+`open()` takes an options object with `images: ImageItem[]` and an optional
+initial index. Calling it again replaces the current viewer. An empty set stays
+closed, and an out-of-range index is adjusted to the nearest valid value. The
+viewer cleans itself up after it is closed from the handle, the preset UI, or
+Escape. Call it only in browser code such as an event handler or Effect.
 
-| `open()` option                       | Type              | Default |                                                                    |
-| ------------------------------------- | ----------------- | ------- | ------------------------------------------------------------------ |
-| `images`                              | `ImageItem[]`     | —       | Images to open.                                                    |
-| `index`                               | `number`          | `0`     | Initial image, clamped to the available range.                     |
-| `content`                             | `ReactNode`       | preset  | A custom composition built from `ImageView.Content` and its parts. |
-| `counter`                             | `boolean`         | `false` | Show the preset counter.                                           |
-| `thumbnails`                          | `boolean \| mode` | `false` | Show the preset thumbnail strip.                                   |
-| `renderImage`                         | function          | —       | Same renderer accepted by `ImageView.Image`.                       |
-| `container` / `extensions` / `labels` | same as `Root`    | —       | Forwarded to the managed `Root`.                                   |
+| `open()` option                       | Type                                       | Default |                                                                    |
+| ------------------------------------- | ------------------------------------------ | ------- | ------------------------------------------------------------------ |
+| `images`                              | `ImageItem[]`                              | —       | Images to open.                                                    |
+| `index`                               | `number`                                   | `0`     | Initial image, clamped to the available range.                     |
+| `content`                             | `ReactNode`                                | preset  | A custom composition built from `ImageView.Content` and its parts. |
+| `counter`                             | `boolean`                                  | `false` | Show the preset counter.                                           |
+| `thumbnails`                          | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | Show the preset thumbnail strip.                                   |
+| `renderImage`                         | function                                   | —       | Same renderer accepted by `ImageView.Image`.                       |
+| `container` / `extensions` / `labels` | same as `Root`                             | —       | Forwarded to the managed `Root`.                                   |
 
 The returned handle controls only the viewer created by that call; after a
 later `open()`, an old handle is harmless. `ImagePreview.close()` closes the
@@ -54,6 +58,10 @@ currently active function-style viewer. Inside custom `content`, `useViewer()`
 still reads state and controls zoom or rotation. A function call has no
 thumbnail position, so it opens directly without the thumbnail-to-image
 transition.
+
+Passing `content` replaces the entire preset, so `counter`, `thumbnails`, and
+`renderImage` apply only when the preset is used. With custom `content`, compose
+the corresponding parts and image renderer inside it instead.
 
 ## `<ImageView.Root>`
 
@@ -241,8 +249,8 @@ default bundle:
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
 
-function ChineseViewer({ files }) {
-  return <ImageView.Root images={files} labels={zhCN} />
+function ChineseViewer({ images }) {
+  return <ImageView.Root images={images} labels={zhCN} />
 }
 ```
 

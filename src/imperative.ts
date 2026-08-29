@@ -1,4 +1,4 @@
-/** True function-style entry, isolated from the regular component bundle. */
+/** Function-style entry, isolated from the regular component bundle. */
 export { ImagePreview } from './preset/ImagePreview'
 export type {
   ImagePreviewHandle,

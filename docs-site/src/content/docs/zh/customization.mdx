@@ -1,25 +1,25 @@
 ---
 title: 自定义
-description: 改样式、替换某个按钮、加自己的控件，以及翻译全部界面文案。
+description: 改样式、替换按钮或大图、增加自己的控件，以及翻译全部界面文案。
 ---
 
 import { Aside } from '@astrojs/starlight/components'
 import { LocalizedDemo, GalleryDemo } from '../../../components/Demo.tsx'
 
-有三个问题被反复问到，这里按顺序回答：**怎么改样式**、**怎么替换某一个按钮**、
-**怎么加我自己的东西**。每个问题都有一个「改动最小」的答案 ——
-大多数情况下你不需要退到完全组合。
+这里把常见需求按改动范围列出来：改样式、替换按钮或大图、增加自己的控件，
+以及翻译文案。每一项都先给出改动最小的做法，大多数情况下不需要退到完全组合。
 
 ## 你到底需要改多少？
 
-| 你想要…                  | 用什么                                    | 需要重写界面吗           |
-| ------------------------ | ----------------------------------------- | ------------------------ |
-| 换颜色、圆角、间距       | [CSS 自定义属性](#1-css-自定义属性)       | 不需要                   |
-| 深度重写某个部件的样式   | [`data-*` 选择器](#2-data-属性)           | 不需要                   |
-| 换掉某个按钮的元素或图标 | [`asChild` / children](#3-aschild)        | 不需要                   |
-| 增加、删除、重排按钮     | [自己组合 `Content`](#4-自己组合-content) | 需要，但用的是同一批部件 |
-| 加快捷键                 | [Extensions](#5-extensions)               | 不需要                   |
-| 翻译界面文案             | [`labels`](#6-labels)                     | 不需要                   |
+| 你想要…                    | 用什么                                    | 需要重写界面吗           |
+| -------------------------- | ----------------------------------------- | ------------------------ |
+| 换颜色、圆角、间距         | [CSS 自定义属性](#1-css-自定义属性)       | 不需要                   |
+| 深度重写某个部件的样式     | [`data-*` 选择器](#2-data-属性)           | 不需要                   |
+| 换掉某个按钮的元素或图标   | [`asChild` / children](#3-aschild)        | 不需要                   |
+| 增加、删除、重排按钮       | [自己组合 `Content`](#4-自己组合-content) | 需要，但用的是同一批部件 |
+| 更换大图组件或监听加载事件 | [`renderImage`](#5-renderimage)           | 不需要                   |
+| 加快捷键                   | [Extensions](#6-extensions)               | 不需要                   |
+| 翻译界面文案               | [`labels`](#7-labels)                     | 不需要                   |
 
 ---
 
@@ -137,9 +137,9 @@ function ZoomButton() {
 ```tsx
 import * as ImageView from 'react-img-view/primitives'
 
-function ReviewViewer({ files }) {
+function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={files}>
+    <ImageView.Root images={images}>
       {/* triggers */}
 
       <ImageView.Content className="riv-dialog">
@@ -210,14 +210,24 @@ function PrintButton() {
 }
 ```
 
-要从完全在外面的地方打开 —— 比如表格行里的「查看」按钮 —— 自己控制 `open` 和 `index`：
+要从 `Root` 外部打开 —— 比如表格行里的「查看」按钮 —— 直接调用函数式 API：
+
+```tsx
+import { ImagePreview } from 'react-img-view/imperative'
+
+function ViewButton({ images }) {
+  return <Button onClick={() => ImagePreview.open({ images, index: 2 })}>查看第 3 张</Button>
+}
+```
+
+如果外围组件本来就需要读取或持久化打开状态和当前序号，再使用受控模式：
 
 ```tsx
 const [open, setOpen] = useState(false);
 const [index, setIndex] = useState(0);
 
 <ImageView.Root
-  images={files}
+  images={images}
   open={open}
   index={index}
   onOpenChange={setOpen}
@@ -227,7 +237,38 @@ const [index, setIndex] = useState(0);
 <Button onClick={() => { setIndex(2); setOpen(true); }}>查看第 3 张</Button>
 ```
 
-## 5. Extensions
+## 5. `renderImage`
+
+需要给大图增加 `referrerPolicy`、`srcSet` 等属性，换成自己的图片组件，或者记录
+加载成功与失败事件时，使用 `renderImage`。库会把维持尺寸、加载状态、重试和变换
+所需的 `imageProps` 交给你；最终渲染的 `<img>` 必须接收这些属性。
+
+```tsx
+const renderImage = ({ item, imageProps }) => (
+  <picture>
+    <source srcSet={`${item.src}.webp`} type="image/webp" />
+    <img
+      {...imageProps}
+      referrerPolicy="no-referrer"
+      onLoad={(event) => {
+        imageProps.onLoad?.(event)
+        analytics.track('image_loaded', { src: item.src })
+      }}
+    />
+  </picture>
+)
+
+<ImageView.Root images={images}>
+  {/* triggers */}
+  <ImageView.DefaultContent renderImage={renderImage} />
+</ImageView.Root>
+```
+
+如果要覆盖 `onLoad` 或 `onError`，应像示例一样先调用 `imageProps` 中原有的处理函数；
+直接丢掉它们会让加载状态和重试失效。同一个 `renderImage` 也可以传给单图入口
+`<ImageView>`、`ImageView.Image` 或 `ImagePreview.open()`。
+
+## 6. Extensions
 
 对于组合方式够不着的键盘行为，传一个 extension。返回 `true` 表示事件已被消费，
 内置处理会被跳过。
@@ -243,15 +284,15 @@ const pageWithSpace = {
   },
 }
 
-function Viewer({ files }) {
-  return <ImageView.Root images={files} extensions={[pageWithSpace]} />
+function Viewer({ images }) {
+  return <ImageView.Root images={images} extensions={[pageWithSpace]} />
 }
 ```
 
 指针手势继续由 Stage 中经过测试的状态机统一管理。任何需要**渲染**的东西都应该
 作为子节点放进树里；extension 是窄范围的键盘逃生口，不是一套插件系统。
 
-## 6. Labels
+## 7. Labels
 
 所有面向用户的文案都来自同一份记录。其中大多数只以 `aria-label` 的形式存在
 ——`errorTitle` 是默认界面里唯一还会显示成文字的一项。不传 `labels` 时，
@@ -259,7 +300,7 @@ function Viewer({ files }) {
 只覆盖其中一个不会影响其余。
 
 ```tsx
-<ImageView.Root images={files} labels={{ close: '关闭', download: '下载', zoomIn: '放大' }} />
+<ImageView.Root images={images} labels={{ close: '关闭', download: '下载', zoomIn: '放大' }} />
 ```
 
 简体中文建议直接按需引入完整语言包：
@@ -267,8 +308,8 @@ function Viewer({ files }) {
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
 
-function ChineseViewer({ files }) {
-  return <ImageView.Root images={files} labels={zhCN} />
+function ChineseViewer({ images }) {
+  return <ImageView.Root images={images} labels={zhCN} />
 }
 ```
 

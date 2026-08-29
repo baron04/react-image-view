@@ -1,7 +1,7 @@
 {
   "name": "react-img-view",
   "version": "0.2.1",
-  "description": "Headless-first, composable React image viewer with an optional preset: zoom, pan, pinch, rotate, fit-to-window and 1:1, built for document attachments and admin image fields.",
+  "description": "Headless-first, composable React image viewer with an optional preset: zoom, pan, pinch, rotate, fit-to-window and 1:1.",
   "homepage": "https://baron04.github.io/react-img-view",
   "repository": {
     "type": "git",
@@ -156,9 +156,7 @@
     "composable",
     "accessible",
     "a11y",
-    "typescript",
-    "attachment",
-    "document-viewer"
+    "typescript"
   ],
   "packageManager": "pnpm@10.28.1"
 }

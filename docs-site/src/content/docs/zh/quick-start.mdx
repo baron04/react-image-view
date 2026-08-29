@@ -4,7 +4,7 @@ description: 单图一行接入，多图一个组件共享预览器，需要时�
 ---
 
 import { Aside } from '@astrojs/starlight/components'
-import { SingleImageDemo, AttachmentsDemo } from '../../../components/Demo.tsx'
+import { SingleImageDemo, ImageListDemo } from '../../../components/Demo.tsx'
 
 ## 单图（L1）
 
@@ -17,10 +17,10 @@ import { ImageView } from 'react-img-view'
 import zhCN from 'react-img-view/locales/zh-CN'
 import 'react-img-view/styles.css'
 
-function ContractPreview({ file }: { file: { thumb: string; full: string; name: string } }) {
+function SingleImagePreview({ image }: { image: { thumb: string; full: string; name: string } }) {
   return (
-    <ImageView src={file.full} alt={file.name} name={file.name} labels={zhCN}>
-      <img src={file.thumb} alt={file.name} />
+    <ImageView src={image.full} alt={image.name} name={image.name} labels={zhCN}>
+      <img src={image.thumb} alt={image.name} />
     </ImageView>
   )
 }
@@ -39,13 +39,13 @@ import { ImageView } from 'react-img-view'
 import zhCN from 'react-img-view/locales/zh-CN'
 import 'react-img-view/styles.css'
 
-function Attachments({ files }: { files: { src: string; name: string }[] }) {
+function ImageList({ images }: { images: { src: string; name: string }[] }) {
   return (
-    <ImageView.Root images={files} labels={zhCN}>
+    <ImageView.Root images={images} labels={zhCN}>
       <div className="grid grid-cols-4 gap-3">
-        {files.map((file, i) => (
-          <ImageView.Trigger key={file.src} index={i} {...file}>
-            <img src={file.src} alt={file.name} className="h-24 w-full object-cover" />
+        {images.map((image, i) => (
+          <ImageView.Trigger key={image.src} index={i} {...image}>
+            <img src={image.src} alt={image.name} className="h-24 w-full object-cover" />
           </ImageView.Trigger>
         ))}
       </div>
@@ -54,7 +54,7 @@ function Attachments({ files }: { files: { src: string; name: string }[] }) {
 }
 ```
 
-<AttachmentsDemo locale="zh-CN" client:load />
+<ImageListDemo locale="zh-CN" client:load />
 
 <Aside title="知道宽高就传进去">
   `ImageItem` 可选接收 `width`/`height`。传了就能省掉一次测量往返，
@@ -63,24 +63,24 @@ function Attachments({ files }: { files: { src: string; name: string }[] }) {
 
 ### 函数式调用
 
-如果不想自己维护 `open` 和 `index`，可以直接使用函数式 API，不需要 Provider：
+如果不想自己维护 `open` 和 `index`，可以直接调用函数式 API：
 
 ```tsx
 import { ImagePreview } from 'react-img-view/imperative'
 import zhCN from 'react-img-view/locales/zh-CN'
 
-function ViewButton({ files }) {
+function ViewButton({ images }) {
   return (
-    <button onClick={() => ImagePreview.open({ images: files, index: 2, labels: zhCN })}>
+    <button onClick={() => ImagePreview.open({ images, index: 2, labels: zhCN })}>
       查看第 3 张
     </button>
   )
 }
 ```
 
-`open()` 接收图片数组和初始序号。再次调用会替换当前图片组，并返回带有
+调用时传入图片数组和初始序号。再次调用会替换当前预览，并返回带有
 `close()`、`go()`、`next()`、`prev()` 的句柄。`ImagePreview.close()` 可以关闭
-当前函数式预览；关闭后 React Root 和临时 DOM 宿主会自动清理。
+当前预览；关闭后会自动清理。
 
 函数式调用没有对应的缩略图元素，因此会直接打开预览器，不播放缩略图到大图的过渡动画。
 
@@ -93,7 +93,7 @@ const [open, setOpen] = useState(false);
 const [index, setIndex] = useState(0);
 
 <ImageView.Root
-  images={files}
+  images={images}
   open={open}
   index={index}
   onOpenChange={setOpen}
@@ -113,7 +113,7 @@ const [index, setIndex] = useState(0);
 当图片数量较多、仅靠左右箭头说明不了情况时再打开：
 
 ```tsx
-<ImageView.Root images={files}>
+<ImageView.Root images={images}>
   {/* triggers */}
   <ImageView.DefaultContent counter thumbnails />
 </ImageView.Root>
@@ -132,9 +132,9 @@ const [index, setIndex] = useState(0);
 import * as ImageView from 'react-img-view/primitives'
 import zhCN from 'react-img-view/locales/zh-CN'
 
-function CustomViewer({ files }) {
+function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={files} labels={zhCN}>
+    <ImageView.Root images={images} labels={zhCN}>
       {/* triggers */}
 
       <ImageView.Content className="riv-dialog">
@@ -176,7 +176,7 @@ function CustomViewer({ files }) {
 <Aside type="tip" title="界面文案不用写死">
   上面为了直观把中文直接写进了 JSX。实际项目里更推荐用 `Root` 的 `labels`
   统一管理所有文案，这样内置控件和你自己的控件会从同一处取词 ——
-  见[自定义](../customization/#6-labels)。
+  见[自定义](../customization/#7-labels)。
 </Aside>
 
 ## 读取预览器状态

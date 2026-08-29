@@ -56,11 +56,10 @@ const Thumb = React.forwardRef<
 })
 
 /**
- * The attachment-list case the library is actually built for: a handful of
- * files in a row, click any one to review it. This is the whole L2 API — a
- * Root, a Trigger per image, no Content written at all.
+ * A list of images sharing one viewer. This is the whole L2 API — a Root, a
+ * Trigger per image, and no Content written at all.
  */
-export function AttachmentsDemo({
+export function ImageListDemo({
   count = 4,
   locale = 'en',
 }: {

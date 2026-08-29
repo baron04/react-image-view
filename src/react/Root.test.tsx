@@ -38,6 +38,25 @@ function Triggers({ images = IMAGES }: { images?: typeof IMAGES }) {
   )
 }
 
+describe('SingleImage (L1)', () => {
+  it('forwards renderImage to the full-size image', () => {
+    render(
+      <ImageView
+        {...A}
+        renderImage={({ item, imageProps }) => (
+          <img {...imageProps} data-testid="full-size-image" data-source={item.src} />
+        )}
+      >
+        <img src={A.src} alt={A.name} data-testid="single-trigger" />
+      </ImageView>,
+    )
+
+    fireEvent.click(screen.getByTestId('single-trigger'))
+
+    expect(screen.getByTestId('full-size-image').getAttribute('data-source')).toBe(A.src)
+  })
+})
+
 describe('Root: open state', () => {
   it('is closed until a trigger is activated', () => {
     render(

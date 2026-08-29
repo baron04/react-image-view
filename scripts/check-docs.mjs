@@ -19,7 +19,22 @@ const forbidden = [
   [/<ImageView\.Trigger\s+asChild\b/, '`Trigger` does not accept `asChild`'],
   [/Every part takes `asChild`/i, 'only controls and layout regions take `asChild`'],
   [/每个部件都支持 `asChild`/, '只有控件和布局区域支持 `asChild`'],
-  [/;<ImageView\./, 'wrap JSX examples in a component instead of using a leading semicolon'],
+  [
+    /^\s*;<[A-Z]/m,
+    'wrap standalone JSX examples in a component instead of using a leading semicolon',
+  ],
+  [
+    /ImagePreviewProvider|useImagePreview/,
+    'the function API is ImagePreview.open(), not the removed Provider/Hook API',
+  ],
+  [
+    /no Provider|不需要 Provider/i,
+    'describe ImagePreview.open() directly without Provider caveats',
+  ],
+  [
+    /附件|attachments?/i,
+    'position react-img-view as a general image preview, not an attachment-specific tool',
+  ],
   [
     /pulled from the same types\.ts|与使用者引入的 types\.ts 同源/,
     'API reference is maintained and checked, not generated from types.ts',

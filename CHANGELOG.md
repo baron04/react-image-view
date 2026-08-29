@@ -27,9 +27,9 @@ checks.
 
 ### Added
 
-- **`react-img-view/imperative`** — a true `ImagePreview.open()` function that
-  lazily mounts a viewer with no Provider, returns close/navigation commands,
-  and automatically removes its React root and temporary host after closing.
+- **`react-img-view/imperative`** — an `ImagePreview.open()` function that
+  lazily mounts a viewer, returns close/navigation commands, and automatically
+  removes its React root and temporary host after closing.
 - **`ImageView.Image.renderImage`** — replace the full-size image with a
   `<picture>` or another image component while preserving the viewer's supplied
   source, sizing, loading, retry, and transform plumbing. The preset exposes the
@@ -125,7 +125,7 @@ considered unfit for production.
 - **The interface is English by default.** `0.1.x` rendered its buttons and
   every `aria-label` in Chinese regardless of the host application. If you
   were relying on that, pass the Chinese strings explicitly via `labels`; the
-  [customization guide](https://baron04.github.io/react-img-view/customization/#6-labels)
+  [customization guide](https://baron04.github.io/react-img-view/customization/#7-labels)
   has a complete example.
 - **`Trigger` now adds `role="button"` and `tabIndex` to its child** when the
   child is not already interactive. If you were styling triggers with

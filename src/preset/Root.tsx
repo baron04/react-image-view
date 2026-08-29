@@ -10,7 +10,7 @@ import { DefaultContent } from './DefaultContent'
  * Keeping this small assembly outside the primitive Root is what lets
  * `react-img-view/primitives` stay independent from the default chrome,
  * icons, error UI and future presets. Existing main-entry behaviour remains
- * unchanged: when no Content is supplied, the reviewed default is appended.
+ * unchanged: when no Content is supplied, the polished default is appended.
  */
 export function Root({ children, ...props }: ImageViewRootProps) {
   const hasContent = React.Children.toArray(children).some(

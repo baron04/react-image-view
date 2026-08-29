@@ -21,7 +21,7 @@ export interface ImagePreviewHandle {
 }
 
 export interface ImagePreviewStatic {
-  /** Open a viewer without mounting a Provider. A second call replaces it. */
+  /** Open a viewer from a function call. A second call replaces it. */
   open(options: ImagePreviewOpenOptions): ImagePreviewHandle
   /** Close the active function-style viewer, if there is one. */
   close(): void

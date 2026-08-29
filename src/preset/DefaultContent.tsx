@@ -31,16 +31,13 @@ import {
 } from './icons'
 
 export interface DefaultContentProps {
-  /** Show the position in the set — off by default; see the design decisions
-   *  doc for why: with the handful of attachments this is built for, the
-   *  arrows already say whether there is more. */
+  /** Show the position in the set. Off by default to keep the preset compact;
+   *  the arrows already show whether another image is available. */
   counter?: boolean
   /**
-   * Show the thumbnail strip. Off by default for the same reason `counter`
-   * is — this library's primary scenario is a handful of attachments, where
-   * the arrows and (optionally) the counter already say what a strip would.
-   * Pass `true` for its default `auto` behaviour, or a mode directly for
-   * `always`/`never`.
+   * Show the thumbnail strip. Off by default to keep the image area clear;
+   * enable it when a larger set benefits from direct navigation. Pass `true`
+   * for its default `auto` behaviour, or a mode directly for `always`/`never`.
    */
   thumbnails?: boolean | ThumbnailsMode
   /** Customize the actual full-size image while keeping the preset chrome. */
@@ -48,7 +45,7 @@ export interface DefaultContentProps {
 }
 
 /**
- * The reviewed, tokens-matched default UI. This is what L1 and L2 render, and
+ * The polished, tokens-matched default UI. This is what L1 and L2 render, and
  * what the copy-paste registry entry starts from — there is no private
  * assembly underneath it that a rebuild from parts could not also produce.
  *

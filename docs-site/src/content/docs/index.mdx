@@ -1,6 +1,6 @@
 ---
 title: react-img-view
-description: A headless-first React image viewer with an optional preset — zoom, pan, pinch, rotate, fit-to-window and 1:1, built for document and image review.
+description: A headless-first, composable React image viewer with a polished preset and replaceable visible parts.
 template: splash
 editUrl: false
 # No `hero:` block on purpose — Starlight's built-in hero renders a fixed
@@ -8,14 +8,14 @@ editUrl: false
 # point of this page. Declaring both would stack two hero sections.
 ---
 
-import { AttachmentsDemo } from '../../components/Demo.tsx'
+import { ImageListDemo } from '../../components/Demo.tsx'
 
 <div class="riv-landing">
 
 <section class="riv-hero">
   <p class="riv-hero__eyebrow">MIT licensed · React 18 &amp; 19 · 11.6 kB gzipped</p>
 
-<h1 class="riv-hero__title">A composable React image viewer built for document and image review</h1>
+<h1 class="riv-hero__title">A React image viewer with a polished preset and fully composable UI</h1>
 
 <p class="riv-hero__tagline">
   {
@@ -38,7 +38,7 @@ import { AttachmentsDemo } from '../../components/Demo.tsx'
 <p class="riv-demo-caption">Click any image below to try it.</p>
 
 <div class="riv-demo-panel">
-  <AttachmentsDemo client:load />
+  <ImageListDemo client:load />
 </div>
 
 <div class="riv-features">
@@ -46,7 +46,7 @@ import { AttachmentsDemo } from '../../components/Demo.tsx'
     <h2>The toolbar stays put</h2>
     <p>
       {
-        'Zoom, rotate, fit-to-window and a dedicated 1:1 control, visible the whole time. Reviewing a document is a task, not a scroll.'
+        'Zoom, rotate, fit-to-window and a dedicated 1:1 control, visible without first revealing hidden chrome.'
       }
     </p>
   </div>

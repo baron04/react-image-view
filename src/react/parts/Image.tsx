@@ -27,8 +27,8 @@ export interface ImageRenderContext {
  *
  * Neighbours stay mounted because the edge handoff needs the next image to be
  * on screen before the finger lifts — a page turn that has to wait for a mount
- * is a page turn with a hole in it. Only a small window is kept, so a folder of
- * two hundred attachments still holds three nodes.
+ * is a page turn with a hole in it. Only a small window is kept, so a set of
+ * two hundred images still holds three nodes.
  */
 export const Image = React.forwardRef<HTMLDivElement, ImageProps>(function Image(
   { overscan = 1, renderImage, style, ...rest },

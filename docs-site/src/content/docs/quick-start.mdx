@@ -5,7 +5,7 @@ description: One line for a single image, one component for a shared set, full c
 
 import { Aside } from '@astrojs/starlight/components'
 
-import { SingleImageDemo, AttachmentsDemo } from '../../components/Demo.tsx'
+import { SingleImageDemo, ImageListDemo } from '../../components/Demo.tsx'
 
 ## Single image (L1)
 
@@ -18,10 +18,10 @@ the trigger.
 import { ImageView } from 'react-img-view'
 import 'react-img-view/styles.css'
 
-function ContractPreview({ file }: { file: { thumb: string; full: string; name: string } }) {
+function SingleImagePreview({ image }: { image: { thumb: string; full: string; name: string } }) {
   return (
-    <ImageView src={file.full} alt={file.name} name={file.name}>
-      <img src={file.thumb} alt={file.name} />
+    <ImageView src={image.full} alt={image.name} name={image.name}>
+      <img src={image.thumb} alt={image.name} />
     </ImageView>
   )
 }
@@ -34,19 +34,19 @@ function ContractPreview({ file }: { file: { thumb: string; full: string; name: 
 `Root` collects every `Trigger` beneath it into one set. Clicking any one
 opens the viewer positioned on that image, with arrow keys and swipe moving
 between the rest. No `Content` is written here — `Root` supplies the same
-reviewed default UI itself.
+polished default UI itself.
 
 ```tsx
 import { ImageView } from 'react-img-view'
 import 'react-img-view/styles.css'
 
-function Attachments({ files }: { files: { src: string; name: string }[] }) {
+function ImageList({ images }: { images: { src: string; name: string }[] }) {
   return (
-    <ImageView.Root images={files}>
+    <ImageView.Root images={images}>
       <div className="grid grid-cols-4 gap-3">
-        {files.map((file, i) => (
-          <ImageView.Trigger key={file.src} index={i} {...file}>
-            <img src={file.src} alt={file.name} className="h-24 w-full object-cover" />
+        {images.map((image, i) => (
+          <ImageView.Trigger key={image.src} index={i} {...image}>
+            <img src={image.src} alt={image.name} className="h-24 w-full object-cover" />
           </ImageView.Trigger>
         ))}
       </div>
@@ -55,7 +55,7 @@ function Attachments({ files }: { files: { src: string; name: string }[] }) {
 }
 ```
 
-<AttachmentsDemo client:load />
+<ImageListDemo client:load />
 
 <Aside title="Pass width and height when you know them">
   `ImageItem` takes optional `width`/`height`. Supplying them skips a measurement round-trip, so the
@@ -65,20 +65,20 @@ function Attachments({ files }: { files: { src: string; name: string }[] }) {
 ### Imperative API
 
 Use the imperative API when you do not want to manage `open` and `index`
-yourself. It is a direct function call; no Provider is required:
+yourself:
 
 ```tsx
 import { ImagePreview } from 'react-img-view/imperative'
 
-function ViewButton({ files }) {
-  return <button onClick={() => ImagePreview.open({ images: files, index: 2 })}>View file 3</button>
+function ViewButton({ images }) {
+  return <button onClick={() => ImagePreview.open({ images, index: 2 })}>View image 3</button>
 }
 ```
 
-`open()` receives the images and initial index. Calling it again replaces the
-current image set. It returns a handle with `close()`, `go()`, `next()`, and
+Pass the images and initial index to `open()`. Calling it again replaces the
+current viewer. It returns a handle with `close()`, `go()`, `next()`, and
 `prev()`; `ImagePreview.close()` closes whichever function-style viewer is
-active. Closing unmounts the React root and removes its temporary DOM host.
+active. The viewer cleans itself up after closing.
 
 An imperative call has no corresponding thumbnail element, so the viewer opens
 directly without the thumbnail-to-image transition.
@@ -94,7 +94,7 @@ const [open, setOpen] = useState(false);
 const [index, setIndex] = useState(0);
 
 <ImageView.Root
-  images={files}
+  images={images}
   open={open}
   index={index}
   onOpenChange={setOpen}
@@ -104,7 +104,7 @@ const [index, setIndex] = useState(0);
 </ImageView.Root>
 
 <Button onClick={() => { setIndex(2); setOpen(true); }}>
-  View file 3
+  View image 3
 </Button>
 ```
 
@@ -115,7 +115,7 @@ Both are off by default — see
 for a longer set, where the arrows alone do not say enough:
 
 ```tsx
-<ImageView.Root images={files}>
+<ImageView.Root images={images}>
   {/* triggers */}
   <ImageView.DefaultContent counter thumbnails />
 </ImageView.Root>
@@ -133,9 +133,9 @@ That is the boundary it checks before deciding whether to append the preset.
 ```tsx
 import * as ImageView from 'react-img-view/primitives'
 
-function CustomViewer({ files }) {
+function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={files}>
+    <ImageView.Root images={images}>
       {/* triggers */}
 
       <ImageView.Content className="riv-dialog">

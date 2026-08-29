@@ -22,7 +22,7 @@ export function orientedSize(natural: Size, rotation: number): Size {
 /**
  * The scale at which the image just fits inside the stage.
  *
- * Capped at 1 by default: in a review context, blowing a small screenshot up
+ * Capped at 1 by default: in an image preview, blowing a small image up
  * past its own resolution only invents blur. Pass `allowUpscale` for gallery
  * use where filling the stage matters more than fidelity.
  */
@@ -67,7 +67,11 @@ export function renderedSize(natural: Size, t: Transform): Size {
  * Zoom while holding one point fixed under the cursor or the pinch midpoint.
  * `origin` is in stage coordinates, relative to the stage centre.
  */
-export function zoomAbout(t: Transform, nextScale: number, origin: { x: number; y: number }): Transform {
+export function zoomAbout(
+  t: Transform,
+  nextScale: number,
+  origin: { x: number; y: number },
+): Transform {
   const ratio = nextScale / t.scale
   return {
     ...t,

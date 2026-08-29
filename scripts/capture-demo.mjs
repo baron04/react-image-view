@@ -101,11 +101,11 @@ await page.waitForTimeout(800);
 await page.click('[data-image-view-control="fit"]');
 await page.waitForTimeout(650);
 
-// 5. Rotate, because scanned attachments arrive sideways constantly.
+// 5. Rotate the current image.
 await page.click('[data-image-view-control="rotate-right"]');
 await page.waitForTimeout(850);
 
-// 6. Page to the next attachment and back.
+// 6. Page to the next image and back.
 await page.click('[data-image-view-control="next"]');
 await page.waitForTimeout(950);
 await page.click('[data-image-view-control="next"]');

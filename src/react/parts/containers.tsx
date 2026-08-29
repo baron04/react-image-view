@@ -51,9 +51,8 @@ export interface CounterProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
 /**
  * Position in the set.
  *
- * Not part of any preset: with the handful of attachments this is built for,
- * the arrows already say whether there is more. Drop it in for the galleries
- * where "how many left" is a real question.
+ * Not part of the preset by default: the arrows already say whether there is
+ * more. Drop it in when the image set benefits from an explicit position.
  */
 export const Counter = React.forwardRef<HTMLDivElement, CounterProps>(function Counter(
   { asChild, children, ...rest },
@@ -64,7 +63,9 @@ export const Counter = React.forwardRef<HTMLDivElement, CounterProps>(function C
   const state = { index: api.index, total: api.total }
   return (
     <Comp {...rest} ref={ref} data-image-view-counter="">
-      {typeof children === 'function' ? children(state) : (children ?? `${api.index + 1} / ${api.total}`)}
+      {typeof children === 'function'
+        ? children(state)
+        : (children ?? `${api.index + 1} / ${api.total}`)}
     </Comp>
   )
 })
