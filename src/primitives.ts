@@ -57,7 +57,7 @@ export {
 }
 
 export { useViewer, useLabels } from './react/context'
-export { en, defaultLabels } from './labels'
+export { en } from './labels'
 export { Slot, composeRefs } from './react/slot'
 export type {
   ImageItem,

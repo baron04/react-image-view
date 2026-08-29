@@ -80,6 +80,15 @@ the `cover`/`contain` crop — none of these are visible to a `data-state`
 assertion. `e2e/visual.spec.ts` holds the baselines; update them deliberately
 with `pnpm e2e e2e/visual.spec.ts --update-snapshots` and look at the diff.
 
+Baselines are per-platform — Playwright suffixes them, so `-darwin.png` and
+`-linux.png` sit side by side and neither invalidates the other. CI has a
+`visual` job that reports and skips while no `-linux.png` files are
+committed, and starts enforcing them the moment they are. Generate them by
+running the **Visual baselines** workflow from the Actions tab, unzipping
+its artifact over `e2e/`, reviewing the images, and committing them. Until
+that happens, the visual suite is only as good as the last person who ran it
+locally — so run it locally before a release.
+
 ## Gesture feel
 
 Every constant that shapes how the viewer feels — the distance a pan must
@@ -112,8 +121,10 @@ the change is right, especially when the reason is not obvious from the diff —
 most of this codebase's comments exist because someone would otherwise
 reasonably undo the thing they describe.
 
-Releases: bump `version` in `package.json`, update `CHANGELOG.md`, merge, then
-run the **Release** workflow from the Actions tab. It lints, typechecks,
+Releases: run `pnpm e2e --project=visual` locally and look at what it renders
+(CI only enforces this once Linux baselines are committed — see above), bump
+`version` in `package.json`, update `CHANGELOG.md`, merge, then run the
+**Release** workflow from the Actions tab. It lints, typechecks,
 unit-tests, builds, runs the e2e suite, refuses to republish a version that
 already exists, publishes to npm with provenance, tags the commit, and opens
 a GitHub release. It defaults to a dry run — untick it to publish for real.

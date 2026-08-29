@@ -16,12 +16,13 @@ export default defineConfig({
    * Screenshot baselines are platform-specific — font rasterisation and
    * scrollbar metrics differ enough between macOS and Linux that a macOS
    * baseline fails on a Linux runner for reasons that have nothing to do with
-   * the change under test. The committed baselines are `-darwin`, so CI runs
-   * `--project=functional` only.
+   * the change under test.
    *
-   * To put the visual suite in CI, generate Linux baselines from a runner
-   * (or the matching Playwright container) and commit those alongside; the
-   * split here is what makes that possible without touching the specs.
+   * Playwright suffixes snapshots with the platform, so `-linux.png` files
+   * can be committed next to the `-darwin.png` ones without either
+   * invalidating the other. CI runs the two projects as separate jobs: the
+   * functional one always, and the visual one as soon as Linux baselines
+   * exist. See `.github/workflows/visual-baselines.yml` for generating them.
    */
   projects: [
     {

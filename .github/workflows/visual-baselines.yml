@@ -1,0 +1,49 @@
+name: Visual baselines
+
+# Run once, by hand, to produce the Linux screenshot baselines the `visual`
+# job in ci.yml waits for. It uploads them as an artifact rather than
+# committing on its own: a baseline is an assertion about how the UI should
+# look, and that belongs in a commit somebody reviewed.
+#
+# Download the artifact, unzip it over `e2e/`, look at the PNGs, and commit
+# them. From then on ci.yml enforces them on every push.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright's browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Playwright reports a run that had to write a snapshot as failed, which
+      # is the correct default and the wrong one here — writing them is the
+      # entire point of this workflow.
+      - name: Write the baselines
+        continue-on-error: true
+        run: pnpm e2e --project=visual --update-snapshots
+
+      - name: Upload them for review
+        uses: actions/upload-artifact@v5
+        with:
+          name: linux-visual-baselines
+          path: e2e/**/*-linux.png
+          if-no-files-found: error
+          retention-days: 7

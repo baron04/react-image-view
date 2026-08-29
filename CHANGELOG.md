@@ -3,6 +3,33 @@
 Notable changes to `react-img-view`. Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Preparation for 1.0: the deprecated export is gone, and what the project
+promises — which browsers, which runtimes — is written down rather than
+implied.
+
+### Breaking
+
+- **`defaultLabels` is no longer exported.** It has been a deprecated alias
+  for `en` since 0.2.0. Import `en` from `react-img-view` or
+  `react-img-view/primitives`.
+
+### Added
+
+- A stated compatibility floor. The published JavaScript needs Chrome 80,
+  Firefox 98, and Safari 15.4 (`<dialog>.showModal()`, Pointer Events,
+  `ResizeObserver`, ES2020); the preset stylesheet raises that to Chrome 111,
+  Firefox 113, and Safari 16.2 because of CSS `color-mix()`. Composing from
+  `react-img-view/primitives` keeps the lower floor.
+- **Server rendering and Next.js** documentation — why the `"use client"`
+  banner is enough inside a Server Component tree, that no `document` access
+  happens during render, and why `labels` must not be derived from anything
+  only the browser knows.
+- A `visual` CI job that skips while no Linux screenshot baselines are
+  committed and enforces them as soon as they are, plus a **Visual baselines**
+  workflow that generates them for review.
+
 ## [0.3.0] — 2026-08-30
 
 This release separates the preset from the headless entry, makes localisation

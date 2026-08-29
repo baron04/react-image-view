@@ -20,9 +20,6 @@ export const en: ViewerLabels = {
   loading: 'Loading',
 }
 
-/** @deprecated Use `en`. Kept so existing imports keep working. */
-export const defaultLabels = en
-
 export function mergeLabels(base: ViewerLabels, overrides?: Partial<ViewerLabels>): ViewerLabels {
   return overrides ? { ...base, ...overrides } : base
 }

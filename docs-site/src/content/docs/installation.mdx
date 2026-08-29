@@ -5,9 +5,45 @@ description: Add the package, and optionally its preset styles.
 
 ## Requirements
 
-React 18 or 19, and a browser environment — the package renders
-`"use client"` and needs `document` at runtime. SSR is fine; nothing runs
-until the viewer actually mounts.
+React 18 or 19, and a browser. The published JavaScript targets ES2020 and
+relies on `<dialog>.showModal()`, Pointer Events, and `ResizeObserver`,
+which puts the floor at Chrome 80, Firefox 98, and Safari 15.4. Importing
+the preset stylesheet raises that to Chrome 111, Firefox 113, and Safari
+16.2 — the toolbar surface uses CSS `color-mix()`. Compose your own UI from
+`react-img-view/primitives` and the lower floor applies.
+
+Server rendering is fine; nothing runs until the viewer actually mounts.
+See [Server rendering and Next.js](#server-rendering-and-nextjs) below.
+
+## Server rendering and Next.js
+
+The React entries are published with a `"use client"` banner, so importing
+them inside a Server Component tree is enough — Next.js treats the import
+as a client boundary, and you do not need a wrapper module of your own.
+
+Nothing reaches `document` during render. The portal target (`container`,
+defaulting to `document.body`) is read only after the viewer has mounted
+and opened, so a server render emits no dialog markup at all.
+
+Labels are the one thing to set deliberately. `Root` falls back to fixed
+English strings rather than reading `navigator.language`, so server and
+hydrated markup always agree. Choose another language explicitly, with a
+value that is identical on both sides:
+
+```tsx
+import { ImageView } from 'react-img-view'
+import zhCN from 'react-img-view/locales/zh-CN'
+import 'react-img-view/styles.css'
+
+export default function Gallery({ images }: { images: { src: string; name: string }[] }) {
+  return <ImageView.Root images={images} labels={zhCN} />
+}
+```
+
+Deriving `labels` from something only the browser knows — the user agent's
+language, a value in `localStorage` — renders different text on the two
+sides and React will warn about it. Read the choice from the request
+instead: a cookie, or a locale segment in the route.
 
 ## Install
 
