@@ -6,14 +6,15 @@
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/react-img-view)](https://bundlephobia.com/package/react-img-view)
 [![license](https://img.shields.io/npm/l/react-img-view.svg)](LICENSE)
 
-A headless-first, composable **React image viewer** / image preview / lightbox
-with an optional polished preset. Zoom, pan, pinch, rotate, fit-to-window and
-1:1, keyboard shortcuts, and touch gestures, with every visible part
-replaceable.
+A **React image viewer** that works out of the box without locking you into its UI.
 
-**[Documentation](https://baron04.github.io/react-img-view/)** ·
-[Quick Start](https://baron04.github.io/react-img-view/quick-start/) ·
-[API Reference](https://baron04.github.io/react-img-view/api-reference/)
+react-img-view keeps gestures, animation, and state management inside the library while exposing the interface as composable headless parts. Start with the polished preset, then replace buttons, images, or the entire layout without reimplementing zoom and gesture handling.
+
+- **Complete interactions:** zoom, pan, pinch, rotate, fit-to-window, 1:1, keyboard shortcuts, and touch gestures.
+- **Headless and composable:** `Root`, `Content`, `Stage`, `Image`, and every control can be composed directly.
+- **Flexible integration:** single image, shared viewer, controlled state, or the function-style API.
+
+**[Documentation](https://baron04.github.io/react-img-view/)** · [Quick Start](https://baron04.github.io/react-img-view/quick-start/) · [API Reference](https://baron04.github.io/react-img-view/api-reference/)
 
 ```bash
 npm install react-img-view
@@ -32,23 +33,13 @@ function ImagePreviewExample({ image }) {
 }
 ```
 
-One line for a single image, one component for a shared gallery, full
-composition when you need it — see the
-[docs](https://baron04.github.io/react-img-view/quick-start/) for all
-three.
+Use one line for a single image, share one viewer across a set, and expand into full composition only when needed. See the [Quick Start](https://baron04.github.io/react-img-view/quick-start/) for each form.
 
-For function-style use, import `ImagePreview` from
-`react-img-view/imperative` and call `ImagePreview.open({ images, index })`.
-The viewer cleans itself up after closing.
+For function-style use, import `ImagePreview` from `react-img-view/imperative` and call `ImagePreview.open({ images, index })`. The viewer cleans itself up after closing.
 
-The main entry is **11.6 kB gzip**. For custom chrome, import headless parts
-from `react-img-view/primitives` (**10.4 kB gzip**); low-level transforms and
-the gesture state machine live at `react-img-view/core` and tree-shake down
-to about **0.5 kB** when one helper is used. The minified CSS preset is
-**1.7 kB gzip**. CI enforces these budgets.
+The main entry is **11.6 kB gzip**. For custom chrome, import headless parts from `react-img-view/primitives` (**10.4 kB gzip**); low-level transforms and the gesture state machine live at `react-img-view/core` and tree-shake down to about **0.5 kB** when one helper is used. The minified CSS preset is **1.7 kB gzip**. CI enforces these budgets.
 
-English labels are deterministic by default. Choose another language
-explicitly so server and hydrated markup always agree:
+English labels are deterministic by default. Choose another language explicitly so server and hydrated markup always agree:
 
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
@@ -62,43 +53,20 @@ function ChineseViewer({ images }) {
 
 ## Why
 
-Many React image viewers lean toward gallery browsing — fading chrome,
-autoplay, swipe-anything-to-dismiss. react-img-view focuses on a general image
-preview that fits into product interfaces: the toolbar stays visible, there's
-a dedicated **1:1** control, pinch zoom hands off to the next slide
-mid-gesture instead of stuttering, and swipe-to-dismiss only responds to touch
-so a mouse drag never closes the viewer by accident. The reasoning behind every default is written up in
-[Design & Registry](https://baron04.github.io/react-img-view/design-and-registry/).
+The hard part of an image viewer is rarely adding zoom. It is keeping the viewer adaptable when the toolbar moves, controls must use an existing design system, the image needs application-specific behavior, or the whole layout changes. A monolithic component tends to answer each request with another prop or another CSS override.
 
-## Two ways to get the look
+react-img-view separates behavior from presentation. The library owns zoom, gestures, animation, keyboard input, focus, and loading state; the application owns what gets rendered. Even the preset is assembled from the same public parts, so the one-line API and a fully custom UI share one implementation. See [Design & Registry](https://baron04.github.io/react-img-view/design-and-registry/) for the decisions behind the defaults.
 
-A CSS preset (`react-img-view/styles.css`, works anywhere) or a
-Tailwind-classed [shadcn registry block](registry/) you install as real,
-editable source — same design, same tokens, your choice of distribution.
+## Choose your UI layer
 
-## Known limitation
+- **Built-in preset:** import `react-img-view/styles.css` and use the complete default interface.
+- **shadcn registry:** install the [Tailwind-styled source](registry/) and edit its JSX and classes in your project.
+- **Headless primitives:** import from `react-img-view/primitives` and compose the interface yourself.
 
-Every gesture constant — how far a pan has to overshoot before it hands off
-to the pager, how hard a flick decays, the trackpad pinch rate — lives in
-[`src/core/tuning.ts`](src/core/tuning.ts). It's been exercised hard in
-simulation (replayed pointer-event sequences in unit tests, synthetic
-touch/pinch dispatched through a real browser, mobile-width and
-touch-emulated viewports) and has now had one real-device pass on an actual
-phone, with no issues reported — pinch, pan-to-page handoff, and
-pull-to-dismiss all felt right. That's one device, not a matrix; latency,
-screen size, and finger friction vary enough across hardware that this is
-still worth trying on whatever you're carrying. If a gesture feels wrong,
-`tuning.ts` is the one file to open — a PR changing a number there, with
-what device it was felt on, is exactly the kind of contribution this needs.
+All three share the same state, gestures, and animation behavior. Only the owner of the presentation layer changes.
 
 ## Contributing
 
-Dev setup, repo layout, and the release process are in
-[CONTRIBUTING.md](CONTRIBUTING.md) — including two testing rules this
-codebase learned the hard way, both from bugs that reached npm.
+Dev setup, repo layout, and the release process are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Release history is in [CHANGELOG.md](CHANGELOG.md).
-
-## License
-
-MIT — see [LICENSE](LICENSE).
