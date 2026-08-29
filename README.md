@@ -55,7 +55,7 @@ function ChineseViewer({ images }) {
 
 The hard part of an image viewer is rarely adding zoom. It is keeping the viewer adaptable when the toolbar moves, controls must use an existing design system, the image needs application-specific behavior, or the whole layout changes. A monolithic component tends to answer each request with another prop or another CSS override.
 
-react-img-view separates behavior from presentation. The library owns zoom, gestures, animation, keyboard input, focus, and loading state; the application owns what gets rendered. Even the preset is assembled from the same public parts, so the one-line API and a fully custom UI share one implementation. See [Design & Registry](https://baron04.github.io/react-img-view/design-and-registry/) for the decisions behind the defaults.
+react-img-view separates behavior from presentation. The library owns zoom, gestures, animation, keyboard input, focus, and loading state; the application owns what gets rendered. Even the preset is assembled from the same public parts, so the one-line API and a fully custom UI share one implementation.
 
 ## Choose your UI layer
 
@@ -64,6 +64,10 @@ react-img-view separates behavior from presentation. The library owns zoom, gest
 - **Headless primitives:** import from `react-img-view/primitives` and compose the interface yourself.
 
 All three share the same state, gestures, and animation behavior. Only the owner of the presentation layer changes.
+
+## Compatibility
+
+React 18 or 19, and a browser. The published JavaScript targets ES2020 and relies on `<dialog>.showModal()`, Pointer Events, and `ResizeObserver`, which puts the floor at **Chrome 80, Firefox 98, Safari 15.4**. Importing the preset stylesheet raises it to **Chrome 111, Firefox 113, Safari 16.2**, because the toolbar surface uses CSS `color-mix()`; compose your own UI from `react-img-view/primitives` and the lower floor applies.
 
 ## Contributing
 

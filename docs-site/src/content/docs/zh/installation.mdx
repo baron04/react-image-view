@@ -5,8 +5,42 @@ description: 安装依赖包，并按需选择样式方案。
 
 ## 环境要求
 
-React 18 或 19，以及浏览器环境 —— 包以 `"use client"` 发布，运行时需要
-`document`。SSR 没有问题：在预览器真正挂载之前，不会执行任何东西。
+React 18 或 19，以及浏览器环境。发布的 JavaScript 以 ES2020 为目标，依赖
+`<dialog>.showModal()`、Pointer Events 和 `ResizeObserver`，因此下限是
+Chrome 80、Firefox 98、Safari 15.4。引入预设样式表会把下限抬到 Chrome 111、
+Firefox 113、Safari 16.2 —— 工具栏的表面色用了 CSS `color-mix()`。
+从 `react-img-view/primitives` 自行组合界面，则仍适用较低的那条线。
+
+服务端渲染没有问题：在预览器真正挂载之前，不会执行任何东西。
+详见下面的[服务端渲染与 Next.js](#服务端渲染与-nextjs)。
+
+## 服务端渲染与 Next.js
+
+React 部分的入口都带 `"use client"` 发布，所以直接在 Server Component
+树里引入就够了 —— Next.js 会把这次引入当作 client 边界，你不需要再自己
+包一层。
+
+渲染过程中不会碰到 `document`。portal 的目标（`container`，默认
+`document.body`）只在预览器挂载并打开之后才读取，因此服务端渲染根本不会
+输出 dialog 的任何标记。
+
+需要你主动做决定的只有文案。`Root` 回退到固定的英文默认值，而不是去读
+`navigator.language`，这样服务端输出和 hydration 结果永远一致。要换语言就
+显式传入，而且传的值在两端必须相同：
+
+```tsx
+import { ImageView } from 'react-img-view'
+import zhCN from 'react-img-view/locales/zh-CN'
+import 'react-img-view/styles.css'
+
+export default function Gallery({ images }: { images: { src: string; name: string }[] }) {
+  return <ImageView.Root images={images} labels={zhCN} />
+}
+```
+
+如果 `labels` 取自只有浏览器才知道的东西 —— 浏览器语言、`localStorage`
+里的值 —— 两端渲染出的文字就会不一样，React 会报 hydration 警告。请改为
+从请求里取：一个 cookie，或者路由里的语言段。
 
 ## 安装
 

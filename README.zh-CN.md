@@ -55,7 +55,7 @@ function ChineseViewer({ images }) {
 
 图片预览真正难维护的，通常不是“能不能放大”，而是需求变化之后还能不能改：工具栏要换位置，按钮要接入现有设计系统，图片要增加业务属性，或者整个布局都要重排。传统的一体式组件往往只能继续增加配置项，最后变成覆盖样式或修改源码。
 
-react-img-view 把行为和界面分开：库负责缩放、手势、动画、键盘、焦点与加载状态，应用决定最终渲染什么。默认界面本身也由公开部件组合而成，因此从一行接入到完全自定义，用的始终是同一套能力。更多设计取舍见 [设计与 Registry](https://baron04.github.io/react-img-view/zh/design-and-registry/)。
+react-img-view 把行为和界面分开：库负责缩放、手势、动画、键盘、焦点与加载状态，应用决定最终渲染什么。默认界面本身也由公开部件组合而成，因此从一行接入到完全自定义，用的始终是同一套能力。
 
 ## 选择合适的界面方案
 
@@ -65,9 +65,12 @@ react-img-view 把行为和界面分开：库负责缩放、手势、动画、�
 
 三种方式共享同一套状态、手势和动画实现，区别只在界面由谁维护。
 
+## 兼容性
+
+React 18 或 19，以及浏览器环境。发布的 JavaScript 以 ES2020 为目标，依赖 `<dialog>.showModal()`、Pointer Events 和 `ResizeObserver`，因此下限是 **Chrome 80、Firefox 98、Safari 15.4**。引入预设样式表会把下限抬到 **Chrome 111、Firefox 113、Safari 16.2** —— 工具栏的表面色用了 CSS `color-mix()`；从 `react-img-view/primitives` 自行组合界面，则仍适用较低的那条线。
+
 ## 参与贡献
 
 开发环境搭建、仓库目录结构、发布流程都写在 [CONTRIBUTING.md](CONTRIBUTING.md) 里（英文）。
 
 版本历史见 [CHANGELOG.md](CHANGELOG.md)（英文）。
-
