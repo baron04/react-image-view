@@ -6,7 +6,7 @@ description: 单图一行接入，多图一个组件共享预览器，需要时�
 import { Aside } from '@astrojs/starlight/components'
 import { SingleImageDemo, ImageListDemo } from '../../../components/Demo.tsx'
 
-## 单图（L1）
+## 单图
 
 包裹任意元素即可 —— 缩略图可以是原生 `<img>`、`next/image`、`<picture>`，
 或者你自己设计系统里的组件。`ImageView` 只负责挂上行为和 `ref`，
@@ -28,7 +28,7 @@ function SingleImagePreview({ image }: { image: { thumb: string; full: string; n
 
 <SingleImageDemo locale="zh-CN" client:load />
 
-## 多图共享一个预览器（L2）
+## 多图共享一个预览器
 
 `Root` 会把它下面所有的 `Trigger` 收集成一组。点击任意一个都会打开预览器并定位到那张图，
 方向键和滑动可以在其余图片之间切换。这里没有写 `Content` ——
@@ -61,7 +61,19 @@ function ImageList({ images }: { images: { src: string; name: string }[] }) {
   第一帧直接按正确尺寸绘制，而不是画完再修正。
 </Aside>
 
-### 函数式调用
+### 打开计数器或缩略图轨
+
+两者默认都关闭：图片不多时，左右箭头已经足够说明位置。
+当图片数量较多、仅靠箭头说明不了情况时再打开：
+
+```tsx
+<ImageView.Root images={images}>
+  {/* triggers */}
+  <ImageView.DefaultContent counter thumbnails />
+</ImageView.Root>
+```
+
+## 函数式调用
 
 如果不想自己维护 `open` 和 `index`，可以直接调用函数式 API：
 
@@ -84,9 +96,10 @@ function ViewButton({ images }) {
 
 函数式调用没有对应的缩略图元素，因此会直接打开预览器，不播放缩略图到大图的过渡动画。
 
-### 受控的打开状态
+## 受控的打开状态
 
-如果周围组件本来就需要持有打开状态和当前序号，仍然可以自己控制 `open` 和 `index`：
+从应用里的任何地方打开预览器 —— 比如表格行里的「查看」按钮 —— 自己控制
+`open` 和 `index` 就行。当外围组件本来就需要持有这两个值时，优先用这种形式：
 
 ```tsx
 const [open, setOpen] = useState(false);
@@ -107,19 +120,7 @@ const [index, setIndex] = useState(0);
 </Button>
 ```
 
-### 打开计数器或缩略图轨
-
-两者默认都关闭 —— 原因见[设计决策](../design-and-registry/)。
-当图片数量较多、仅靠左右箭头说明不了情况时再打开：
-
-```tsx
-<ImageView.Root images={images}>
-  {/* triggers */}
-  <ImageView.DefaultContent counter thumbnails />
-</ImageView.Root>
-```
-
-## 完全组合（L3）
+## 完全组合
 
 用 `DefaultContent` 所使用的同一批部件，自己拼出界面。控件和布局区域支持
 `asChild`，`Trigger` 始终直接复用自己的子元素；每个控件都会暴露

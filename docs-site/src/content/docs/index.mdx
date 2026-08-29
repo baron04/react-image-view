@@ -1,6 +1,6 @@
 ---
 title: react-img-view
-description: A headless-first, composable React image viewer with a polished preset and replaceable visible parts.
+description: A headless-first, composable React image viewer — zoom, pan, pinch, rotate, fit-to-window and 1:1 are handled by the library, and every part of the interface can be replaced.
 template: splash
 editUrl: false
 # No `hero:` block on purpose — Starlight's built-in hero renders a fixed
@@ -13,13 +13,13 @@ import { ImageListDemo } from '../../components/Demo.tsx'
 <div class="riv-landing">
 
 <section class="riv-hero">
-  <p class="riv-hero__eyebrow">MIT licensed · React 18 &amp; 19 · 11.6 kB gzipped</p>
+  <p class="riv-hero__eyebrow">{'MIT licensed · React 18 & 19 · No runtime dependencies'}</p>
 
-<h1 class="riv-hero__title">A React image viewer with a polished preset and fully composable UI</h1>
+<h1 class="riv-hero__title">Headless, composable React image viewer</h1>
 
 <p class="riv-hero__tagline">
   {
-    'Start with the polished preset, or replace the entire shell. Zoom, pan, pinch, rotate, fit-to-window and 1:1 are already handled.'
+    'Zoom, pan, pinch, rotate, fit-to-window and 1:1 are handled by the library. The default UI is ready to use — and it is assembled entirely from exported parts, so any of it can be replaced with your own.'
   }
 </p>
 
@@ -35,7 +35,9 @@ import { ImageListDemo } from '../../components/Demo.tsx'
   <code class="riv-install">npm install react-img-view</code>
 </section>
 
-<p class="riv-demo-caption">Click any image below to try it.</p>
+<p class="riv-demo-caption">
+  {'Open any image below: scroll to zoom at the cursor, drag to pan, arrow keys to page.'}
+</p>
 
 <div class="riv-demo-panel">
   <ImageListDemo client:load />
@@ -43,34 +45,34 @@ import { ImageListDemo } from '../../components/Demo.tsx'
 
 <div class="riv-features">
   <div class="riv-feature">
-    <h2>The toolbar stays put</h2>
+    <h2>Interaction: the hard parts are done</h2>
     <p>
       {
-        'Zoom, rotate, fit-to-window and a dedicated 1:1 control, visible without first revealing hidden chrome.'
+        'Wheel zoom always tracks the cursor, and a drag that runs out of room pages to the next image mid-gesture. Pinch, swipe-to-dismiss and rotate are tuned to feel native — the parts most libraries either skip or get subtly wrong.'
       }
     </p>
   </div>
   <div class="riv-feature">
-    <h2>Gestures that hand off</h2>
+    <h2>Integration: several ways to plug it in</h2>
     <p>
       {
-        'Pinch to zoom, drag to pan, and a drag that runs out of room pages to the next image mid-gesture — no stutter at the boundary.'
+        'Single image, image sets, and a function call are all supported. The interface is your choice: the CSS preset, the shadcn source, or something you compose yourself.'
       }
     </p>
   </div>
   <div class="riv-feature">
-    <h2>Nothing you cannot replace</h2>
+    <h2>Customization: deep customization through composable design</h2>
     <p>
-      {'Every part is exported, every control takes '}
-      <code>asChild</code>
-      {', and state ships as data-attributes. Restyle it, reorder it, or rebuild the whole shell.'}
+      {
+        'Toolbar, buttons, title and thumbnail strip are separate parts you can add, remove, reorder, or swap for components from your own design system. The default UI is put together the same way.'
+      }
     </p>
   </div>
   <div class="riv-feature">
-    <h2>Careful about input</h2>
+    <h2>Engineering: production is the default bar</h2>
     <p>
       {
-        'Swipe-to-dismiss responds to touch and pen only, so a mouse drag never closes the viewer by accident. Full keyboard support throughout.'
+        'No runtime dependencies, fully typed, React 18 and 19. Focus management, screen-reader labels, retry on load failure, SSR safety, and swipe-to-dismiss that answers touch and pen only — design goals here, not patches added later.'
       }
     </p>
   </div>

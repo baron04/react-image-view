@@ -1,65 +1,30 @@
 ---
 title: API 文档
-description: 完整说明公开部件与属性，并用可编译示例持续校验实际发布的 TypeScript API。
+description: 完整说明公开的部件与属性，所有示例都经过编译校验，与实际发布的 TypeScript API 保持一致。
 ---
 
-## `ImageView`
+按引入方式分组：组件、钩子、类型，以及独立发布的入口。
 
-它本身可调用（即 L1 入口），同时把每个部件挂成静态属性 ——
-`ImageView.Root`、`ImageView.Trigger` 等等。如果你不想引入整个命名空间，
-`Root`、`Trigger` 这些也都有具名导出。
+## 组件
 
-自定义界面时，可以从 `react-img-view/primitives` 引入同一批语义部件。这个入口的
-`Root` 是纯 headless 的，不会自动注入 `DefaultContent`，因此默认外观和图标不会
-进入该入口。与框架无关的引擎位于 `react-img-view/core`。
+### `ImageView`
 
-## `<ImageView src alt>`
+它本身可以作为单图入口调用，同时把各个部件挂为静态属性 ——
+`ImageView.Root`、`ImageView.Trigger` 等等。不想引入整个命名空间的话，
+`Root`、`Trigger` 等部件也都有独立的具名导出。
 
-L1。属性是 `ImageItem`（见下）加上 `children: ReactElement`（触发元素），
+自定义界面时，可以从 primitives 入口引入同一批语义部件 —— 见[其它入口](#其它入口)。
+
+### `<ImageView src alt>`
+
+单图入口。属性是 [`ImageItem`](#imageitem) 加上 `children: ReactElement`（触发元素），
 会转发给 `Root` 的 `container` 和 `labels`，以及用于替换大图的 `renderImage`。
 
-## 函数式调用
-
-从 `react-img-view/imperative` 引入 `ImagePreview`。这个独立入口不会增加
-常规入口的体积：
-
-```tsx
-import { ImagePreview } from 'react-img-view/imperative'
-
-const viewer = ImagePreview.open({ images, index: 0 })
-viewer.go(2)
-viewer.next()
-viewer.prev()
-viewer.close()
-```
-
-`open()` 接收包含 `images: ImageItem[]` 和可选初始序号的配置对象。再次调用会替换当前预览；
-传入空数组时不会打开，序号越界时会自动调整到有效范围。无论通过句柄、预设
-关闭按钮还是 Escape 关闭，预览器都会自动清理。请只在点击事件、Effect 等浏览器环境中调用。
-
-| `open()` 参数                         | 类型                                       | 默认值  |                                                 |
-| ------------------------------------- | ------------------------------------------ | ------- | ----------------------------------------------- |
-| `images`                              | `ImageItem[]`                              | —       | 要打开的图片。                                  |
-| `index`                               | `number`                                   | `0`     | 初始序号，越界时自动调整。                      |
-| `content`                             | `ReactNode`                                | 预设    | 用 `ImageView.Content` 等部件组合的自定义界面。 |
-| `counter`                             | `boolean`                                  | `false` | 是否显示预设计数器。                            |
-| `thumbnails`                          | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | 是否显示预设缩略图轨。                          |
-| `renderImage`                         | 函数                                       | —       | 与 `ImageView.Image` 相同的图片渲染函数。       |
-| `container` / `extensions` / `labels` | 与 `Root` 相同                             | —       | 转发给内部托管的 `Root`。                       |
-
-返回的句柄只控制这次调用创建的预览；之后再次 `open()` 时，旧句柄不会误操作新预览。
-`ImagePreview.close()` 关闭当前函数式预览。自定义 `content` 内仍然可以使用
-`useViewer()` 读取状态、控制缩放和旋转。函数式调用没有对应的缩略图位置，因此会
-直接打开，不播放缩略图到大图的过渡动画。
-
-传入 `content` 会替换整个默认界面，因此 `counter`、`thumbnails` 和 `renderImage`
-只在使用预设时生效。自定义 `content` 时，请直接在其中组合相应部件和图片渲染方式。
-
-## `<ImageView.Root>`
+### `<ImageView.Root>`
 
 | 属性                     | 类型                      | 默认值                |                                                                                 |
 | ------------------------ | ------------------------- | --------------------- | ------------------------------------------------------------------------------- |
-| `images`                 | `ImageItem[]`             | 各 trigger 的注册顺序 | 不传则改为把 `Trigger` 作为子节点列出。                                         |
+| `images`                 | `ImageItem[]`             | 各 trigger 的注册顺序 | [`ImageItem`](#imageitem) 数组。不传则改为把 `Trigger` 作为子节点列出。         |
 | `open` / `defaultOpen`   | `boolean`                 | `defaultOpen = false` | 受控 / 非受控。                                                                 |
 | `onOpenChange`           | `(open: boolean) => void` | —                     |                                                                                 |
 | `index` / `defaultIndex` | `number`                  | `defaultIndex = 0`    |                                                                                 |
@@ -68,23 +33,7 @@ viewer.close()
 | `extensions`             | `Extension[]`             | `[]`                  | 见下方 [Extensions](#extension)。                                               |
 | `labels`                 | `Partial<ViewerLabels>`   | 稳定的英文默认值      | 所有面向用户的文案。见 [`ViewerLabels`](#viewerlabels)。                        |
 
-### `ImageItem`
-
-```ts
-interface ImageItem {
-  src: string
-  alt?: string
-  /** 由 Title 显示；未提供时回退到 alt。 */
-  name?: string
-  /** 省掉一次测量往返，避免加载时布局跳动。 */
-  width?: number
-  height?: number
-  /** 默认等于 src。下载需要提供另一个文件时设置。 */
-  downloadUrl?: string
-}
-```
-
-## `<ImageView.Trigger>`
+### `<ImageView.Trigger>`
 
 `ImageItem` 加上：
 
@@ -94,29 +43,29 @@ interface ImageItem {
 | `disabled` | `boolean` |                                                                                                      |
 | 渲染方式   | —         | 始终复用唯一的子元素；`Trigger` 不接受 `asChild` 属性。                                              |
 
-## `<ImageView.Content>`
+### `<ImageView.Content>`
 
 Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
-传子节点来自己组合布局（L3），或者干脆不写，让 `Root` 补上
-`DefaultContent`（L2）。
+传子节点来自己组合布局，或者干脆不写，让 `Root` 补上
+`DefaultContent`。
 
 使用主入口时，请让 `Content` 或 `DefaultContent` 成为 `Root` 的直接子节点；
 只有这一层会参与是否补上预设的判断。primitives 入口的 `Root` 从不补预设。
 
-## 布局区域
+### 布局区域
 
 `Header`、`Toolbar`、`Footer` —— 纯粹的定位容器，
 都是支持 `asChild` 的 `<div>`，本身没有任何行为。
 
-## `<ImageView.Stage>`
+### `<ImageView.Stage>`
 
 手势承载面。`Image`、`Prev`/`Next`、`Loading`、`Error` 都应该放在它里面 ——
 预设里工具栏的 `position: absolute` 正是相对 stage 定位的，
 这样放在它下面的东西（说明文字、`Thumbnails`）不会把工具栏挤出画面。
 
-## `<ImageView.Image>`
+### `<ImageView.Image>`
 
-渲染当前这张以及紧邻的前后两张（这样手势进行中翻页不必等待挂载）。
+渲染当前图片以及紧邻的前后两张（手势进行中翻页不必等待挂载）。
 `overscan?: number` 控制当前张两侧各保留多少张处于挂载状态（默认 `1`）。
 
 `renderImage` 可以替换大图的渲染方式，不必把所有原生图片属性都加进
@@ -134,11 +83,11 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 />
 ```
 
-最终 DOM 必须包含一个展开了 `imageProps` 的 `<img>`。这些属性包含图片地址、
-尺寸样式、加载/错误处理，以及变换和重试所需的连接。想保留预设界面时，可把同一个
+最终 DOM 里必须有一个展开了 `imageProps` 的 `<img>`：它包含图片地址、
+尺寸样式、加载/错误处理，以及变换和重试所需的回调。想保留预设界面时，可把同一个
 函数传给 `<ImageView.DefaultContent renderImage={...} />`。
 
-## 状态部件
+### 状态部件
 
 | 部件                  | 渲染时机                                                                                                           |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -147,7 +96,7 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 | `<ImageView.Title>`   | 始终渲染 —— 当前图片的 `name`，回退到 `alt`。                                                                      |
 | `<ImageView.Counter>` | 一旦渲染就始终显示 —— 默认不在 `DefaultContent` 里。形如 `"3 / 8"`，也可以传渲染函数 `{({ index, total }) => …}`。 |
 
-## 控件
+### 控件
 
 下面每个控件都是 `<button>`（`Download` 是 `<a>`），
 接受 `asChild` 和标准的 button/anchor 属性，
@@ -164,10 +113,9 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 | `Download`                   | `download`                     | 一个 `<a>`，`href`/`download` 取自当前图片                            |
 
 `FitToWindow` 和 `ActualSize` 刻意做成两个按钮而不是分段控件 ——
-分段控件断言总有一项被选中，而缩放到中间值时两者都不是当前状态。
-完整理由见[设计与 Registry](../design-and-registry/)。
+分段控件的前提是总有一项处于选中状态，而缩放到中间值时两者都不是当前状态。
 
-## `<ImageView.Thumbnails>`
+### `<ImageView.Thumbnails>`
 
 需要显式启用 —— `DefaultContent` 不会自动渲染它。
 
@@ -177,14 +125,14 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 
 `auto` 在只有一张图时不渲染，并且无论图片数量多少，
 在视口宽度小于 640px 时通过 CSS 隐藏
-（在那个尺寸下，缩略图轨要占掉手机约 15% 的高度，收益却很小）。
+（在那个尺寸下，缩略图轨要占掉手机约 15% 的高度，作用却有限）。
 `always` 会同时覆盖这两条规则。
 
-## `<ImageView.DefaultContent>`
+### `<ImageView.DefaultContent>`
 
-当你不提供自己的 `Content` 时，`Root` 自动渲染的就是它。
+没有提供自己的 `Content` 时，`Root` 自动渲染的就是它。
 也可以显式使用，比如只想打开 `counter`/`thumbnails`
-而不想手写整个 L3：
+而不想自己把界面全部拼一遍：
 
 | 属性          | 类型                                       | 默认值                               |
 | ------------- | ------------------------------------------ | ------------------------------------ |
@@ -195,16 +143,76 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 默认错误态刻意保持紧凑：一行错误文案和一个只显示图标的重试按钮。按钮的无障碍
 名称以及其余面向用户的文案都来自 `Root` 上的 [`labels`](#viewerlabels)。
 
-## `ViewerLabels`
+## 钩子
 
-这个库可能渲染出的所有文案，集中在一份记录里。`errorTitle` 是默认界面里
+### `useViewer()`
+
+返回实时的 `ViewerApi` —— 在 `Root` 内部的任何组件里调用都是安全的。
+
+```ts
+interface ViewerApi {
+  readonly index: number
+  readonly total: number
+  readonly open: boolean
+  readonly transform: Transform // { scale, x, y, rotation }
+  readonly scale: number
+  readonly rotation: number
+  readonly fitScale: number
+  readonly canZoomIn: boolean
+  readonly canZoomOut: boolean
+  readonly canPrev: boolean
+  readonly canNext: boolean
+  readonly status: 'idle' | 'loading' | 'ready' | 'error'
+
+  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void
+  zoomBy(factor: number): void
+  fit(): void
+  actualSize(): void
+  rotate(degrees: number): void
+  go(index: number): void
+  next(): void
+  prev(): void
+  close(): void
+  retry(): void
+}
+```
+
+`scale`/`rotation`/平移位置**刻意**没有做成受控属性 ——
+它们在手势过程中每一帧都在变，做成受控会把 60fps 的渲染循环
+强加给所有使用者。用 `useViewer()` 读取，用上面的方法驱动。
+
+### `useLabels()`
+
+返回合并后的 `ViewerLabels`：调用方传入的覆盖项已合并进默认值。
+在自定义控件里用它，就能和内置控件从同一个 `labels` 属性取词。
+
+## 类型
+
+### `ImageItem`
+
+```ts
+interface ImageItem {
+  src: string
+  alt?: string
+  /** 由 Title 显示；未提供时回退到 alt。 */
+  name?: string
+  /** 省掉一次测量往返，避免加载时布局跳动。 */
+  width?: number
+  height?: number
+  /** 默认等于 src。下载需要提供另一个文件时设置。 */
+  downloadUrl?: string
+}
+```
+
+### `ViewerLabels`
+
+这个库可能渲染出的所有文案，集中在一份配置里。`errorTitle` 是默认界面里
 唯一还会显示成文字的一项，其余都是图标按钮上的 `aria-label`——不翻译它们
 属于无障碍缺陷而不是外观问题：无论页面的 `lang` 声明成什么，读屏软件都会
-照字面念出来。
+照字面朗读。
 
 不传 `labels` 时，`Root` 始终使用稳定的英文默认值，保证服务端输出与 hydration
-完全一致，并把语言选择交给应用。把 `labels` 传给 `Root`（或 L1 的
-`<ImageView>`）即可覆盖；它按字段合并，没覆盖的字段继续使用英文默认值。
+完全一致，并把语言选择交给应用。把 `labels` 传给 `Root`（或 `<ImageView>`）即可覆盖；它按字段合并，没覆盖的字段继续使用英文默认值。
 
 ```ts
 interface ViewerLabels {
@@ -238,48 +246,7 @@ function ChineseViewer({ images }) {
 }
 ```
 
-## `useLabels()`
-
-返回解析后的 `ViewerLabels` —— 调用方的覆盖已经合并到默认值之上。
-在自定义控件里用它，就能和内置控件从同一个 `labels` 属性取词。
-
-## `useViewer()`
-
-返回实时的 `ViewerApi` —— 在 `Root` 内部的任何组件里调用都是安全的。
-
-```ts
-interface ViewerApi {
-  readonly index: number
-  readonly total: number
-  readonly open: boolean
-  readonly transform: Transform // { scale, x, y, rotation }
-  readonly scale: number
-  readonly rotation: number
-  readonly fitScale: number
-  readonly canZoomIn: boolean
-  readonly canZoomOut: boolean
-  readonly canPrev: boolean
-  readonly canNext: boolean
-  readonly status: 'idle' | 'loading' | 'ready' | 'error'
-
-  zoomTo(scale: number, options?: { origin?: { x: number; y: number }; immediate?: boolean }): void
-  zoomBy(factor: number): void
-  fit(): void
-  actualSize(): void
-  rotate(degrees: number): void
-  go(index: number): void
-  next(): void
-  prev(): void
-  close(): void
-  retry(): void
-}
-```
-
-`scale`/`rotation`/平移位置**刻意**没有做成受控属性 ——
-它们在手势过程中每一帧都在变，做成受控等于把一个 60fps 的渲染循环
-强加给每一个使用者。用 `useViewer()` 读取，用上面的方法驱动。
-
-## `Extension`
+### `Extension`
 
 组合方式够不着的键盘行为才用它。任何需要**渲染**的东西都应该放进组件树；
 指针手势继续由 Stage 里经过测试的状态机统一管理。
@@ -293,13 +260,58 @@ interface Extension {
 
 返回 `true` 表示事件已被消费。通过 `Root` 的 `extensions` 属性传入数组。
 
-## `core`
+## 其它入口
 
-手势数学和状态机，导出给需要在 React 层之外做更多事情的人：
+### `react-img-view/primitives`
+
+和主入口一样的语义部件，但不带预设。这个入口的
+`Root` 是纯 headless 的，不会自动注入 `DefaultContent`，因此默认外观和图标不会
+进入该入口 —— 自己拼界面时从这里引入。
+
+### `react-img-view/imperative`
+
+从这个入口引入 `ImagePreview`，就能用函数调用打开预览器。它不会增加常规入口的
+体积：
+
+```tsx
+import { ImagePreview } from 'react-img-view/imperative'
+
+const viewer = ImagePreview.open({ images, index: 0 })
+viewer.go(2)
+viewer.next()
+viewer.prev()
+viewer.close()
+```
+
+`open()` 接收包含 `images: ImageItem[]` 和可选初始序号的配置对象。再次调用会替换当前预览；
+传入空数组时不会打开，序号越界时会自动调整到有效范围。无论通过句柄、预设
+关闭按钮还是 Escape 关闭，预览器都会自动清理。请只在点击事件、Effect 等浏览器环境中调用。
+
+| `open()` 参数                         | 类型                                       | 默认值  |                                                 |
+| ------------------------------------- | ------------------------------------------ | ------- | ----------------------------------------------- |
+| `images`                              | `ImageItem[]`                              | —       | 要打开的图片。                                  |
+| `index`                               | `number`                                   | `0`     | 初始序号，越界时自动调整。                      |
+| `content`                             | `ReactNode`                                | 预设    | 用 `ImageView.Content` 等部件组合的自定义界面。 |
+| `counter`                             | `boolean`                                  | `false` | 是否显示预设计数器。                            |
+| `thumbnails`                          | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | 是否显示预设缩略图轨。                          |
+| `renderImage`                         | 函数                                       | —       | 与 `ImageView.Image` 相同的图片渲染函数。       |
+| `container` / `extensions` / `labels` | 与 `Root` 相同                             | —       | 转发给内部托管的 `Root`。                       |
+
+返回的句柄只控制这次调用创建的预览；之后再次 `open()` 时，旧句柄不会误操作新预览。
+`ImagePreview.close()` 关闭当前函数式预览。自定义 `content` 内仍然可以使用
+`useViewer()` 读取状态、控制缩放和旋转。函数式调用没有对应的缩略图位置，因此会
+直接打开，不播放缩略图到大图的过渡动画。
+
+传入 `content` 会替换整个默认界面，因此 `counter`、`thumbnails` 和 `renderImage`
+只在使用预设时生效。自定义 `content` 时，请直接在其中组合相应部件和图片渲染方式。
+
+### `react-img-view/core`
+
+手势数学和状态机，导出给需要在 React 之外复用这些能力的场景：
 
 ```ts
 import { fitScale, tuning } from 'react-img-view/core'
 ```
 
-这个入口没有 React 依赖，也能独立 tree-shake；为什么保持这种边界，见
+这个入口没有 React 依赖，也能独立 tree-shake；为什么保持这种边界，看
 `src/core/` 的源码。

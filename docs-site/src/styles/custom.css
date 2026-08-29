@@ -130,6 +130,11 @@ h4 {
   line-height: 1.1;
   letter-spacing: -0.02em;
   text-wrap: balance;
+  /* CJK has a break opportunity between any two characters, so `balance`
+     happily splits a word in half to even the lines out. `keep-all` limits
+     the breaks to spaces and punctuation, which is where a Chinese headline
+     should wrap. */
+  word-break: keep-all;
 }
 
 .riv-hero__tagline {

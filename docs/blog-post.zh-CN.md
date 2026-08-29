@@ -289,7 +289,6 @@ npm install react-img-view
 - GitHub：[github.com/baron04/react-img-view](https://github.com/baron04/react-img-view)
 - 中文文档（含可玩 Demo）：[baron04.github.io/react-img-view/zh/](https://baron04.github.io/react-img-view/zh/)
 - API 参考：[baron04.github.io/react-img-view/zh/api-reference/](https://baron04.github.io/react-img-view/zh/api-reference/)
-- 设计决策记录：[baron04.github.io/react-img-view/zh/design-and-registry/](https://baron04.github.io/react-img-view/zh/design-and-registry/)
 - 协议：MIT，商用自由
 
 ## 写在最后
