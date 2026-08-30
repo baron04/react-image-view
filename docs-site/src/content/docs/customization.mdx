@@ -134,10 +134,10 @@ To add, remove, or reorder buttons, write the shell yourself. This is the
 same set of parts `DefaultContent` uses — there is no private assembly
 underneath it — so you are not giving anything up by opting in.
 
-The main entry's rule is: **if `Root` finds an `<ImageView.Content>` (or a
+The main entry's rule is: **if `Group` finds an `<ImageView.Content>` (or a
 `<DefaultContent>`) among its direct children, it adds nothing of its own.**
 Keep that composition boundary direct rather than hiding it inside a wrapper.
-For the smallest custom bundle, import the headless namespace below; its `Root`
+For the smallest custom bundle, import the headless namespace below; its `Group`
 never imports or appends the preset.
 
 ```tsx
@@ -145,7 +145,7 @@ import * as ImageView from 'react-img-view/primitives'
 
 function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={images}>
+    <ImageView.Group images={images}>
       {/* triggers */}
 
       <ImageView.Content className="riv-dialog">
@@ -182,7 +182,7 @@ function CustomViewer({ images }) {
           </ImageView.Toolbar>
         </ImageView.Stage>
       </ImageView.Content>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 ```
@@ -196,7 +196,7 @@ function CustomViewer({ images }) {
 
 ### Driving the viewer from your own UI
 
-`useViewer()` works anywhere inside `Root`, so a custom control is just a
+`useViewer()` works anywhere inside `Group`, so a custom control is just a
 button that calls the API.
 
 ```tsx
@@ -217,7 +217,7 @@ function PrintButton() {
 }
 ```
 
-To open from outside `Root` — from a table row's "View" button, for example —
+To open from outside `Group` — from a table row's "View" button, for example —
 call the imperative API directly:
 
 ```tsx
@@ -235,7 +235,7 @@ persist the open state and current index:
 const [open, setOpen] = useState(false);
 const [index, setIndex] = useState(0);
 
-<ImageView.Root
+<ImageView.Group
   images={images}
   open={open}
   index={index}
@@ -268,10 +268,10 @@ const renderImage = ({ item, imageProps }) => (
   </picture>
 )
 
-<ImageView.Root images={images}>
+<ImageView.Group images={images}>
   {/* triggers */}
   <ImageView.DefaultContent renderImage={renderImage} />
-</ImageView.Root>
+</ImageView.Group>
 ```
 
 When overriding `onLoad` or `onError`, call the original handler from
@@ -296,7 +296,7 @@ const pageWithSpace = {
 }
 
 function Viewer({ images }) {
-  return <ImageView.Root images={images} extensions={[pageWithSpace]} />
+  return <ImageView.Group images={images} extensions={[pageWithSpace]} />
 }
 ```
 
@@ -308,12 +308,12 @@ narrow keyboard escape hatch, not a plugin system.
 
 Every user-facing string comes from one record. Most surface only as
 `aria-label` on an otherwise icon-only control — `errorTitle` is the one the
-default UI still renders as visible text. Left alone, `Root` uses stable
+default UI still renders as visible text. Left alone, `Group` uses stable
 English defaults. Pass `labels` explicitly; it merges field by field so
 overriding one leaves the rest alone.
 
 ```tsx
-<ImageView.Root
+<ImageView.Group
   images={images}
   labels={{ close: 'Fermer', download: 'Télécharger', zoomIn: 'Agrandir' }}
 />
@@ -325,7 +325,7 @@ For Simplified Chinese, import the complete locale instead of repeating keys:
 import zhCN from 'react-img-view/locales/zh-CN'
 
 function ChineseViewer({ images }) {
-  return <ImageView.Root images={images} labels={zhCN} />
+  return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
 

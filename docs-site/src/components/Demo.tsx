@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { ImageView } from 'react-img-view'
 import zhCN from 'react-img-view/locales/zh-CN'
 import 'react-img-view/styles.css'
@@ -58,27 +57,6 @@ export const demoImages = [
 }))
 
 /**
- * Forwards its ref and spreads the rest of its props onto the `<figure>`.
- *
- * That is a requirement, not a style choice: `Trigger` renders through a Slot,
- * which clones its child and hands it the click handler, the ref it measures
- * the FLIP animation from, and `data-image-view-trigger`. A child component
- * that drops unknown props swallows all of it and the thumbnail silently does
- * nothing when clicked.
- */
-const Thumb = React.forwardRef<
-  HTMLElement,
-  { src: string; alt: string; label: string } & React.HTMLAttributes<HTMLElement>
->(function Thumb({ src, alt, label, ...rest }, ref) {
-  return (
-    <figure {...rest} ref={ref} className="riv-demo-thumb">
-      <img src={src} alt={alt} />
-      <figcaption>{label}</figcaption>
-    </figure>
-  )
-})
-
-/**
  * A list of images sharing one viewer. This is the whole L2 API — a Root, a
  * Trigger per image, and no Content written at all.
  */
@@ -91,15 +69,15 @@ export function ImageListDemo({
 }) {
   const images = demoImages.slice(0, count)
   return (
-    <ImageView.Root images={images} labels={labelsFor(locale)}>
+    <ImageView.Group images={images} labels={labelsFor(locale)}>
       <div className="riv-demo-grid">
         {images.map((img, i) => (
-          <ImageView.Trigger key={img.src} index={i} {...img}>
-            <Thumb src={img.thumb} alt={img.alt} label={img.name} />
-          </ImageView.Trigger>
+          <ImageView key={img.src} index={i} {...img}>
+            <img className="riv-demo-thumb" src={img.thumb} alt={img.alt} />
+          </ImageView>
         ))}
       </div>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 
@@ -116,7 +94,7 @@ export function SingleImageDemo({ locale = 'en' }: { locale?: DemoLocale }) {
         height={img.height}
         labels={labelsFor(locale)}
       >
-        <Thumb src={img.thumb} alt={img.alt} label={img.name} />
+        <img className="riv-demo-thumb" src={img.thumb} alt={img.alt} />
       </ImageView>
     </div>
   )
@@ -125,16 +103,16 @@ export function SingleImageDemo({ locale = 'en' }: { locale?: DemoLocale }) {
 /** The same viewer with the optional thumbnail strip and counter turned on. */
 export function GalleryDemo({ locale = 'en' }: { locale?: DemoLocale }) {
   return (
-    <ImageView.Root images={demoImages} labels={labelsFor(locale)}>
+    <ImageView.Group images={demoImages} labels={labelsFor(locale)}>
       <div className="riv-demo-grid">
         {demoImages.map((img, i) => (
-          <ImageView.Trigger key={img.src} index={i} {...img}>
-            <Thumb src={img.thumb} alt={img.alt} label={img.name} />
-          </ImageView.Trigger>
+          <ImageView key={img.src} index={i} {...img}>
+            <img className="riv-demo-thumb" src={img.thumb} alt={img.alt} />
+          </ImageView>
         ))}
       </div>
       <ImageView.DefaultContent counter thumbnails />
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 
@@ -142,14 +120,14 @@ export function GalleryDemo({ locale = 'en' }: { locale?: DemoLocale }) {
 export function LocalizedDemo() {
   const images = demoImages.slice(0, 2)
   return (
-    <ImageView.Root images={images} labels={zhCN}>
+    <ImageView.Group images={images} labels={zhCN}>
       <div className="riv-demo-grid riv-demo-grid--two">
         {images.map((img, i) => (
-          <ImageView.Trigger key={img.src} index={i} {...img}>
-            <Thumb src={img.thumb} alt={img.alt} label={img.name} />
-          </ImageView.Trigger>
+          <ImageView key={img.src} index={i} {...img}>
+            <img className="riv-demo-thumb" src={img.thumb} alt={img.alt} />
+          </ImageView>
         ))}
       </div>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }

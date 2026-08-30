@@ -23,12 +23,12 @@ const REGISTRY = 'registry/image-view/image-view.tsx'
 
 /**
  * Parts that are structural rather than user-facing. The registry block spells
- * out the whole tree (`ImageView.Root`, `Stage`, …) because it is standalone
+ * out the whole tree (`ImageView.Group`, `Stage`, …) because it is standalone
  * source; the preset gets some of that from its own imports. Comparing those
  * would report a difference that does not exist.
  */
 const STRUCTURAL = new Set([
-  'Root',
+  'Group',
   'Trigger',
   'Content',
   'Stage',

@@ -13,7 +13,7 @@ the preset stylesheet raises that to Chrome 111, Firefox 113, and Safari
 `react-img-view/primitives` and the lower floor applies.
 
 Server rendering is fine; nothing runs until the viewer actually mounts.
-See [Server rendering and Next.js](#server-rendering-and-nextjs) below.
+See **Server rendering and Next.js** below.
 
 ## Server rendering and Next.js
 
@@ -25,7 +25,7 @@ Nothing reaches `document` during render. The portal target (`container`,
 defaulting to `document.body`) is read only after the viewer has mounted
 and opened, so a server render emits no dialog markup at all.
 
-Labels are the one thing to set deliberately. `Root` falls back to fixed
+Labels are the one thing to set deliberately. `Group` falls back to fixed
 English strings rather than reading `navigator.language`, so server and
 hydrated markup always agree. Choose another language explicitly, with a
 value that is identical on both sides:
@@ -36,7 +36,7 @@ import zhCN from 'react-img-view/locales/zh-CN'
 import 'react-img-view/styles.css'
 
 export default function Gallery({ images }: { images: { src: string; name: string }[] }) {
-  return <ImageView.Root images={images} labels={zhCN} />
+  return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
 
@@ -105,6 +105,6 @@ split shadcn's own blocks use for Radix.
 ### Neither: styling from scratch
 
 Every part exposes stable `data-*` hooks. Controls and layout regions take
-`asChild`, while `Trigger` always reuses its only child. That is enough to
+`asChild`, while `ImageView` always reuses its only child. That is enough to
 style from scratch with attribute selectors, Tailwind's `data-[active]:…`
 variants, or your own design system's components. See [Customization](../customization/).

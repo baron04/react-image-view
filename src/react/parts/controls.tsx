@@ -51,7 +51,7 @@ const Control = React.forwardRef<HTMLButtonElement, BaseProps>(function Control(
 
 /**
  * Both halves of the context every control needs. `aria-label` comes from
- * `labels` rather than a literal so the whole set localises from `Root`'s
+ * `labels` rather than a literal so the whole set localises from `Group`'s
  * one `labels` prop — an untranslated `aria-label` is an accessibility bug,
  * since a screen reader reads it out whatever the page's `lang` says.
  */

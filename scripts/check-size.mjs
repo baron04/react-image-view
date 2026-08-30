@@ -3,7 +3,7 @@ import { gzipSync } from 'node:zlib'
 import { build } from 'esbuild'
 
 const rawEntries = [
-  ['full entry', 'dist/index.js', 12_000],
+  ['full entry', 'dist/index.js', 12_150],
   ['primitives entry', 'dist/primitives.js', 10_750],
   ['imperative entry', 'dist/imperative.js', 11_800],
   ['core entry', 'dist/core.js', 4_400],
@@ -15,8 +15,8 @@ const consumerEntries = [
   {
     name: 'consumer: ImageView',
     // Consumer rebundling adds a small wrapper over the raw full entry. Keep
-    // that allowance narrow while the raw entry retains its 12 kB ceiling.
-    budget: 12_050,
+    // that allowance narrow, tracking the raw entry's ceiling above.
+    budget: 12_200,
     source: `
       import * as React from 'react'
       import { ImageView } from 'react-img-view'
@@ -32,9 +32,9 @@ const consumerEntries = [
     budget: 10_770,
     source: `
       import * as React from 'react'
-      import { Root, Content, Stage, Image } from 'react-img-view/primitives'
+      import { Group, Content, Stage, Image } from 'react-img-view/primitives'
       export function Preview({ src }) {
-        return <Root images={[{ src }]} defaultOpen><Content><Stage><Image /></Stage></Content></Root>
+        return <Group images={[{ src }]} defaultOpen><Content><Stage><Image /></Stage></Content></Group>
       }
     `,
   },
@@ -84,6 +84,12 @@ for (const entry of consumerEntries) {
     minify: true,
     format: 'esm',
     target: 'es2020',
+    // Pin what a production application actually compiles to, rather than
+    // depending on the bundler's default for an undefined NODE_ENV. These
+    // fixtures exist to measure what someone downloads, and nobody downloads
+    // the development-only branches (the misplaced-prop warning in
+    // `ImageView`, for one).
+    define: { 'process.env.NODE_ENV': '"production"' },
     external: ['react', 'react-dom', 'react/jsx-runtime'],
     treeShaking: true,
     write: false,

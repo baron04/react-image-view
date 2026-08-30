@@ -12,7 +12,7 @@ Firefox 113、Safari 16.2 —— 工具栏的表面色用了 CSS `color-mix()`�
 从 `react-img-view/primitives` 自行组合界面，则仍适用较低的那条线。
 
 服务端渲染没有问题：在预览器真正挂载之前，不会执行任何东西。
-详见下面的[服务端渲染与 Next.js](#服务端渲染与-nextjs)。
+详见下面的**服务端渲染与 Next.js**。
 
 ## 服务端渲染与 Next.js
 
@@ -24,7 +24,7 @@ React 部分的入口都带 `"use client"` 发布，所以直接在 Server Compo
 `document.body`）只在预览器挂载并打开之后才读取，因此服务端渲染根本不会
 输出 dialog 的任何标记。
 
-需要你主动做决定的只有文案。`Root` 回退到固定的英文默认值，而不是去读
+需要你主动做决定的只有文案。`Group` 回退到固定的英文默认值，而不是去读
 `navigator.language`，这样服务端输出和 hydration 结果永远一致。要换语言就
 显式传入，而且传的值在两端必须相同：
 
@@ -34,7 +34,7 @@ import zhCN from 'react-img-view/locales/zh-CN'
 import 'react-img-view/styles.css'
 
 export default function Gallery({ images }: { images: { src: string; name: string }[] }) {
-  return <ImageView.Root images={images} labels={zhCN} />
+  return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
 
@@ -96,6 +96,6 @@ npx shadcn add https://baron04.github.io/react-img-view/r/image-view.json
 
 ### 不用预设，从零写样式
 
-所有部件都暴露稳定的 `data-*` 钩子；控件和布局区域支持 `asChild`，`Trigger` 则始终
+所有部件都暴露稳定的 `data-*` 钩子；控件和布局区域支持 `asChild`，`ImageView` 则始终
 直接复用唯一的子元素。因此你可以从零开始写样式：用属性选择器、Tailwind 的
 `data-[active]:…` 变体，或你自己设计系统里的组件。见[自定义](../customization/)。

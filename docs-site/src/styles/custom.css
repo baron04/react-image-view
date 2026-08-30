@@ -65,39 +65,17 @@ h4 {
   max-width: 220px;
 }
 
+/* Grid sizing only. The viewer owns nothing before it opens — the trigger is
+   whatever element the page already renders — so these demos hand it a bare
+   <img> and keep the card, caption, and border they used to carry out of the
+   picture. `cover` is not incidental: it exercises the cropped-thumbnail path
+   the open/close flight has to land on. */
 .riv-demo-thumb {
-  margin: 0;
-  overflow: hidden;
-  cursor: zoom-in;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.5rem;
-  background: var(--sl-color-black);
-  transition: border-color 0.2s;
-}
-
-.riv-demo-thumb:hover {
-  border-color: var(--sl-color-accent);
-}
-
-.riv-demo-thumb img {
   display: block;
   aspect-ratio: 4 / 3;
   width: 100%;
   object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.riv-demo-thumb:hover img {
-  transform: scale(1.03);
-}
-
-.riv-demo-thumb figcaption {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
-  color: var(--sl-color-gray-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  cursor: zoom-in;
 }
 
 /* ---------------------------------------------------------------------------

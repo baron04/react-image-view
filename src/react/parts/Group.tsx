@@ -6,7 +6,7 @@ import {
   type ViewerContextValue,
   type ViewerInternals,
 } from '../context'
-import type { ImageItem, ImageViewRootProps, ViewerApi, ViewerStatus } from '../../types'
+import type { ImageItem, ImageViewGroupProps, ViewerApi, ViewerStatus } from '../../types'
 import type { Size, SlideSize, Transform } from '../../core/types'
 import type { Crop } from '../../core/flip'
 import {
@@ -45,7 +45,7 @@ function useControllable<T>(
   return [value, set]
 }
 
-export function Root({
+export function Group({
   images: imagesProp,
   open: openProp,
   defaultOpen = false,
@@ -57,7 +57,7 @@ export function Root({
   extensions = [],
   labels: labelsProp,
   children,
-}: ImageViewRootProps) {
+}: ImageViewGroupProps) {
   const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange)
   const [index, setIndex] = useControllable(indexProp, defaultIndex, onIndexChange)
   const [transform, setTransform] = React.useState<Transform>(IDENTITY)

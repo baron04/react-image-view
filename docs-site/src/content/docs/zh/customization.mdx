@@ -129,16 +129,16 @@ function ZoomButton() {
 要增加、删除或重排按钮，就自己写外壳。用的是 `DefaultContent`
 所用的同一批部件 —— 它底下没有任何私有实现 —— 所以这么做不会损失任何能力。
 
-主入口的规则是：**如果 `Root` 在直接子节点里找到了 `<ImageView.Content>`（或
+主入口的规则是：**如果 `Group` 在直接子节点里找到了 `<ImageView.Content>`（或
 `<DefaultContent>`），它就什么都不再补。** 不要把这一层藏进包装组件。
-想让自定义界面尽可能轻，就用下面的 headless 入口：它的 `Root` 从不引入默认预设。
+想让自定义界面尽可能轻，就用下面的 headless 入口：它的 `Group` 从不引入默认预设。
 
 ```tsx
 import * as ImageView from 'react-img-view/primitives'
 
 function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={images}>
+    <ImageView.Group images={images}>
       {/* triggers */}
 
       <ImageView.Content className="riv-dialog">
@@ -175,7 +175,7 @@ function CustomViewer({ images }) {
           </ImageView.Toolbar>
         </ImageView.Stage>
       </ImageView.Content>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 ```
@@ -189,7 +189,7 @@ function CustomViewer({ images }) {
 
 ### 用你自己的界面驱动预览器
 
-`useViewer()` 在 `Root` 内部任意位置都能用，所以自定义控件就是一个调用 API 的按钮。
+`useViewer()` 在 `Group` 内部任意位置都能用，所以自定义控件就是一个调用 API 的按钮。
 
 ```tsx
 import { useViewer } from 'react-img-view'
@@ -209,7 +209,7 @@ function PrintButton() {
 }
 ```
 
-要从 `Root` 外部打开 —— 比如表格行里的「查看」按钮 —— 直接调用函数式 API：
+要从 `Group` 外部打开 —— 比如表格行里的「查看」按钮 —— 直接调用函数式 API：
 
 ```tsx
 import { ImagePreview } from 'react-img-view/imperative'
@@ -225,7 +225,7 @@ function ViewButton({ images }) {
 const [open, setOpen] = useState(false);
 const [index, setIndex] = useState(0);
 
-<ImageView.Root
+<ImageView.Group
   images={images}
   open={open}
   index={index}
@@ -257,10 +257,10 @@ const renderImage = ({ item, imageProps }) => (
   </picture>
 )
 
-<ImageView.Root images={images}>
+<ImageView.Group images={images}>
   {/* triggers */}
   <ImageView.DefaultContent renderImage={renderImage} />
-</ImageView.Root>
+</ImageView.Group>
 ```
 
 如果要覆盖 `onLoad` 或 `onError`，应像示例一样先调用 `imageProps` 中原有的处理函数；
@@ -284,7 +284,7 @@ const pageWithSpace = {
 }
 
 function Viewer({ images }) {
-  return <ImageView.Root images={images} extensions={[pageWithSpace]} />
+  return <ImageView.Group images={images} extensions={[pageWithSpace]} />
 }
 ```
 
@@ -295,11 +295,11 @@ function Viewer({ images }) {
 
 所有面向用户的文案都来自同一份配置。其中大多数只以 `aria-label` 的形式出现
 ——`errorTitle` 是默认界面里唯一还会显示成文字的一项。不传 `labels` 时，
-`Root` 使用稳定的英文默认值。显式传入 `labels` 即可覆盖；它按字段合并，
+`Group` 使用稳定的英文默认值。显式传入 `labels` 即可覆盖；它按字段合并，
 只覆盖传入的字段，其余不受影响。
 
 ```tsx
-<ImageView.Root images={images} labels={{ close: '关闭', download: '下载', zoomIn: '放大' }} />
+<ImageView.Group images={images} labels={{ close: '关闭', download: '下载', zoomIn: '放大' }} />
 ```
 
 简体中文建议直接按需引入完整语言包：
@@ -308,7 +308,7 @@ function Viewer({ images }) {
 import zhCN from 'react-img-view/locales/zh-CN'
 
 function ChineseViewer({ images }) {
-  return <ImageView.Root images={images} labels={zhCN} />
+  return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
 

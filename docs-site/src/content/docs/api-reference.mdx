@@ -8,27 +8,40 @@ ship separately.
 
 ## Components
 
-### `ImageView`
+### `<ImageView>`
 
-Callable (the single-image entry) with every part attached as a static —
-`ImageView.Root`, `ImageView.Trigger`, and so on. `Root`, `Trigger`, etc.
-are also available as named exports if you'd rather not import the whole
-namespace.
+A thumbnail that opens the viewer. It reads its surroundings and behaves
+accordingly:
 
-For custom chrome, import the same semantic parts from the primitives entry —
-see [Other entry points](#other-entry-points).
+- **Inside a `Group`** it is a trigger. The group owns the image set, the open
+  state and the chrome, so every `ImageView` under it opens the same viewer and
+  pages between its siblings.
+- **On its own** there is nothing to share with, so it supplies a `Group` and
+  the default UI around itself. That is the one-line case.
 
-### `<ImageView src alt>`
+Growing a single image into a gallery is therefore additive — wrap the
+existing `ImageView`s in a `Group`; nothing gets renamed.
 
-The one-line entry. Props are [`ImageItem`](#imageitem) plus
-`children: ReactElement` (the trigger element), `container` / `labels` forwarded to `Root`, and `renderImage`
-for replacing the full-size image.
+`ImageItem` plus:
 
-### `<ImageView.Root>`
+| Prop                                   | Type            |                                                                                                                                                                     |
+| -------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`                             | `ReactElement`  | The element that opens the viewer. Always child-based: `ImageView` renders its only child and does not accept an `asChild` prop.                                    |
+| `index`                                | `number`        | Position in the set. Registration order is used when omitted — pass it explicitly for virtualised lists or anything where mount order and visual order can diverge. |
+| `disabled`                             | `boolean`       |                                                                                                                                                                     |
+| `container` / `labels` / `renderImage` | same as `Group` | Only read when there is no `Group` above, since that is the only time this component owns a viewer. Passing them inside a `Group` warns in development.             |
+
+It is also the namespace: every part hangs off it as a static
+(`ImageView.Group`, `ImageView.Content`, …), and each is a named export too if
+you would rather not import the whole thing. For a custom interface, take the
+same parts from the primitives entry — see
+[Other entry points](#other-entry-points).
+
+### `<ImageView.Group>`
 
 | Prop                     | Type                      | Default                          |                                                                                                           |
 | ------------------------ | ------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `images`                 | `ImageItem[]`             | triggers' own registration order | [`ImageItem`](#imageitem) objects. Omit it and list `Trigger`s as children instead.                       |
+| `images`                 | `ImageItem[]`             | triggers' own registration order | [`ImageItem`](#imageitem) objects. Omit it and list `ImageView`s as children instead.                     |
 | `open` / `defaultOpen`   | `boolean`                 | `defaultOpen = false`            | Controlled / uncontrolled.                                                                                |
 | `onOpenChange`           | `(open: boolean) => void` | —                                |                                                                                                           |
 | `index` / `defaultIndex` | `number`                  | `defaultIndex = 0`               |                                                                                                           |
@@ -37,25 +50,15 @@ for replacing the full-size image.
 | `extensions`             | `Extension[]`             | `[]`                             | See [Extensions](#extension) below.                                                                       |
 | `labels`                 | `Partial<ViewerLabels>`   | stable English defaults          | Every user-facing string. See [`ViewerLabels`](#viewerlabels).                                            |
 
-### `<ImageView.Trigger>`
-
-`ImageItem` plus:
-
-| Prop       | Type      |                                                                                                                                                                     |
-| ---------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `index`    | `number`  | Position in the set. Registration order is used when omitted — pass it explicitly for virtualised lists or anything where mount order and visual order can diverge. |
-| `disabled` | `boolean` |                                                                                                                                                                     |
-| Rendering  | —         | Always child-based: `Trigger` renders its only child and does not accept an `asChild` prop.                                                                         |
-
 ### `<ImageView.Content>`
 
 The `<dialog>`, portalled. Renders nothing extra — pass children to compose
-your own layout, or omit it entirely and let `Root` supply
+your own layout, or omit it entirely and let `Group` supply
 `DefaultContent`.
 
 With the main entry, keep `Content` or `DefaultContent` as a direct child of
-`Root`; only that level is inspected when deciding whether to append the preset.
-The primitives `Root` never appends it.
+`Group`; only that level is inspected when deciding whether to append the preset.
+The primitives `Group` never appends it.
 
 ### Layout regions
 
@@ -138,7 +141,7 @@ phone's height for little benefit at that scale). `always` overrides both.
 
 ### `<ImageView.DefaultContent>`
 
-What `Root` renders automatically when you don't supply your own
+What `Group` renders automatically when you don't supply your own
 `Content`. Also usable explicitly, e.g. to turn on `counter`/`thumbnails`
 without composing the rest by hand:
 
@@ -150,14 +153,14 @@ without composing the rest by hand:
 
 The default error is deliberately compact: visible error copy and an icon-only
 retry button. Its accessible name and every other user-facing string come from
-[`labels`](#viewerlabels) on `Root`.
+[`labels`](#viewerlabels) on `Group`.
 
 ## Hooks
 
 ### `useViewer()`
 
 Returns the live `ViewerApi` — safe to call from any component inside
-`Root`.
+`Group`.
 
 ```ts
 interface ViewerApi {
@@ -224,9 +227,9 @@ otherwise icon-only controls, so leaving them untranslated is an
 accessibility problem, not a cosmetic one: a screen reader announces them
 verbatim whatever the page's `lang` says.
 
-Left unset, `Root` always uses stable English defaults. This keeps server and
+Left unset, `Group` always uses stable English defaults. This keeps server and
 hydrated markup identical and leaves language choice to the application. Pass
-`labels` to `Root` (or to `<ImageView>`); overrides merge field by
+`labels` to `Group` (or to `<ImageView>`); overrides merge field by
 field, so overriding one key leaves the English defaults for the rest.
 
 ```ts
@@ -257,7 +260,7 @@ opt-in and adds nothing to the default bundle:
 import zhCN from 'react-img-view/locales/zh-CN'
 
 function ChineseViewer({ images }) {
-  return <ImageView.Root images={images} labels={zhCN} />
+  return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
 
@@ -274,14 +277,14 @@ interface Extension {
 }
 ```
 
-Return `true` to mark the event consumed. Pass an array via `Root`'s
+Return `true` to mark the event consumed. Pass an array via `Group`'s
 `extensions` prop.
 
 ## Other entry points
 
 ### `react-img-view/primitives`
 
-The same semantic parts as the main entry, without the preset. Its `Root` is
+The same semantic parts as the main entry, without the preset. Its `Group` is
 headless and never injects `DefaultContent`, so the preset and its icons stay
 outside this entry — import from here when you assemble the interface
 yourself.
@@ -315,7 +318,7 @@ Escape. Call it only in browser code such as an event handler or Effect.
 | `counter`                             | `boolean`                                  | `false` | Show the preset counter.                                           |
 | `thumbnails`                          | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | Show the preset thumbnail strip.                                   |
 | `renderImage`                         | function                                   | —       | Same renderer accepted by `ImageView.Image`.                       |
-| `container` / `extensions` / `labels` | same as `Root`                             | —       | Forwarded to the managed `Root`.                                   |
+| `container` / `extensions` / `labels` | same as `Group`                            | —       | Forwarded to the managed `Group`.                                  |
 
 The returned handle controls only the viewer created by that call; after a
 later `open()`, an old handle is harmless. `ImagePreview.close()` closes the

@@ -1,5 +1,4 @@
-import { Root } from './preset/Root'
-import { Trigger } from './react/parts/Trigger'
+import { Group } from './preset/Group'
 import { Content } from './react/parts/Content'
 import { Stage } from './react/parts/Stage'
 import { Image } from './react/parts/Image'
@@ -25,20 +24,22 @@ import {
   Toolbar,
 } from './react/parts/containers'
 import { Thumbnails } from './react/parts/Thumbnails'
-import { SingleImage } from './preset/SingleImage'
+import { ImageView as ImageViewTrigger } from './preset/ImageView'
 import { DefaultContent } from './preset/DefaultContent'
 
 /**
- * `<ImageView src alt>` is the L1 entry point (a single image, one line, no
- * further setup); the same callable also carries every part as a static, so
- * `<ImageView.Root>`/`<ImageView.Trigger>`/… reach L2 and L3 without a second
- * import. There is no private assembly behind any tier — L1 wraps L2's
- * default, and L2 is L3's `Root` auto-completing itself with the same
+ * `<ImageView src alt>` wraps one thumbnail: on its own it stands up a whole
+ * viewer, and inside `<ImageView.Group>` it is a trigger sharing that group's
+ * viewer with its siblings. The same callable carries every part as a static,
+ * so `<ImageView.Group>`/`<ImageView.Content>`/… compose a custom interface
+ * without a second import.
+ *
+ * There is no private assembly behind any of it: the one-line form is a
+ * `Group` with one trigger, and `Group` completes itself with the same
  * `DefaultContent` the registry's copy-paste source starts from.
  */
-export const ImageView = /* @__PURE__ */ Object.assign(SingleImage, {
-  Root,
-  Trigger,
+export const ImageView = /* @__PURE__ */ Object.assign(ImageViewTrigger, {
+  Group,
   Content,
   Stage,
   Image,
@@ -65,8 +66,7 @@ export const ImageView = /* @__PURE__ */ Object.assign(SingleImage, {
 })
 
 export {
-  Root,
-  Trigger,
+  Group,
   Content,
   Stage,
   Image,
@@ -99,7 +99,7 @@ export type {
   ViewerApi,
   ViewerStatus,
   Extension,
-  ImageViewRootProps,
+  ImageViewGroupProps,
   ViewerLabels,
 } from './types'
 export type { ControlProps, DownloadProps } from './react/parts/controls'
@@ -112,6 +112,6 @@ export type {
 } from './react/parts/containers'
 export type { ThumbnailsProps, ThumbnailsMode } from './react/parts/Thumbnails'
 export type { ImageProps, ImageRenderContext } from './react/parts/Image'
-export type { SingleImageProps } from './preset/SingleImage'
+export type { ImageViewProps } from './preset/ImageView'
 export type { DefaultContentProps } from './preset/DefaultContent'
 export type { Size, Point, Transform, Bounds } from './core/types'

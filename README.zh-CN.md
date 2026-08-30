@@ -11,7 +11,7 @@
 react-img-view 把手势、动画和状态管理封装在库里，同时把界面拆成可组合的 Headless 部件。简单场景直接使用默认界面；需要接入自己的设计系统时，可以替换按钮、图片和布局，而不用重新实现缩放与手势。
 
 - **交互完整**：缩放、拖拽、双指捏合、旋转、适应窗口、1:1、键盘与触摸手势。
-- **Headless + 可组合**：`Root`、`Content`、`Stage`、`Image` 和所有控件均可单独组合。
+- **Headless + 可组合**：`Group`、`Content`、`Stage`、`Image` 和所有控件均可单独组合。
 - **接入灵活**：支持单图、多图、受控模式和函数式调用。
 
 **[文档](https://baron04.github.io/react-img-view/zh/)** · [快速开始](https://baron04.github.io/react-img-view/zh/quick-start/) · [API 参考](https://baron04.github.io/react-img-view/zh/api-reference/)
@@ -37,7 +37,7 @@ function ImagePreviewExample({ image }) {
 
 也支持函数式调用：从 `react-img-view/imperative` 引入 `ImagePreview`，调用 `ImagePreview.open({ images, index })`。预览器关闭后会自动清理。
 
-完整入口为 **11.6 kB gzip**。自定义界面可从 `react-img-view/primitives` 引入无默认样式的部件（**10.4 kB gzip**）；底层变换与手势状态机位于 `react-img-view/core`，只引入一个函数时可 tree-shake 到约 **0.5 kB**。压缩后的 CSS 预设为 **1.7 kB gzip**。这些入口都有 CI 体积门禁。
+完整入口为 **11.7 kB gzip**。自定义界面可从 `react-img-view/primitives` 引入无默认样式的部件（**10.4 kB gzip**）；底层变换与手势状态机位于 `react-img-view/core`，只引入一个函数时可 tree-shake 到约 **0.5 kB**。压缩后的 CSS 预设为 **1.7 kB gzip**。这些入口都有 CI 体积门禁。
 
 为了保证 SSR 与 hydration 输出一致，默认文案固定为英文。中文语言包可以按需引入：
 
@@ -45,7 +45,7 @@ function ImagePreviewExample({ image }) {
 import zhCN from 'react-img-view/locales/zh-CN'
 
 function ChineseViewer({ images }) {
-  return <ImageView.Root images={images} labels={zhCN} />
+  return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
 
