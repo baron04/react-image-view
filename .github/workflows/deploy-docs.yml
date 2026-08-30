@@ -64,7 +64,7 @@ jobs:
       - name: Build
         working-directory: docs-site
         env:
-          GITHUB_PAGES: "true"
+          GITHUB_PAGES: 'true'
         run: pnpm build
 
       - uses: actions/configure-pages@v6

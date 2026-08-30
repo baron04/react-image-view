@@ -119,7 +119,8 @@ describe('rubberBand', () => {
 
 describe('renderedSize', () => {
   it('multiplies the oriented size by scale', () => {
-    expect(renderedSize({ width: 400, height: 300 }, { scale: 2, x: 0, y: 0, rotation: 90 }))
-      .toEqual({ width: 600, height: 800 })
+    expect(
+      renderedSize({ width: 400, height: 300 }, { scale: 2, x: 0, y: 0, rotation: 90 }),
+    ).toEqual({ width: 600, height: 800 })
   })
 })

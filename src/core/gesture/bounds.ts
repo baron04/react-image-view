@@ -19,7 +19,12 @@ export function panBounds(natural: Size, stage: Size, t: Transform): Bounds {
  * the pager waits for: once the image cannot move further, continued dragging
  * belongs to page navigation rather than to panning.
  */
-export function remainingIn(position: number, bounds: Bounds, axis: 'x' | 'y', direction: -1 | 1): number {
+export function remainingIn(
+  position: number,
+  bounds: Bounds,
+  axis: 'x' | 'y',
+  direction: -1 | 1,
+): number {
   const min = axis === 'x' ? bounds.minX : bounds.minY
   const max = axis === 'x' ? bounds.maxX : bounds.maxY
   return direction > 0 ? Math.max(0, max - position) : Math.max(0, position - min)
@@ -34,7 +39,7 @@ export function rubberBand(overshoot: number, dimension: number, constant = 0.55
   if (dimension <= 0) return 0
   const sign = Math.sign(overshoot)
   const d = Math.abs(overshoot)
-  return sign * (1 - 1 / (d * constant / dimension + 1)) * dimension
+  return sign * (1 - 1 / ((d * constant) / dimension + 1)) * dimension
 }
 
 export function clampToBounds(t: Transform, bounds: Bounds): Transform {

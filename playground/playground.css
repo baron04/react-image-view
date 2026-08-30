@@ -1,54 +1,256 @@
-* { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, -apple-system, "Noto Sans SC", sans-serif; background: #f7f8f9; color: #14171f; }
-main { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
-h1 { font-size: 22px; margin: 0 0 8px; }
-.hint { color: #565e70; font-size: 14px; margin: 0 0 28px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-.thumb { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid #dee1e8; border-radius: 8px; background: #fff; text-align: left; }
-.thumb img { cursor: zoom-in; }
-.thumb img { width: 100%; height: 130px; object-fit: cover; border-radius: 4px; background: #eee; }
-.thumb span { font-size: 12px; color: #565e70; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Noto Sans SC',
+    sans-serif;
+  background: #f7f8f9;
+  color: #14171f;
+}
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+h1 {
+  font-size: 22px;
+  margin: 0 0 8px;
+}
+.hint {
+  color: #565e70;
+  font-size: 14px;
+  margin: 0 0 28px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+.thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #dee1e8;
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+}
+.thumb img {
+  cursor: zoom-in;
+}
+.thumb img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #eee;
+}
+.thumb span {
+  font-size: 12px;
+  color: #565e70;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-.shell { display: flex; flex-direction: column; height: 100%; }
-.topbar { height: 48px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid var(--riv-line); overflow: hidden; }
-.ghost { border: 0; background: transparent; font: inherit; font-size: 13px; color: var(--riv-ink); cursor: pointer; padding: 6px 10px; border-radius: 6px; }
-.ghost:hover { background: var(--riv-hover); }
-.sep { width: 1px; height: 18px; background: var(--riv-line); }
-.title { font-size: 13.5px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.spacer { flex: 1; }
-.readout { display: flex; gap: 14px; font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--riv-ink-muted); font-variant-numeric: tabular-nums; }
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.topbar {
+  height: 48px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--riv-line);
+  overflow: hidden;
+}
+.ghost {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--riv-ink);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.ghost:hover {
+  background: var(--riv-hover);
+}
+.sep {
+  width: 1px;
+  height: 18px;
+  background: var(--riv-line);
+}
+.title {
+  font-size: 13.5px;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.spacer {
+  flex: 1;
+}
+.readout {
+  display: flex;
+  gap: 14px;
+  font-family: ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--riv-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
 
-.stage { flex: 1; position: relative; background: var(--riv-stage); min-height: 0; cursor: grab; }
-.shell { background: var(--riv-chrome); }
-.stage:active { cursor: grabbing; }
+.stage {
+  flex: 1;
+  position: relative;
+  background: var(--riv-stage);
+  min-height: 0;
+  cursor: grab;
+}
+.shell {
+  background: var(--riv-chrome);
+}
+.stage:active {
+  cursor: grabbing;
+}
 
-.toolbar { flex: none; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 12px; background: var(--riv-chrome); border-top: 1px solid var(--riv-line); }
-.toolbar button { height: 32px; min-width: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; color: var(--riv-ink); cursor: pointer; }
-.toolbar button:hover:not(:disabled) { background: var(--riv-hover); }
-.toolbar button:disabled { opacity: .38; cursor: default; }
-.toolbar button[data-active] { background: var(--riv-accent-surface); color: var(--riv-accent); }
-.toolbar i { width: 1px; height: 20px; background: var(--riv-line); margin: 0 5px; }
+.toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px;
+  background: var(--riv-chrome);
+  border-top: 1px solid var(--riv-line);
+}
+.toolbar button {
+  height: 32px;
+  min-width: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--riv-ink);
+  cursor: pointer;
+}
+.toolbar button:hover:not(:disabled) {
+  background: var(--riv-hover);
+}
+.toolbar button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+.toolbar button[data-active] {
+  background: var(--riv-accent-surface);
+  color: var(--riv-accent);
+}
+.toolbar i {
+  width: 1px;
+  height: 20px;
+  background: var(--riv-line);
+  margin: 0 5px;
+}
 
-.counter { font-family: ui-monospace, monospace; font-size: 12px; color: var(--riv-ink-muted); }
-.nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 76px; border: 0; border-radius: 8px; background: rgba(255,255,255,.72); font-size: 22px; color: var(--riv-ink); cursor: pointer; }
-.nav-prev { left: 10px; } .nav-next { right: 10px; }
-.nav[data-boundary] { display: none; }
-.overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--riv-ink-muted); background: color-mix(in srgb, var(--riv-stage) 82%, transparent); }
-.err { display: flex; flex-direction: column; gap: 12px; align-items: center; }
-.err button { height: 32px; padding: 0 14px; border: 1px solid var(--riv-line); border-radius: 6px; background: var(--riv-chrome); font: inherit; font-size: 13px; cursor: pointer; }
+.counter {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--riv-ink-muted);
+}
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 76px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 22px;
+  color: var(--riv-ink);
+  cursor: pointer;
+}
+.nav-prev {
+  left: 10px;
+}
+.nav-next {
+  right: 10px;
+}
+.nav[data-boundary] {
+  display: none;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--riv-ink-muted);
+  background: color-mix(in srgb, var(--riv-stage) 82%, transparent);
+}
+.err {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.err button {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--riv-line);
+  border-radius: 6px;
+  background: var(--riv-chrome);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
 
 /* The readout is a debugging aid, not part of the design — on a narrow screen
    it wraps the header onto two lines and squeezes the filename out. */
 @media (max-width: 720px) {
-  .readout { display: none; }
-  .counter { flex: none; }
-  .topbar { gap: 8px; }
+  .readout {
+    display: none;
+  }
+  .counter {
+    flex: none;
+  }
+  .topbar {
+    gap: 8px;
+  }
 }
 
-.demo { margin-bottom: 48px; }
-.demo h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
-.demo .hint { margin-bottom: 16px; }
-.demo code { font-family: ui-monospace, monospace; font-size: 12px; background: #eef0f3; padding: 1px 5px; border-radius: 4px; }
+.demo {
+  margin-bottom: 48px;
+}
+.demo h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.demo .hint {
+  margin-bottom: 16px;
+}
+.demo code {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  background: #eef0f3;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
 
 /* The captioned-card trigger demo: a <figure> wrapping image + caption, which
    is the shape that exposed the FLIP flight measuring the wrapper instead of
