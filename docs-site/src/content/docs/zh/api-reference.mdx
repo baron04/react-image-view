@@ -270,20 +270,20 @@ headless 版本：`Group` 不会自动注入 `DefaultContent`，`ImageView` 只�
 必须放在 `Group` 里，不会自己撑起一个预览器。那个降级正是把预设拉进来的东西，
 所以它不在这个入口。
 
-用命名空间导入时请避开 `ImageView` 这个名字，因为命名空间里已经有同名成员：
+引入和组合方式与主入口完全一致 —— 同样的名字、同样的形状，只有引入路径不同：
 
 ```tsx
-import * as Viewer from 'react-img-view/primitives'
+import { ImageView } from 'react-img-view/primitives'
 
 function Gallery({ images }) {
   return (
-    <Viewer.Group images={images}>
+    <ImageView.Group images={images}>
       {images.map((image, i) => (
-        <Viewer.ImageView key={image.src} index={i} {...image}>
+        <ImageView key={image.src} index={i} {...image}>
           <img src={image.src} alt={image.name} />
-        </Viewer.ImageView>
+        </ImageView>
       ))}
-    </Viewer.Group>
+    </ImageView.Group>
   )
 }
 ```

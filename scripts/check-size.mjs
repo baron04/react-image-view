@@ -4,7 +4,7 @@ import { build } from 'esbuild'
 
 const rawEntries = [
   ['full entry', 'dist/index.js', 12_150],
-  ['primitives entry', 'dist/primitives.js', 10_750],
+  ['primitives entry', 'dist/primitives.js', 10_900],
   ['imperative entry', 'dist/imperative.js', 11_800],
   ['core entry', 'dist/core.js', 4_400],
   ['zh-CN locale', 'dist/locales/zh-CN.js', 400],
@@ -29,7 +29,14 @@ const consumerEntries = [
     name: 'consumer: primitives',
     // Rebundling adds a little wrapper overhead versus the raw primitives
     // entry, so keep both views under the same ceiling.
-    budget: 10_770,
+    //
+    // This does not shrink when the fixture imports four parts by name. Both
+    // entries attach every part to `ImageView` as a static, and `tsdown`
+    // strips the `/* @__PURE__ */` annotation that would let a downstream
+    // bundler drop the unused namespace object — so the parts stay reachable.
+    // Roughly 130 bytes, which is what one import idiom across both entries
+    // costs; recovering it means giving up `ImageView.Group`.
+    budget: 10_950,
     source: `
       import * as React from 'react'
       import { Group, Content, Stage, Image } from 'react-img-view/primitives'

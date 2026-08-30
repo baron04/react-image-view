@@ -1,5 +1,5 @@
 import { Group } from './react/parts/Group'
-import { ImageView } from './react/parts/ImageView'
+import { ImageView as HeadlessImageView } from './react/parts/ImageView'
 import { Content } from './react/parts/Content'
 import { Stage } from './react/parts/Stage'
 import { Image } from './react/parts/Image'
@@ -35,10 +35,41 @@ import { Thumbnails } from './react/parts/Thumbnails'
  * top: when there is no `Group`, it stands up the default UI around itself.
  * That fallback is what pulls the preset in, which is why it lives there and
  * not here — the same split `Group` already has between the two entries.
+ *
+ * Shaped exactly like the main entry, statics included, so one import idiom
+ * covers both: `<ImageView>` for the trigger, `<ImageView.Group>` and the
+ * rest for everything around it. The parts stay available as named exports
+ * for anyone who would rather import them individually and let the bundler
+ * drop what they never render — worth roughly 400 bytes on a full custom
+ * interface, which is the only reason to prefer the longer import.
  */
+export const ImageView = /* @__PURE__ */ Object.assign(HeadlessImageView, {
+  Group,
+  Content,
+  Stage,
+  Image,
+  Header,
+  Toolbar,
+  Footer,
+  Title,
+  Counter,
+  Loading,
+  Error: ErrorState,
+  Close,
+  Prev,
+  Next,
+  ZoomIn,
+  ZoomOut,
+  RotateLeft,
+  RotateRight,
+  FitToWindow,
+  ActualSize,
+  Download,
+  Thumbnails,
+})
+
 export {
   Group,
-  ImageView,
   Content,
   Stage,
   Image,
