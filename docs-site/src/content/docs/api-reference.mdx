@@ -284,10 +284,30 @@ Return `true` to mark the event consumed. Pass an array via `Group`'s
 
 ### `react-img-view/primitives`
 
-The same semantic parts as the main entry, without the preset. Its `Group` is
-headless and never injects `DefaultContent`, so the preset and its icons stay
-outside this entry — import from here when you assemble the interface
-yourself.
+The same parts under the same names, without the preset. Both `Group` and
+`ImageView` are the headless halves of the components the main entry exports:
+`Group` never injects `DefaultContent`, and `ImageView` is only a trigger, so
+it requires a `Group` rather than standing one up. That fallback is what pulls
+the preset in, which is why it is not here.
+
+Namespace-import it under a name other than `ImageView`, since the namespace
+carries a member by that name:
+
+```tsx
+import * as Viewer from 'react-img-view/primitives'
+
+function Gallery({ images }) {
+  return (
+    <Viewer.Group images={images}>
+      {images.map((image, i) => (
+        <Viewer.ImageView key={image.src} index={i} {...image}>
+          <img src={image.src} alt={image.alt} />
+        </Viewer.ImageView>
+      ))}
+    </Viewer.Group>
+  )
+}
+```
 
 ### `react-img-view/imperative`
 

@@ -56,13 +56,13 @@ function SingleImagePreview({ image }) {
 
 几种使用方式怎么选：
 
-| 方式                          | 适合场景                         | 用法                                                                |
-| ----------------------------- | -------------------------------- | ------------------------------------------------------------------- |
-| `ImageView` 单图              | 一张图挂个大图预览               | 包一下缩略图即可                                                    |
-| `ImageView.Group` + `Trigger` | 图片列表、缩略图墙               | 所有触发器共享一个预览器                                            |
-| 函数式调用                    | 没有缩略图，从按钮或接口回调打开 | `ImagePreview.open({ images, index })`                              |
-| `primitives` 完全组合         | 需要重排布局、替换内部组件       | 用同一批部件自己拼界面                                              |
-| 受控模式                      | 预览状态要由外部持有             | 向 `Group` 传入 `open` / `index` / `onOpenChange` / `onIndexChange` |
+| 方式                            | 适合场景                         | 用法                                                                |
+| ------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
+| `ImageView` 单图                | 一张图挂个大图预览               | 包一下缩略图即可                                                    |
+| `ImageView.Group` + `ImageView` | 图片列表、缩略图墙               | 所有触发器共享一个预览器                                            |
+| 函数式调用                      | 没有缩略图，从按钮或接口回调打开 | `ImagePreview.open({ images, index })`                              |
+| `primitives` 完全组合           | 需要重排布局、替换内部组件       | 用同一批部件自己拼界面                                              |
+| 受控模式                        | 预览状态要由外部持有             | 向 `Group` 传入 `open` / `index` / `onOpenChange` / `onIndexChange` |
 
 界面也有三种拿到方式：引一份 **CSS 预设**开箱即用；用 **shadcn registry** 把 Tailwind 源码装进项目直接改；或从 **primitives** 完全自己拼。三者详见后文架构一节。
 
@@ -196,45 +196,49 @@ shadcn 方式复制进来的只是呈现层（JSX + className），手势、弹�
 
 ```tsx
 // ③ primitives 完全组合：部件的位置、元素、渲染与否全由你定
-import * as ImageView from 'react-img-view/primitives'
+import * as Viewer from 'react-img-view/primitives'
 
 function CustomViewer({ images }) {
   return (
-    <ImageView.Group images={images}>
-      {/* triggers */}
-      <ImageView.Content className="riv-dialog">
-        <ImageView.Header>
-          <ImageView.Close asChild>
+    <Viewer.Group images={images}>
+      {images.map((image, i) => (
+        <Viewer.ImageView key={image.src} index={i} {...image}>
+          <img src={image.src} alt={image.name} />
+        </Viewer.ImageView>
+      ))}
+      <Viewer.Content className="riv-dialog">
+        <Viewer.Header>
+          <Viewer.Close asChild>
             <MyIconButton icon={<CloseIcon />} aria-label="关闭" />
-          </ImageView.Close>
-          <ImageView.Title />
-          <ImageView.Download />
-        </ImageView.Header>
+          </Viewer.Close>
+          <Viewer.Title />
+          <Viewer.Download />
+        </Viewer.Header>
 
-        <ImageView.Stage>
-          <ImageView.Image />
-          <ImageView.Prev>‹</ImageView.Prev>
-          <ImageView.Next>›</ImageView.Next>
-          <ImageView.Error>
+        <Viewer.Stage>
+          <Viewer.Image />
+          <Viewer.Prev>‹</Viewer.Prev>
+          <Viewer.Next>›</Viewer.Next>
+          <Viewer.Error>
             {({ retry }) => (
               <div>
                 <p>无法加载这张图片</p>
                 <button onClick={retry}>重试</button>
               </div>
             )}
-          </ImageView.Error>
-          <ImageView.Toolbar>
-            <ImageView.ZoomOut asChild>
+          </Viewer.Error>
+          <Viewer.Toolbar>
+            <Viewer.ZoomOut asChild>
               <MyIconButton icon={<ZoomOutIcon />} />
-            </ImageView.ZoomOut>
-            <ImageView.ZoomIn asChild>
+            </Viewer.ZoomOut>
+            <Viewer.ZoomIn asChild>
               <MyIconButton icon={<ZoomInIcon />} />
-            </ImageView.ZoomIn>
-            <ImageView.ActualSize />
-          </ImageView.Toolbar>
-        </ImageView.Stage>
-      </ImageView.Content>
-    </ImageView.Group>
+            </Viewer.ZoomIn>
+            <Viewer.ActualSize />
+          </Viewer.Toolbar>
+        </Viewer.Stage>
+      </Viewer.Content>
+    </Viewer.Group>
   )
 }
 ```

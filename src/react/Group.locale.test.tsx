@@ -17,7 +17,7 @@ function openViewer() {
   })
 }
 
-function Trigger() {
+function Thumb() {
   return (
     <ImageView index={0} {...A}>
       <img src={A.src} alt={A.name} data-testid="trigger-0" />
@@ -29,7 +29,7 @@ describe('Group: explicit locale', () => {
   it('keeps stable English defaults regardless of browser language', () => {
     render(
       <ImageView.Group images={[A]}>
-        <Trigger />
+        <Thumb />
       </ImageView.Group>,
     )
     openViewer()
@@ -41,7 +41,7 @@ describe('Group: explicit locale', () => {
   it('accepts an opt-in locale with field-level overrides', () => {
     render(
       <ImageView.Group images={[A]} labels={{ ...zhCN, close: 'Fermer' }}>
-        <Trigger />
+        <Thumb />
       </ImageView.Group>,
     )
     openViewer()

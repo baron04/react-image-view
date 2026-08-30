@@ -11,6 +11,14 @@ implied.
 
 ### Breaking
 
+- **`Trigger` is gone from every entry; the trigger is `ImageView`.** One
+  name for one role, rather than two depending on which entry you import
+  from. The headless `react-img-view/primitives` exports the trigger-only
+  half under that name and it still requires a `Group`; the main entry's
+  adds the standalone fallback on top, the same split `Group` already had
+  between the two entries. Namespace-import primitives under a different
+  name (`import * as Viewer from …`) since the namespace now carries an
+  `ImageView` member.
 - **`ImageView.Trigger` is gone; `ImageView` is the trigger.** One component
   now covers both shapes. Inside a `Group` it is a trigger sharing that
   group's viewer; on its own it stands up a `Group` and the default UI around

@@ -1,5 +1,5 @@
 import { Group } from './react/parts/Group'
-import { Trigger } from './react/parts/Trigger'
+import { ImageView } from './react/parts/ImageView'
 import { Content } from './react/parts/Content'
 import { Stage } from './react/parts/Stage'
 import { Image } from './react/parts/Image'
@@ -27,18 +27,18 @@ import {
 import { Thumbnails } from './react/parts/Thumbnails'
 
 /**
- * Headless entry: behaviour and semantic parts without the preset's
- * `ImageView`, `DefaultContent`, icons or automatic chrome.
+ * Headless entry: behaviour and semantic parts without `DefaultContent`,
+ * icons or automatic chrome.
  *
- * The trigger is `Trigger` rather than the main entry's `ImageView` on
- * purpose. `ImageView` falls back to standing up the default UI when it has
- * no `Group`, and pulling that fallback in here would drag the preset back
- * into an entry whose whole point is not having it. Composing explicitly is
- * what this entry is for, so its trigger always requires a `Group`.
+ * `ImageView` here is the trigger and nothing more — it always requires a
+ * `Group`. The main entry's component of the same name adds one thing on
+ * top: when there is no `Group`, it stands up the default UI around itself.
+ * That fallback is what pulls the preset in, which is why it lives there and
+ * not here — the same split `Group` already has between the two entries.
  */
 export {
   Group,
-  Trigger,
+  ImageView,
   Content,
   Stage,
   Image,

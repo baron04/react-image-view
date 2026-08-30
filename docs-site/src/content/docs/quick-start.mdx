@@ -131,45 +131,49 @@ Keep `Content` or `DefaultContent` as a direct child of the main-entry `Group`.
 That is the boundary it checks before deciding whether to append the preset.
 
 ```tsx
-import * as ImageView from 'react-img-view/primitives'
+import * as Viewer from 'react-img-view/primitives'
 
 function CustomViewer({ images }) {
   return (
-    <ImageView.Group images={images}>
-      {/* triggers */}
+    <Viewer.Group images={images}>
+      {images.map((image, i) => (
+        <Viewer.ImageView key={image.src} index={i} {...image}>
+          <img src={image.src} alt={image.alt} />
+        </Viewer.ImageView>
+      ))}
 
-      <ImageView.Content className="riv-dialog">
-        <ImageView.Header className="riv-header">
-          <ImageView.Close>Close</ImageView.Close>
-          <ImageView.Title />
-          <ImageView.Download>Download</ImageView.Download>
-        </ImageView.Header>
+      <Viewer.Content className="riv-dialog">
+        <Viewer.Header className="riv-header">
+          <Viewer.Close>Close</Viewer.Close>
+          <Viewer.Title />
+          <Viewer.Download>Download</Viewer.Download>
+        </Viewer.Header>
 
-        <ImageView.Stage className="riv-stage">
-          <ImageView.Image />
-          <ImageView.Prev>‹</ImageView.Prev>
-          <ImageView.Next>›</ImageView.Next>
-          <ImageView.Loading>Loading…</ImageView.Loading>
-          <ImageView.Error>
+        <Viewer.Stage className="riv-stage">
+          <Viewer.Image />
+          <Viewer.Prev>‹</Viewer.Prev>
+          <Viewer.Next>›</Viewer.Next>
+          <Viewer.Loading>Loading…</Viewer.Loading>
+          <Viewer.Error>
             {({ retry }) => (
               <div>
                 <p>This image couldn&apos;t be loaded</p>
                 <button onClick={retry}>Retry</button>
               </div>
             )}
-          </ImageView.Error>
+          </Viewer.Error>
 
-          <ImageView.Toolbar className="riv-toolbar">
-            <ImageView.ZoomOut />
-            <ImageView.ZoomIn />
-            <ImageView.RotateLeft />
-            <ImageView.RotateRight />
-            <ImageView.FitToWindow />
-            <ImageView.ActualSize />
-          </ImageView.Toolbar>
-        </ImageView.Stage>
-      </ImageView.Content>
-    </ImageView.Group>
+          <Viewer.Toolbar className="riv-toolbar">
+            <Viewer.ZoomOut />
+            <Viewer.ZoomIn />
+            <Viewer.RotateLeft />
+            <Viewer.RotateRight />
+            <Viewer.FitToWindow />
+            <Viewer.ActualSize />
+          </Viewer.Toolbar>
+        </Viewer.Stage>
+      </Viewer.Content>
+    </Viewer.Group>
   )
 }
 ```

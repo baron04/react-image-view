@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ImageView, type Extension, type ImageItem } from '../../../src/index'
 import { ImagePreview } from '../../../src/imperative'
-import * as Primitives from '../../../src/primitives'
+import * as Viewer from '../../../src/primitives'
 import zhCN from '../../../src/locales/zh-CN'
 
 const images: ImageItem[] = [
@@ -73,27 +73,27 @@ const pageWithSpace = {
 
 export function ComposedViewerExample() {
   return (
-    <Primitives.Group images={images} labels={zhCN} extensions={[pageWithSpace]}>
-      <Primitives.Content>
-        <Primitives.Header>
-          <Primitives.Close>关闭</Primitives.Close>
-          <Primitives.Title />
-          <Primitives.Download>下载</Primitives.Download>
-        </Primitives.Header>
+    <Viewer.Group images={images} labels={zhCN} extensions={[pageWithSpace]}>
+      <Viewer.Content>
+        <Viewer.Header>
+          <Viewer.Close>关闭</Viewer.Close>
+          <Viewer.Title />
+          <Viewer.Download>下载</Viewer.Download>
+        </Viewer.Header>
 
-        <Primitives.Stage>
-          <Primitives.Image />
-          <Primitives.ErrorState>
+        <Viewer.Stage>
+          <Viewer.Image />
+          <Viewer.ErrorState>
             {({ retry }) => <button onClick={retry}>重试</button>}
-          </Primitives.ErrorState>
-          <Primitives.Toolbar>
-            <Primitives.ZoomIn asChild>
+          </Viewer.ErrorState>
+          <Viewer.Toolbar>
+            <Viewer.ZoomIn asChild>
               <DesignSystemButton aria-label="放大">+</DesignSystemButton>
-            </Primitives.ZoomIn>
-            <Primitives.ActualSize>1:1</Primitives.ActualSize>
-          </Primitives.Toolbar>
-        </Primitives.Stage>
-      </Primitives.Content>
-    </Primitives.Group>
+            </Viewer.ZoomIn>
+            <Viewer.ActualSize>1:1</Viewer.ActualSize>
+          </Viewer.Toolbar>
+        </Viewer.Stage>
+      </Viewer.Content>
+    </Viewer.Group>
   )
 }

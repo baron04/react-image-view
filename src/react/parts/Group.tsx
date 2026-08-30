@@ -151,7 +151,7 @@ export function Group({
   // Bumped on every register/unregister so the `images` memo below actually
   // recomputes when the L2 "derive images from registered Triggers" path is
   // in play (no `images` prop given). Registering by itself was not state,
-  // so nothing ever re-rendered Root to pick up a newly mounted Trigger —
+  // so nothing ever re-rendered Group to pick up a newly mounted ImageView —
   // `images`/`total` would silently stay at whatever they were on first
   // render. Every real usage in this codebase passes `images` explicitly and
   // never hit this, which is exactly how it went unnoticed.

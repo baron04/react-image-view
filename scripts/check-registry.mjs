@@ -29,7 +29,7 @@ const REGISTRY = 'registry/image-view/image-view.tsx'
  */
 const STRUCTURAL = new Set([
   'Group',
-  'Trigger',
+  'ImageView',
   'Content',
   'Stage',
   'Image',

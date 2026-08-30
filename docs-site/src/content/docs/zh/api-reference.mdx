@@ -265,9 +265,28 @@ interface Extension {
 
 ### `react-img-view/primitives`
 
-和主入口一样的语义部件，但不带预设。这个入口的
-`Group` 是纯 headless 的，不会自动注入 `DefaultContent`，因此默认外观和图标不会
-进入该入口 —— 自己拼界面时从这里引入。
+同名的同一批部件，但不带预设。`Group` 和 `ImageView` 都是主入口对应组件的
+headless 版本：`Group` 不会自动注入 `DefaultContent`，`ImageView` 只是触发器，
+必须放在 `Group` 里，不会自己撑起一个预览器。那个降级正是把预设拉进来的东西，
+所以它不在这个入口。
+
+用命名空间导入时请避开 `ImageView` 这个名字，因为命名空间里已经有同名成员：
+
+```tsx
+import * as Viewer from 'react-img-view/primitives'
+
+function Gallery({ images }) {
+  return (
+    <Viewer.Group images={images}>
+      {images.map((image, i) => (
+        <Viewer.ImageView key={image.src} index={i} {...image}>
+          <img src={image.src} alt={image.name} />
+        </Viewer.ImageView>
+      ))}
+    </Viewer.Group>
+  )
+}
+```
 
 ### `react-img-view/imperative`
 

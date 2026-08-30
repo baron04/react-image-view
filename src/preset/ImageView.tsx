@@ -1,8 +1,10 @@
-import * as React from 'react'
 import { Group } from './Group'
-import { Trigger } from '../react/parts/Trigger'
+import {
+  ImageView as HeadlessImageView,
+  type ImageViewProps as HeadlessImageViewProps,
+} from '../react/parts/ImageView'
 import { useOptionalViewerContext } from '../react/context'
-import type { ImageItem, ViewerLabels } from '../types'
+import type { ViewerLabels } from '../types'
 import { DefaultContent, type DefaultContentProps } from './DefaultContent'
 
 /**
@@ -15,16 +17,7 @@ import { DefaultContent, type DefaultContentProps } from './DefaultContent'
  */
 declare const process: { env: { NODE_ENV?: string } }
 
-export interface ImageViewProps extends ImageItem {
-  children: React.ReactElement
-  /**
-   * Position among the slides. Registration order is used when this is left
-   * off, which is right for a plain list; pass it explicitly wherever mount
-   * order and visual order can diverge — virtualised tables, Suspense
-   * boundaries, anything that streams in.
-   */
-  index?: number
-  disabled?: boolean
+export interface ImageViewProps extends HeadlessImageViewProps {
   /**
    * Viewer-level settings, honoured only when this `ImageView` has no `Group`
    * above it and is therefore standing up a viewer of its own. Inside a
@@ -82,17 +75,17 @@ export function ImageView({
 
   if (grouped) {
     return (
-      <Trigger index={index} disabled={disabled} {...item}>
+      <HeadlessImageView index={index} disabled={disabled} {...item}>
         {children}
-      </Trigger>
+      </HeadlessImageView>
     )
   }
 
   return (
     <Group images={[item]} container={container} labels={labels}>
-      <Trigger index={0} disabled={disabled} {...item}>
+      <HeadlessImageView index={0} disabled={disabled} {...item}>
         {children}
-      </Trigger>
+      </HeadlessImageView>
       <DefaultContent renderImage={renderImage} />
     </Group>
   )
