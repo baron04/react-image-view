@@ -21,7 +21,12 @@ test.beforeEach(async ({ page }) => {
 async function tabTo(page: import('@playwright/test').Page, selector: string, max = 25) {
   for (let i = 0; i < max; i++) {
     await page.keyboard.press('Tab')
-    if (await page.locator(selector).evaluate((el) => el === document.activeElement).catch(() => false)) {
+    if (
+      await page
+        .locator(selector)
+        .evaluate((el) => el === document.activeElement)
+        .catch(() => false)
+    ) {
       return true
     }
   }

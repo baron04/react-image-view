@@ -29,6 +29,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # Prettier owns the formatting, but nothing enforced it until now, so ten
+      # tracked files had drifted out of style without anyone seeing a failure.
+      - name: Format
+        run: pnpm format:check
+
       - name: Typecheck
         run: pnpm typecheck
 

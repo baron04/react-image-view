@@ -95,78 +95,102 @@ export const Next = React.forwardRef<HTMLButtonElement, ControlProps>(function N
   )
 })
 
-export const ZoomIn = React.forwardRef<HTMLButtonElement, ControlProps>(function ZoomIn(props, ref) {
-  const { api, labels } = useControl()
-  return (
-    <Control
-      ref={ref}
-      part="zoom-in"
-      action={() => api.zoomBy(1.4)}
-      disabled={!api.canZoomIn}
-      aria-label={labels.zoomIn}
-      {...props}
-    />
-  )
-})
+export const ZoomIn = React.forwardRef<HTMLButtonElement, ControlProps>(
+  function ZoomIn(props, ref) {
+    const { api, labels } = useControl()
+    return (
+      <Control
+        ref={ref}
+        part="zoom-in"
+        action={() => api.zoomBy(1.4)}
+        disabled={!api.canZoomIn}
+        aria-label={labels.zoomIn}
+        {...props}
+      />
+    )
+  },
+)
 
-export const ZoomOut = React.forwardRef<HTMLButtonElement, ControlProps>(function ZoomOut(props, ref) {
-  const { api, labels } = useControl()
-  return (
-    <Control
-      ref={ref}
-      part="zoom-out"
-      action={() => api.zoomBy(1 / 1.4)}
-      disabled={!api.canZoomOut}
-      aria-label={labels.zoomOut}
-      {...props}
-    />
-  )
-})
+export const ZoomOut = React.forwardRef<HTMLButtonElement, ControlProps>(
+  function ZoomOut(props, ref) {
+    const { api, labels } = useControl()
+    return (
+      <Control
+        ref={ref}
+        part="zoom-out"
+        action={() => api.zoomBy(1 / 1.4)}
+        disabled={!api.canZoomOut}
+        aria-label={labels.zoomOut}
+        {...props}
+      />
+    )
+  },
+)
 
-export const RotateLeft = React.forwardRef<HTMLButtonElement, ControlProps>(function RotateLeft(props, ref) {
-  const { api, labels } = useControl()
-  return (
-    <Control ref={ref} part="rotate-left" action={() => api.rotate(-90)} aria-label={labels.rotateLeft} {...props} />
-  )
-})
+export const RotateLeft = React.forwardRef<HTMLButtonElement, ControlProps>(
+  function RotateLeft(props, ref) {
+    const { api, labels } = useControl()
+    return (
+      <Control
+        ref={ref}
+        part="rotate-left"
+        action={() => api.rotate(-90)}
+        aria-label={labels.rotateLeft}
+        {...props}
+      />
+    )
+  },
+)
 
-export const RotateRight = React.forwardRef<HTMLButtonElement, ControlProps>(function RotateRight(props, ref) {
-  const { api, labels } = useControl()
-  return (
-    <Control ref={ref} part="rotate-right" action={() => api.rotate(90)} aria-label={labels.rotateRight} {...props} />
-  )
-})
+export const RotateRight = React.forwardRef<HTMLButtonElement, ControlProps>(
+  function RotateRight(props, ref) {
+    const { api, labels } = useControl()
+    return (
+      <Control
+        ref={ref}
+        part="rotate-right"
+        action={() => api.rotate(90)}
+        aria-label={labels.rotateRight}
+        {...props}
+      />
+    )
+  },
+)
 
-export const FitToWindow = React.forwardRef<HTMLButtonElement, ControlProps>(function FitToWindow(props, ref) {
-  const { api, labels } = useControl()
-  return (
-    <Control
-      ref={ref}
-      part="fit"
-      action={api.fit}
-      // Neither this nor ActualSize is active between the two, which is why
-      // they are separate buttons and not a segmented control: a segmented
-      // control claims one of its options is always chosen.
-      active={Math.abs(api.scale - api.fitScale) < 1e-3}
-      aria-label={labels.fitToWindow}
-      {...props}
-    />
-  )
-})
+export const FitToWindow = React.forwardRef<HTMLButtonElement, ControlProps>(
+  function FitToWindow(props, ref) {
+    const { api, labels } = useControl()
+    return (
+      <Control
+        ref={ref}
+        part="fit"
+        action={api.fit}
+        // Neither this nor ActualSize is active between the two, which is why
+        // they are separate buttons and not a segmented control: a segmented
+        // control claims one of its options is always chosen.
+        active={Math.abs(api.scale - api.fitScale) < 1e-3}
+        aria-label={labels.fitToWindow}
+        {...props}
+      />
+    )
+  },
+)
 
-export const ActualSize = React.forwardRef<HTMLButtonElement, ControlProps>(function ActualSize(props, ref) {
-  const { api, labels } = useControl()
-  return (
-    <Control
-      ref={ref}
-      part="actual-size"
-      action={api.actualSize}
-      active={Math.abs(api.scale - 1) < 1e-3}
-      aria-label={labels.actualSize}
-      {...props}
-    />
-  )
-})
+export const ActualSize = React.forwardRef<HTMLButtonElement, ControlProps>(
+  function ActualSize(props, ref) {
+    const { api, labels } = useControl()
+    return (
+      <Control
+        ref={ref}
+        part="actual-size"
+        action={api.actualSize}
+        active={Math.abs(api.scale - 1) < 1e-3}
+        aria-label={labels.actualSize}
+        {...props}
+      />
+    )
+  },
+)
 
 export interface DownloadProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   asChild?: boolean

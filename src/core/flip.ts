@@ -73,7 +73,7 @@ export function flipFrameFromRect(
   // the very end, and only when the turn is 90/270.
   const overflowOrientedW = Math.max(0, o.width - origin.width / scale)
   const overflowOrientedH = Math.max(0, o.height - origin.height / scale)
-  const swapped = ((Math.round(rotation / 90) % 4) + 4) % 4 % 2 === 1
+  const swapped = (((Math.round(rotation / 90) % 4) + 4) % 4) % 2 === 1
   const overflowLocalW = swapped ? overflowOrientedH : overflowOrientedW
   const overflowLocalH = swapped ? overflowOrientedW : overflowOrientedH
 
