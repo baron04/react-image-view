@@ -80,7 +80,7 @@ const Thumb = React.forwardRef<
 
 /**
  * A list of images sharing one viewer. This is the whole L2 API — a Root, a
- * Trigger per image, and no Content written at all.
+ * ImageView per image, and no Content written at all.
  */
 export function ImageListDemo({
   count = 4,

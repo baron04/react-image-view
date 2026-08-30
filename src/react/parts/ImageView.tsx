@@ -5,7 +5,7 @@ import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
 import type { ImageItem } from '../../types'
 import type { ThumbnailFit } from '../../core/flip'
 
-export interface TriggerProps extends ImageItem {
+export interface ImageViewProps extends ImageItem {
   children: React.ReactElement
   /**
    * Position among the slides. Registration order is used when this is left
@@ -54,11 +54,11 @@ function readGeometry(node: HTMLElement | null) {
 
 /**
  * Elements the browser already focuses and already activates from the
- * keyboard. For these, `Trigger` adds nothing: a second role would fight the
+ * keyboard. For these, `ImageView` adds nothing: a second role would fight the
  * element's own semantics, and a second key handler would open the viewer
  * twice on one Enter.
  *
- * Deliberately does **not** include `[tabindex]`. `Trigger` adds `tabindex`
+ * Deliberately does **not** include `[tabindex]`. `ImageView` adds `tabindex`
  * itself, so matching on it would make this test depend on its own output —
  * the element would read as interactive on the pass after it was made
  * focusable, the semantics would be withdrawn, and the two states would
@@ -68,18 +68,18 @@ const NATIVELY_INTERACTIVE = 'button, a[href], input, select, textarea, summary'
 
 let uid = 0
 
-export const Trigger = React.forwardRef<HTMLElement, TriggerProps>(function Trigger(
+export const ImageView = React.forwardRef<HTMLElement, ImageViewProps>(function ImageView(
   { children, index, disabled, ...item },
   forwardedRef,
 ) {
-  const ctx = useViewerContext('Trigger')
+  const ctx = useViewerContext('ImageView')
   const nodeRef = React.useRef<HTMLElement | null>(null)
   const id = React.useMemo(() => `trigger-${++uid}`, [])
 
   /**
    * Whether this trigger has to supply its own button semantics.
    *
-   * `Trigger` renders whatever it is given, and most callers give it an
+   * `ImageView` renders whatever it is given, and most callers give it an
    * `<img>`, a `<div>`, or a styled card — none of which a keyboard can reach.
    * Until this existed the viewer could not be opened without a mouse at all.
    *

@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import * as ImageView from '../primitives'
+import * as Viewer from '../primitives'
 
 const image = { src: 'a.png', alt: 'a', width: 100, height: 100 }
 
 describe('primitives entry', () => {
   it('never injects preset content', () => {
     render(
-      <ImageView.Group images={[image]} defaultOpen>
-        <ImageView.Trigger index={0} {...image}>
+      <Viewer.Group images={[image]} defaultOpen>
+        <Viewer.ImageView index={0} {...image}>
           <button>open</button>
-        </ImageView.Trigger>
-      </ImageView.Group>,
+        </Viewer.ImageView>
+      </Viewer.Group>,
     )
 
     expect(document.querySelector('dialog[data-image-view]')).toBeNull()
@@ -20,11 +20,11 @@ describe('primitives entry', () => {
 
   it('renders only explicitly composed content', () => {
     render(
-      <ImageView.Group images={[image]} defaultOpen>
-        <ImageView.Content>
+      <Viewer.Group images={[image]} defaultOpen>
+        <Viewer.Content>
           <span data-testid="custom">custom</span>
-        </ImageView.Content>
-      </ImageView.Group>,
+        </Viewer.Content>
+      </Viewer.Group>,
     )
 
     expect(screen.getByTestId('custom')).toBeTruthy()

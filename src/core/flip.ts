@@ -40,7 +40,7 @@ export const NO_CROP: Crop = { top: 0, right: 0, bottom: 0, left: 0 }
  * the real thumbnail's box rather than filling it. `contain` needs no crop —
  * the whole image already fits inside the box with nothing hanging outside
  * it, which is also the right fallback when the trigger's fit mode can't be
- * determined (see `Trigger`'s `getFit`).
+ * determined (see `ImageView`'s `detectFit`).
  */
 export function flipFrameFromRect(
   origin: Rect,

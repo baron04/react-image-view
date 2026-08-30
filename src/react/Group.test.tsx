@@ -350,7 +350,7 @@ describe('Group: labels', () => {
   })
 })
 
-describe('Trigger: keyboard access', () => {
+describe('ImageView: keyboard access', () => {
   it('gives a non-interactive child button semantics', () => {
     render(
       <ImageView.Group images={IMAGES}>
