@@ -194,49 +194,49 @@ shadcn 方式复制进来的只是呈现层（JSX + className），手势、弹�
 
 ```tsx
 // ③ primitives 完全组合：部件的位置、元素、渲染与否全由你定
-import * as Viewer from 'react-img-view/primitives'
+import { ImageView } from 'react-img-view/primitives'
 
 function CustomViewer({ images }) {
   return (
-    <Viewer.Group images={images}>
+    <ImageView.Group images={images}>
       {images.map((image, i) => (
-        <Viewer.ImageView key={image.src} index={i} {...image}>
+        <ImageView key={image.src} index={i} {...image}>
           <img src={image.src} alt={image.name} />
-        </Viewer.ImageView>
+        </ImageView>
       ))}
-      <Viewer.Content className="riv-dialog">
-        <Viewer.Header>
-          <Viewer.Close asChild>
+      <ImageView.Content className="riv-dialog">
+        <ImageView.Header>
+          <ImageView.Close asChild>
             <MyIconButton icon={<CloseIcon />} aria-label="关闭" />
-          </Viewer.Close>
-          <Viewer.Title />
-          <Viewer.Download />
-        </Viewer.Header>
+          </ImageView.Close>
+          <ImageView.Title />
+          <ImageView.Download />
+        </ImageView.Header>
 
-        <Viewer.Stage>
-          <Viewer.Image />
-          <Viewer.Prev>‹</Viewer.Prev>
-          <Viewer.Next>›</Viewer.Next>
-          <Viewer.Error>
+        <ImageView.Stage>
+          <ImageView.Image />
+          <ImageView.Prev>‹</ImageView.Prev>
+          <ImageView.Next>›</ImageView.Next>
+          <ImageView.Error>
             {({ retry }) => (
               <div>
                 <p>无法加载这张图片</p>
                 <button onClick={retry}>重试</button>
               </div>
             )}
-          </Viewer.Error>
-          <Viewer.Toolbar>
-            <Viewer.ZoomOut asChild>
+          </ImageView.Error>
+          <ImageView.Toolbar>
+            <ImageView.ZoomOut asChild>
               <MyIconButton icon={<ZoomOutIcon />} />
-            </Viewer.ZoomOut>
-            <Viewer.ZoomIn asChild>
+            </ImageView.ZoomOut>
+            <ImageView.ZoomIn asChild>
               <MyIconButton icon={<ZoomInIcon />} />
-            </Viewer.ZoomIn>
-            <Viewer.ActualSize />
-          </Viewer.Toolbar>
-        </Viewer.Stage>
-      </Viewer.Content>
-    </Viewer.Group>
+            </ImageView.ZoomIn>
+            <ImageView.ActualSize />
+          </ImageView.Toolbar>
+        </ImageView.Stage>
+      </ImageView.Content>
+    </ImageView.Group>
   )
 }
 ```

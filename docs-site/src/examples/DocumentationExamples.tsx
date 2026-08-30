@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ImageView, type Extension, type ImageItem } from '../../../src/index'
 import { ImagePreview } from '../../../src/imperative'
-import * as Viewer from '../../../src/primitives'
+import { ImageView as Headless } from '../../../src/primitives'
 import zhCN from '../../../src/locales/zh-CN'
 
 const images: ImageItem[] = [
@@ -73,27 +73,25 @@ const pageWithSpace = {
 
 export function ComposedViewerExample() {
   return (
-    <Viewer.Group images={images} labels={zhCN} extensions={[pageWithSpace]}>
-      <Viewer.Content>
-        <Viewer.Header>
-          <Viewer.Close>关闭</Viewer.Close>
-          <Viewer.Title />
-          <Viewer.Download>下载</Viewer.Download>
-        </Viewer.Header>
+    <Headless.Group images={images} labels={zhCN} extensions={[pageWithSpace]}>
+      <Headless.Content>
+        <Headless.Header>
+          <Headless.Close>关闭</Headless.Close>
+          <Headless.Title />
+          <Headless.Download>下载</Headless.Download>
+        </Headless.Header>
 
-        <Viewer.Stage>
-          <Viewer.Image />
-          <Viewer.ErrorState>
-            {({ retry }) => <button onClick={retry}>重试</button>}
-          </Viewer.ErrorState>
-          <Viewer.Toolbar>
-            <Viewer.ZoomIn asChild>
+        <Headless.Stage>
+          <Headless.Image />
+          <Headless.Error>{({ retry }) => <button onClick={retry}>重试</button>}</Headless.Error>
+          <Headless.Toolbar>
+            <Headless.ZoomIn asChild>
               <DesignSystemButton aria-label="放大">+</DesignSystemButton>
-            </Viewer.ZoomIn>
-            <Viewer.ActualSize>1:1</Viewer.ActualSize>
-          </Viewer.Toolbar>
-        </Viewer.Stage>
-      </Viewer.Content>
-    </Viewer.Group>
+            </Headless.ZoomIn>
+            <Headless.ActualSize>1:1</Headless.ActualSize>
+          </Headless.Toolbar>
+        </Headless.Stage>
+      </Headless.Content>
+    </Headless.Group>
   )
 }
