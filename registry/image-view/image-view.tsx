@@ -171,7 +171,7 @@ export function ImagePreview({
   children,
 }: ImagePreviewProps) {
   return (
-    <ImageView.Root
+    <ImageView.Group
       images={images}
       open={open}
       onOpenChange={onOpenChange}
@@ -290,6 +290,6 @@ export function ImagePreview({
           )}
         </div>
       </ImageView.Content>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }

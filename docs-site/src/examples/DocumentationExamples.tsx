@@ -24,13 +24,13 @@ export function SingleImageExample() {
 
 export function SharedViewerExample() {
   return (
-    <ImageView.Root images={images} labels={zhCN}>
+    <ImageView.Group images={images} labels={zhCN}>
       {images.map((image, index) => (
-        <ImageView.Trigger key={image.src} index={index} {...image}>
+        <ImageView key={image.src} index={index} {...image}>
           <img src={image.src} alt={image.alt} />
-        </ImageView.Trigger>
+        </ImageView>
       ))}
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 
@@ -73,7 +73,7 @@ const pageWithSpace = {
 
 export function ComposedViewerExample() {
   return (
-    <Primitives.Root images={images} labels={zhCN} extensions={[pageWithSpace]}>
+    <Primitives.Group images={images} labels={zhCN} extensions={[pageWithSpace]}>
       <Primitives.Content>
         <Primitives.Header>
           <Primitives.Close>关闭</Primitives.Close>
@@ -94,6 +94,6 @@ export function ComposedViewerExample() {
           </Primitives.Toolbar>
         </Primitives.Stage>
       </Primitives.Content>
-    </Primitives.Root>
+    </Primitives.Group>
   )
 }

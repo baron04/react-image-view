@@ -51,13 +51,21 @@ const files = [
   src: OFFLINE ? sheet(i + 1, f.w, f.h) : photo(f.seed, f.w, f.h),
 }))
 
-const images = files.map((f) => ({ src: f.src, name: f.name, alt: f.name, width: f.w, height: f.h }))
+const images = files.map((f) => ({
+  src: f.src,
+  name: f.name,
+  alt: f.name,
+  width: f.w,
+  height: f.h,
+}))
 
 function Readout() {
   const v = useViewer()
   return (
     <div className="readout" data-testid="readout">
-      <span data-testid="idx">{v.index + 1} / {v.total}</span>
+      <span data-testid="idx">
+        {v.index + 1} / {v.total}
+      </span>
       <span data-testid="scale">scale {v.scale.toFixed(3)}</span>
       <span data-testid="fit">fit {v.fitScale.toFixed(3)}</span>
       <span data-testid="rot">rot {v.rotation}</span>
@@ -81,7 +89,7 @@ function Toolbar() {
 }
 
 /**
- * The actual preset — L2, `Root` auto-completing with `DefaultContent`. This
+ * The actual preset — L2, `Group` auto-completing with `DefaultContent`. This
  * is what a consumer sees who wrote nothing beyond the triggers, and the one
  * to compare against the design spec.
  */
@@ -90,21 +98,23 @@ function DefaultDemo() {
     <section className="demo">
       <h2>Default preset · L2</h2>
       <p className="hint">
-        <code>&lt;ImageView.Root images={'{'}images{'}'}&gt;</code>
-         with no <code>Content</code> written — the reviewed default UI is supplied automatically.
+        <code>
+          &lt;ImageView.Group images={'{'}images{'}'}&gt;
+        </code>
+        with no <code>Content</code> written — the reviewed default UI is supplied automatically.
       </p>
-      <ImageView.Root images={images}>
+      <ImageView.Group images={images}>
         <div className="grid">
           {images.map((img, i) => (
             <div key={img.src} className="thumb">
-              <ImageView.Trigger index={i} src={img.src} alt={img.name} name={img.name}>
+              <ImageView index={i} src={img.src} alt={img.name} name={img.name}>
                 <img src={img.src} alt={img.name} data-testid={`default-thumb-${i}`} />
-              </ImageView.Trigger>
+              </ImageView>
               <span>{img.name}</span>
             </div>
           ))}
         </div>
-      </ImageView.Root>
+      </ImageView.Group>
     </section>
   )
 }
@@ -125,21 +135,20 @@ function CaptionedDemo() {
       <h2>Captioned card trigger</h2>
       <p className="hint">
         The trigger is a <code>&lt;figure&gt;</code> wrapping the image
-        <em>and</em> its caption. Closing must land on the picture, not on the
-        whole card.
+        <em>and</em> its caption. Closing must land on the picture, not on the whole card.
       </p>
-      <ImageView.Root images={images}>
+      <ImageView.Group images={images}>
         <div className="grid">
           {images.map((img, i) => (
-            <ImageView.Trigger key={img.src} index={i} src={img.src} alt={img.name} name={img.name}>
+            <ImageView key={img.src} index={i} src={img.src} alt={img.name} name={img.name}>
               <figure className="card" data-testid={`card-${i}`}>
                 <img src={img.src} alt={img.name} data-testid={`card-img-${i}`} />
                 <figcaption>{img.name}</figcaption>
               </figure>
-            </ImageView.Trigger>
+            </ImageView>
           ))}
         </div>
-      </ImageView.Root>
+      </ImageView.Group>
     </section>
   )
 }
@@ -154,22 +163,26 @@ function ThumbnailsDemo() {
     <section className="demo">
       <h2>Thumbnail strip · optional</h2>
       <p className="hint">
-        <code>&lt;ImageView.Root images={'{'}images{'}'}&gt;&lt;ImageView.DefaultContent thumbnails /&gt;&lt;/ImageView.Root&gt;</code>
-        . Hidden on narrow screens by default (<code>mode=&quot;auto&quot;</code>) unless passed <code>thumbnails=&quot;always&quot;</code>.
+        <code>
+          &lt;ImageView.Group images={'{'}images{'}'}&gt;&lt;ImageView.DefaultContent thumbnails
+          /&gt;&lt;/ImageView.Group&gt;
+        </code>
+        . Hidden on narrow screens by default (<code>mode=&quot;auto&quot;</code>) unless passed{' '}
+        <code>thumbnails=&quot;always&quot;</code>.
       </p>
-      <ImageView.Root images={images}>
+      <ImageView.Group images={images}>
         <div className="grid">
           {images.map((img, i) => (
             <div key={img.src} className="thumb">
-              <ImageView.Trigger index={i} src={img.src} alt={img.name} name={img.name}>
+              <ImageView index={i} src={img.src} alt={img.name} name={img.name}>
                 <img src={img.src} alt={img.name} data-testid={`gallery-thumb-${i}`} />
-              </ImageView.Trigger>
+              </ImageView>
               <span>{img.name}</span>
             </div>
           ))}
         </div>
         <ImageView.DefaultContent thumbnails />
-      </ImageView.Root>
+      </ImageView.Group>
     </section>
   )
 }
@@ -187,7 +200,13 @@ function SingleDemo() {
         <code>&lt;ImageView src alt&gt;</code> — one line, no Root/Trigger needed.
       </p>
       <div className="grid" style={{ maxWidth: 200 }}>
-        <ImageView src={solo.src} alt={solo.alt} name={solo.name} width={solo.width} height={solo.height}>
+        <ImageView
+          src={solo.src}
+          alt={solo.alt}
+          name={solo.name}
+          width={solo.width}
+          height={solo.height}
+        >
           <div className="thumb">
             <img src={solo.src} alt={solo.alt} data-testid="solo-thumb" />
             <span>{solo.name}</span>
@@ -205,8 +224,11 @@ function AdvancedDemo() {
   return (
     <section className="demo">
       <h2>Full composition · L3</h2>
-      <p className="hint">Assemble the UI yourself; used here to verify behaviour. Zoom in, then drag past the edge — it should hand off to the next slide without stopping.</p>
-      <ImageView.Root
+      <p className="hint">
+        Assemble the UI yourself; used here to verify behaviour. Zoom in, then drag past the edge —
+        it should hand off to the next slide without stopping.
+      </p>
+      <ImageView.Group
         images={images}
         open={open}
         index={index}
@@ -216,9 +238,9 @@ function AdvancedDemo() {
         <div className="grid">
           {images.map((img, i) => (
             <div key={img.src} className="thumb">
-              <ImageView.Trigger index={i} src={img.src} alt={img.name} name={img.name}>
+              <ImageView index={i} src={img.src} alt={img.name} name={img.name}>
                 <img src={img.src} alt={img.name} data-testid={`thumb-${i}`} />
-              </ImageView.Trigger>
+              </ImageView>
               <span>{img.name}</span>
             </div>
           ))}
@@ -227,18 +249,26 @@ function AdvancedDemo() {
         <ImageView.Content>
           <div className="shell">
             <ImageView.Header className="topbar">
-              <ImageView.Close className="ghost" data-testid="close">Close</ImageView.Close>
+              <ImageView.Close className="ghost" data-testid="close">
+                Close
+              </ImageView.Close>
               <span className="sep" />
               <ImageView.Title className="title" />
               <ImageView.Counter className="counter" />
               <span className="spacer" />
               <Readout />
-              <ImageView.Download className="ghost" data-testid="download">Download</ImageView.Download>
+              <ImageView.Download className="ghost" data-testid="download">
+                Download
+              </ImageView.Download>
             </ImageView.Header>
             <ImageView.Stage className="stage">
               <ImageView.Image />
-              <ImageView.Prev className="nav nav-prev" data-testid="prev">‹</ImageView.Prev>
-              <ImageView.Next className="nav nav-next" data-testid="next">›</ImageView.Next>
+              <ImageView.Prev className="nav nav-prev" data-testid="prev">
+                ‹
+              </ImageView.Prev>
+              <ImageView.Next className="nav nav-next" data-testid="next">
+                ›
+              </ImageView.Next>
               <ImageView.Loading className="overlay">Loading…</ImageView.Loading>
               <ImageView.Error className="overlay">
                 {({ retry }) => (
@@ -252,7 +282,7 @@ function AdvancedDemo() {
             <Toolbar />
           </div>
         </ImageView.Content>
-      </ImageView.Root>
+      </ImageView.Group>
     </section>
   )
 }
@@ -273,7 +303,9 @@ function App() {
 // Vite re-executes this module on every hot update; without a cached root
 // each update mounts another React tree onto the same node.
 declare global {
-  interface Window { __rivRoot?: ReturnType<typeof createRoot> }
+  interface Window {
+    __rivRoot?: ReturnType<typeof createRoot>
+  }
 }
 const container = document.getElementById('root')!
 window.__rivRoot ??= createRoot(container)

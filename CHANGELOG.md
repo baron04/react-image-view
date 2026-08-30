@@ -11,6 +11,23 @@ implied.
 
 ### Breaking
 
+- **`ImageView.Trigger` is gone; `ImageView` is the trigger.** One component
+  now covers both shapes. Inside a `Group` it is a trigger sharing that
+  group's viewer; on its own it stands up a `Group` and the default UI around
+  itself, which is the one-line case. Growing a single image into a gallery is
+  therefore additive — wrap the existing `ImageView`s in a `Group` — where it
+  used to mean renaming every call site. The headless
+  `react-img-view/primitives` entry keeps `Trigger`, which always requires a
+  `Group`: `ImageView`'s standalone fallback needs the preset, and pulling
+  that into an entry defined by not having it would defeat the entry.
+- **`Root` is now `Group`,** in both entries, along with
+  `ImageViewRootProps` → `ImageViewGroupProps`. With the trigger named
+  `ImageView`, a `Root` containing several `ImageView`s read backwards.
+- **`container`, `labels` and `renderImage` belong on `Group`.** `ImageView`
+  still accepts them for the standalone case, where it is the thing that owns
+  a viewer. Passing them inside a `Group` has no effect and now warns in
+  development rather than being silently discarded — the failure that made
+  merging the two components risky in the first place.
 - **`defaultLabels` is no longer exported.** It has been a deprecated alias
   for `en` since 0.2.0. Import `en` from `react-img-view` or
   `react-img-view/primitives`.

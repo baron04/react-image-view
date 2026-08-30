@@ -16,7 +16,10 @@ function collect(path) {
 for (const root of roots) collect(root)
 
 const forbidden = [
-  [/<ImageView\.Trigger\s+asChild\b/, '`Trigger` does not accept `asChild`'],
+  [
+    /<ImageView\s+[^>]*\basChild\b/,
+    '`ImageView` does not accept `asChild`; it reuses its only child',
+  ],
   [/Every part takes `asChild`/i, 'only controls and layout regions take `asChild`'],
   [/每个部件都支持 `asChild`/, '只有控件和布局区域支持 `asChild`'],
   [

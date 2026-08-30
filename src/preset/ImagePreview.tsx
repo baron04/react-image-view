@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { createRoot, type Root as ReactRoot } from 'react-dom/client'
-import type { ImageItem, ImageViewRootProps, ViewerApi } from '../types'
-import { Root } from '../react/parts/Root'
+import type { ImageItem, ImageViewGroupProps, ViewerApi } from '../types'
+import { Group } from '../react/parts/Group'
 import { useViewer } from '../react/context'
 import { DefaultContent, type DefaultContentProps } from './DefaultContent'
 
 export interface ImagePreviewOpenOptions
-  extends Pick<ImageViewRootProps, 'container' | 'extensions' | 'labels'>, DefaultContentProps {
+  extends Pick<ImageViewGroupProps, 'container' | 'extensions' | 'labels'>, DefaultContentProps {
   images: ImageItem[]
   index?: number
   /** Replace the preset UI with a composition built from ImageView parts. */
@@ -92,7 +92,7 @@ function PreviewHost({
   const [open, setOpen] = React.useState(true)
   const [index, setIndex] = React.useState(() => validIndex(options.index, options.images.length))
 
-  // Root has already committed its closed state when this effect runs. Tear
+  // Group has already committed its closed state when this effect runs. Tear
   // down on a task so React never has to unmount the root from inside its own
   // effect, which React explicitly warns against.
   React.useEffect(() => {
@@ -102,7 +102,7 @@ function PreviewHost({
   }, [open, session])
 
   return (
-    <Root
+    <Group
       images={options.images}
       open={open}
       onOpenChange={setOpen}
@@ -120,7 +120,7 @@ function PreviewHost({
           renderImage={options.renderImage}
         />
       )}
-    </Root>
+    </Group>
   )
 }
 

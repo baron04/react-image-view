@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, act, fireEvent, waitFor } from '@testing-library/react'
 import { ImageView, useViewer, useLabels } from '../index'
 
@@ -8,7 +8,7 @@ import { ImageView, useViewer, useLabels } from '../index'
  *
  * This is the half of the codebase where both bugs that reached npm actually
  * lived — pointer capture swallowing toolbar clicks, and the trigger registry
- * never re-rendering Root — while all 60 unit tests sat in `core/`. These
+ * never re-rendering Group — while all 60 unit tests sat in `core/`. These
  * cover the seams the e2e suite is too coarse to reach: controlled vs
  * uncontrolled state, the registry fallback, label merging, and asChild.
  */
@@ -46,15 +46,15 @@ function Triggers({ images = IMAGES }: { images?: typeof IMAGES }) {
   return (
     <>
       {images.map((img, i) => (
-        <ImageView.Trigger key={img.src} index={i} {...img}>
+        <ImageView key={img.src} index={i} {...img}>
           <img src={img.src} alt={img.name} data-testid={`trigger-${i}`} />
-        </ImageView.Trigger>
+        </ImageView>
       ))}
     </>
   )
 }
 
-describe('SingleImage (L1)', () => {
+describe('ImageView, ungrouped', () => {
   it('forwards renderImage to the full-size image', () => {
     render(
       <ImageView
@@ -84,9 +84,7 @@ describe('SingleImage (L1)', () => {
   })
 
   it('reveals a delayed image without replaying the opening flight', () => {
-    const rect = vi
-      .spyOn(Element.prototype, 'getBoundingClientRect')
-      .mockImplementation(viewerRect)
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(viewerRect)
     let loadingDeadline: TimerHandler | undefined
     const deadline = vi.spyOn(window, 'setTimeout').mockImplementation((callback) => {
       loadingDeadline = callback
@@ -121,9 +119,7 @@ describe('SingleImage (L1)', () => {
   })
 
   it('keeps the opening flight when decoding finishes within the grace period', () => {
-    const rect = vi
-      .spyOn(Element.prototype, 'getBoundingClientRect')
-      .mockImplementation(viewerRect)
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(viewerRect)
     const deadline = vi.spyOn(window, 'setTimeout').mockImplementation(() => 1)
     const frame = vi.spyOn(window, 'requestAnimationFrame')
     render(
@@ -146,12 +142,12 @@ describe('SingleImage (L1)', () => {
   })
 })
 
-describe('Root: open state', () => {
+describe('Group: open state', () => {
   it('is closed until a trigger is activated', () => {
     render(
-      <ImageView.Root images={IMAGES}>
+      <ImageView.Group images={IMAGES}>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     expect(document.querySelector('dialog[data-image-view]')).toBeNull()
 
@@ -161,9 +157,9 @@ describe('Root: open state', () => {
 
   it('opens on the trigger that was activated, not always the first', () => {
     render(
-      <ImageView.Root images={IMAGES}>
+      <ImageView.Group images={IMAGES}>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     openViewer(2)
     expect(document.querySelector('[data-image-view-title]')?.textContent).toBe('c.png')
@@ -171,9 +167,9 @@ describe('Root: open state', () => {
 
   it('respects defaultOpen', () => {
     render(
-      <ImageView.Root images={IMAGES} defaultOpen>
+      <ImageView.Group images={IMAGES} defaultOpen>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     expect(document.querySelector('dialog[data-image-view]')).not.toBeNull()
   })
@@ -181,9 +177,9 @@ describe('Root: open state', () => {
   it('stays shut when `open` is controlled and the parent does not agree', () => {
     const onOpenChange = vi.fn()
     render(
-      <ImageView.Root images={IMAGES} open={false} onOpenChange={onOpenChange}>
+      <ImageView.Group images={IMAGES} open={false} onOpenChange={onOpenChange}>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
 
     openViewer()
@@ -197,9 +193,9 @@ describe('Root: open state', () => {
   it('reports index changes without moving when `index` is controlled', () => {
     const onIndexChange = vi.fn()
     render(
-      <ImageView.Root images={IMAGES} open index={0} onIndexChange={onIndexChange}>
+      <ImageView.Group images={IMAGES} open index={0} onIndexChange={onIndexChange}>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
 
     act(() => {
@@ -211,15 +207,15 @@ describe('Root: open state', () => {
   })
 })
 
-describe('Root: images from registered triggers (L2)', () => {
+describe('Group: images from registered triggers', () => {
   it('derives the set from triggers when no images prop is given', () => {
     // The regression this guards: registering was a plain ref push with no
-    // state behind it, so Root never re-rendered and `total` stayed at 0.
+    // state behind it, so Group never re-rendered and `total` stayed at 0.
     render(
-      <ImageView.Root>
+      <ImageView.Group>
         <Triggers />
         <ImageView.DefaultContent counter />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
 
     openViewer(1)
@@ -230,18 +226,18 @@ describe('Root: images from registered triggers (L2)', () => {
     function Late() {
       const [extra, setExtra] = React.useState(false)
       return (
-        <ImageView.Root>
+        <ImageView.Group>
           <Triggers images={IMAGES.slice(0, 2)} />
           {extra && (
-            <ImageView.Trigger index={2} src="c.png" name="c.png">
+            <ImageView index={2} src="c.png" name="c.png">
               <img src="c.png" alt="c" data-testid="trigger-2" />
-            </ImageView.Trigger>
+            </ImageView>
           )}
           <button data-testid="add" onClick={() => setExtra(true)}>
             add
           </button>
           <ImageView.DefaultContent counter />
-        </ImageView.Root>
+        </ImageView.Group>
       )
     }
 
@@ -258,20 +254,20 @@ describe('Root: images from registered triggers (L2)', () => {
     function OutOfOrder() {
       const [first, setFirst] = React.useState(false)
       return (
-        <ImageView.Root>
-          <ImageView.Trigger index={1} {...B}>
+        <ImageView.Group>
+          <ImageView index={1} {...B}>
             <img src={B.src} alt={B.name} data-testid="trigger-1" />
-          </ImageView.Trigger>
+          </ImageView>
           {first && (
-            <ImageView.Trigger index={0} {...A}>
+            <ImageView index={0} {...A}>
               <img src={A.src} alt={A.name} data-testid="trigger-0" />
-            </ImageView.Trigger>
+            </ImageView>
           )}
           <button data-testid="mount-first" onClick={() => setFirst(true)}>
             mount first
           </button>
           <ImageView.DefaultContent counter />
-        </ImageView.Root>
+        </ImageView.Group>
       )
     }
 
@@ -287,14 +283,14 @@ describe('Root: images from registered triggers (L2)', () => {
     function MutableItem() {
       const [downloadUrl, setDownloadUrl] = React.useState('/first.png')
       return (
-        <ImageView.Root>
-          <ImageView.Trigger index={0} {...A} downloadUrl={downloadUrl}>
+        <ImageView.Group>
+          <ImageView index={0} {...A} downloadUrl={downloadUrl}>
             <img src={A.src} alt={A.name} data-testid="trigger-0" />
-          </ImageView.Trigger>
+          </ImageView>
           <button data-testid="update-url" onClick={() => setDownloadUrl('/second.png')}>
             update
           </button>
-        </ImageView.Root>
+        </ImageView.Group>
       )
     }
 
@@ -308,12 +304,12 @@ describe('Root: images from registered triggers (L2)', () => {
   })
 })
 
-describe('Root: labels', () => {
+describe('Group: labels', () => {
   it('ships English defaults', () => {
     render(
-      <ImageView.Root images={IMAGES} defaultOpen>
+      <ImageView.Group images={IMAGES} defaultOpen>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     const dialog = document.querySelector('dialog[data-image-view]')
     expect(dialog?.getAttribute('aria-label')).toBe('Image viewer')
@@ -324,9 +320,9 @@ describe('Root: labels', () => {
 
   it('merges an override field by field, leaving the rest alone', () => {
     render(
-      <ImageView.Root images={IMAGES} defaultOpen labels={{ close: 'Fermer' }}>
+      <ImageView.Group images={IMAGES} defaultOpen labels={{ close: 'Fermer' }}>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     expect(
       document.querySelector('[data-image-view-control="close"]')?.getAttribute('aria-label'),
@@ -343,12 +339,12 @@ describe('Root: labels', () => {
       return <span data-testid="custom">{labels.close}</span>
     }
     render(
-      <ImageView.Root images={IMAGES} defaultOpen labels={{ close: 'Fermer' }}>
+      <ImageView.Group images={IMAGES} defaultOpen labels={{ close: 'Fermer' }}>
         <Triggers />
         <ImageView.Content>
           <Custom />
         </ImageView.Content>
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     expect(screen.getByTestId('custom').textContent).toBe('Fermer')
   })
@@ -357,9 +353,9 @@ describe('Root: labels', () => {
 describe('Trigger: keyboard access', () => {
   it('gives a non-interactive child button semantics', () => {
     render(
-      <ImageView.Root images={IMAGES}>
+      <ImageView.Group images={IMAGES}>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     const trigger = screen.getByTestId('trigger-0')
     expect(trigger.getAttribute('role')).toBe('button')
@@ -368,11 +364,11 @@ describe('Trigger: keyboard access', () => {
 
   it('leaves an already-interactive child alone', () => {
     render(
-      <ImageView.Root images={IMAGES}>
-        <ImageView.Trigger index={0} {...A}>
+      <ImageView.Group images={IMAGES}>
+        <ImageView index={0} {...A}>
           <button data-testid="native">open</button>
-        </ImageView.Trigger>
-      </ImageView.Root>,
+        </ImageView>
+      </ImageView.Group>,
     )
     const trigger = screen.getByTestId('native')
     // A <button> is already focusable and already activates on Enter; adding
@@ -383,22 +379,22 @@ describe('Trigger: keyboard access', () => {
 
   it('does not overrule a tabIndex the caller set themselves', () => {
     render(
-      <ImageView.Root images={IMAGES}>
-        <ImageView.Trigger index={0} {...A}>
+      <ImageView.Group images={IMAGES}>
+        <ImageView index={0} {...A}>
           <div tabIndex={-1} data-testid="own">
             mine
           </div>
-        </ImageView.Trigger>
-      </ImageView.Root>,
+        </ImageView>
+      </ImageView.Group>,
     )
     expect(screen.getByTestId('own').getAttribute('tabindex')).toBe('-1')
   })
 
   it('opens once on Enter, not twice', () => {
     render(
-      <ImageView.Root images={IMAGES}>
+      <ImageView.Group images={IMAGES}>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     act(() => {
       screen
@@ -410,11 +406,11 @@ describe('Trigger: keyboard access', () => {
 
   it('does not open when disabled', () => {
     render(
-      <ImageView.Root images={IMAGES}>
-        <ImageView.Trigger index={0} disabled {...A}>
+      <ImageView.Group images={IMAGES}>
+        <ImageView index={0} disabled {...A}>
           <img src="a.png" alt="a" data-testid="trigger-0" />
-        </ImageView.Trigger>
-      </ImageView.Root>,
+        </ImageView>
+      </ImageView.Group>,
     )
     openViewer()
     expect(document.querySelector('dialog[data-image-view]')).toBeNull()
@@ -422,13 +418,13 @@ describe('Trigger: keyboard access', () => {
 
   it('lets the child prevent the viewer from opening', () => {
     render(
-      <ImageView.Root images={IMAGES}>
-        <ImageView.Trigger index={0} {...A}>
+      <ImageView.Group images={IMAGES}>
+        <ImageView index={0} {...A}>
           <button data-testid="guarded" onClick={(event) => event.preventDefault()}>
             guarded
           </button>
-        </ImageView.Trigger>
-      </ImageView.Root>,
+        </ImageView>
+      </ImageView.Group>,
     )
 
     fireEvent.click(screen.getByTestId('guarded'))
@@ -439,21 +435,21 @@ describe('Trigger: keyboard access', () => {
 describe('Content: composition', () => {
   it('supplies DefaultContent when none is written (L2)', () => {
     render(
-      <ImageView.Root images={IMAGES} defaultOpen>
+      <ImageView.Group images={IMAGES} defaultOpen>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     expect(document.querySelector('[data-image-view-control="zoom-in"]')).not.toBeNull()
   })
 
   it('adds nothing of its own once a Content is present (L3)', () => {
     render(
-      <ImageView.Root images={IMAGES} defaultOpen>
+      <ImageView.Group images={IMAGES} defaultOpen>
         <Triggers />
         <ImageView.Content>
           <span data-testid="mine">mine</span>
         </ImageView.Content>
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     expect(screen.getByTestId('mine')).toBeTruthy()
     // The default toolbar must not appear alongside a hand-written layout.
@@ -463,9 +459,9 @@ describe('Content: composition', () => {
 
   it('announces the current slide through a live region', () => {
     render(
-      <ImageView.Root images={IMAGES} defaultOpen>
+      <ImageView.Group images={IMAGES} defaultOpen>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     const announcer = document.querySelector('[data-image-view-announcer]')
     expect(announcer?.getAttribute('aria-live')).toBe('polite')
@@ -474,9 +470,9 @@ describe('Content: composition', () => {
 
   it('renders a compact, labelled retry action on image failure', () => {
     render(
-      <ImageView.Root images={IMAGES} defaultOpen>
+      <ImageView.Group images={IMAGES} defaultOpen>
         <Triggers />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
 
     const image = document.querySelector<HTMLImageElement>(
@@ -501,8 +497,8 @@ describe('Content: composition', () => {
     function Pair({ first, second }: { first: boolean; second: boolean }) {
       return (
         <>
-          <ImageView.Root images={[A]} open={first} />
-          <ImageView.Root images={[B]} open={second} />
+          <ImageView.Group images={[A]} open={first} />
+          <ImageView.Group images={[B]} open={second} />
         </>
       )
     }
@@ -533,14 +529,14 @@ describe('Stage: continuous input', () => {
   function ComposedViewer() {
     const image = { src: 'large.png', name: 'large.png', width: 2000, height: 1500 }
     return (
-      <ImageView.Root images={[image]} defaultOpen>
+      <ImageView.Group images={[image]} defaultOpen>
         <ImageView.Content>
           <ImageView.Stage>
             <ImageView.Image />
             <Readout />
           </ImageView.Stage>
         </ImageView.Content>
-      </ImageView.Root>
+      </ImageView.Group>
     )
   }
 
@@ -624,12 +620,12 @@ describe('useViewer', () => {
       )
     }
     render(
-      <ImageView.Root images={IMAGES} defaultOpen>
+      <ImageView.Group images={IMAGES} defaultOpen>
         <Triggers />
         <ImageView.Content>
           <Readout />
         </ImageView.Content>
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
 
     expect(screen.getByTestId('readout').textContent).toBe('1/3')
@@ -647,5 +643,76 @@ describe('useViewer', () => {
     const quiet = vi.spyOn(console, 'error').mockImplementation(() => {})
     expect(() => render(<Orphan />)).toThrow(/must be rendered inside/i)
     quiet.mockRestore()
+  })
+})
+
+describe('ImageView: grouped vs ungrouped', () => {
+  // Restore here rather than at the end of each test: a failing assertion
+  // never reaches a trailing `mockRestore()`, which leaves `console.warn`
+  // spied and hands the next test the previous one's calls.
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('shares one viewer when grouped, so siblings page between each other', () => {
+    Element.prototype.getBoundingClientRect = viewerRect
+    render(
+      <ImageView.Group images={IMAGES}>
+        <Triggers />
+      </ImageView.Group>,
+    )
+    openViewer(1)
+
+    // One dialog for the whole group, opened on the trigger that was clicked.
+    expect(document.querySelectorAll('dialog[data-image-view]')).toHaveLength(1)
+    expect(document.querySelector('[data-image-view-title]')?.textContent).toBe('b.png')
+
+    // Paging to a sibling is what proves they share a viewer rather than each
+    // owning one — an ungrouped ImageView has nothing to page to.
+    act(() => {
+      document.querySelector<HTMLButtonElement>('[data-image-view-control="next"]')?.click()
+    })
+    expect(document.querySelector('[data-image-view-title]')?.textContent).toBe('c.png')
+  })
+
+  it('stands up its own viewer when there is no Group above it', () => {
+    Element.prototype.getBoundingClientRect = viewerRect
+    render(
+      <ImageView {...A}>
+        <img src={A.src} alt={A.name} data-testid="trigger-0" />
+      </ImageView>,
+    )
+    openViewer()
+
+    // The ungrouped form supplies the Group and the preset itself, so the
+    // one-line case needs no further setup.
+    expect(document.querySelector('dialog[data-image-view]')).not.toBeNull()
+    expect(document.querySelector('[data-image-view-control="zoom-in"]')).not.toBeNull()
+  })
+
+  it('warns instead of silently dropping viewer-level props inside a Group', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <ImageView.Group images={[A]}>
+        <ImageView {...A} labels={{ close: 'ignored' }}>
+          <img src={A.src} alt={A.name} data-testid="trigger-0" />
+        </ImageView>
+      </ImageView.Group>,
+    )
+
+    // The group owns these; the value written on the trigger does nothing.
+    // Saying so is the whole reason merging the two components is safe.
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('labels'))
+  })
+
+  it('stays quiet about viewer-level props when it is the viewer', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <ImageView {...A} labels={{ close: 'Fermer' }}>
+        <img src={A.src} alt={A.name} data-testid="trigger-0" />
+      </ImageView>,
+    )
+
+    expect(warn).not.toHaveBeenCalled()
   })
 })

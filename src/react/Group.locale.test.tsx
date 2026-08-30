@@ -19,18 +19,18 @@ function openViewer() {
 
 function Trigger() {
   return (
-    <ImageView.Trigger index={0} {...A}>
+    <ImageView index={0} {...A}>
       <img src={A.src} alt={A.name} data-testid="trigger-0" />
-    </ImageView.Trigger>
+    </ImageView>
   )
 }
 
-describe('Root: explicit locale', () => {
+describe('Group: explicit locale', () => {
   it('keeps stable English defaults regardless of browser language', () => {
     render(
-      <ImageView.Root images={[A]}>
+      <ImageView.Group images={[A]}>
         <Trigger />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     openViewer()
     expect(
@@ -40,9 +40,9 @@ describe('Root: explicit locale', () => {
 
   it('accepts an opt-in locale with field-level overrides', () => {
     render(
-      <ImageView.Root images={[A]} labels={{ ...zhCN, close: 'Fermer' }}>
+      <ImageView.Group images={[A]} labels={{ ...zhCN, close: 'Fermer' }}>
         <Trigger />
-      </ImageView.Root>,
+      </ImageView.Group>,
     )
     openViewer()
     const dialog = document.querySelector('[data-image-view-control="close"]')

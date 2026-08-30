@@ -31,9 +31,9 @@ function SingleImagePreview({ image }: { image: { thumb: string; full: string; n
 
 ## Several images, shared viewer
 
-`Root` collects every `Trigger` beneath it into one set. Clicking any one
+`Group` collects every `ImageView` beneath it into one set. Clicking any one
 opens the viewer positioned on that image, with arrow keys and swipe moving
-between the rest. No `Content` is written here — `Root` supplies the same
+between the rest. No `Content` is written here — `Group` supplies the same
 polished default UI itself.
 
 ```tsx
@@ -42,15 +42,15 @@ import 'react-img-view/styles.css'
 
 function ImageList({ images }: { images: { src: string; name: string }[] }) {
   return (
-    <ImageView.Root images={images}>
+    <ImageView.Group images={images}>
       <div className="grid grid-cols-4 gap-3">
         {images.map((image, i) => (
-          <ImageView.Trigger key={image.src} index={i} {...image}>
+          <ImageView key={image.src} index={i} {...image}>
             <img src={image.src} alt={image.name} className="h-24 w-full object-cover" />
-          </ImageView.Trigger>
+          </ImageView>
         ))}
       </div>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 ```
@@ -69,10 +69,10 @@ Turn them on for a longer set, where the arrows alone do not say
 enough:
 
 ```tsx
-<ImageView.Root images={images}>
+<ImageView.Group images={images}>
   {/* triggers */}
   <ImageView.DefaultContent counter thumbnails />
-</ImageView.Root>
+</ImageView.Group>
 ```
 
 ## Imperative API
@@ -106,7 +106,7 @@ the surrounding component also needs to own those values:
 const [open, setOpen] = useState(false);
 const [index, setIndex] = useState(0);
 
-<ImageView.Root
+<ImageView.Group
   images={images}
   open={open}
   index={index}
@@ -114,7 +114,7 @@ const [index, setIndex] = useState(0);
   onIndexChange={setIndex}
 >
   {/* triggers are optional when you open it programmatically */}
-</ImageView.Root>
+</ImageView.Group>
 
 <Button onClick={() => { setIndex(2); setOpen(true); }}>
   View image 3
@@ -124,10 +124,10 @@ const [index, setIndex] = useState(0);
 ## Full composition
 
 Build your own layout from the same parts `DefaultContent` uses. Controls and
-layout regions take `asChild`; `Trigger` always reuses its child. Every control
+layout regions take `asChild`; `ImageView` always reuses its child. Every control
 publishes `data-active` / `data-boundary` / `data-disabled` for styling.
 
-Keep `Content` or `DefaultContent` as a direct child of the main-entry `Root`.
+Keep `Content` or `DefaultContent` as a direct child of the main-entry `Group`.
 That is the boundary it checks before deciding whether to append the preset.
 
 ```tsx
@@ -135,7 +135,7 @@ import * as ImageView from 'react-img-view/primitives'
 
 function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={images}>
+    <ImageView.Group images={images}>
       {/* triggers */}
 
       <ImageView.Content className="riv-dialog">
@@ -169,7 +169,7 @@ function CustomViewer({ images }) {
           </ImageView.Toolbar>
         </ImageView.Stage>
       </ImageView.Content>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 ```
@@ -179,7 +179,7 @@ buttons, adding your own, and translating every string.
 
 ## Reading viewer state
 
-`useViewer()` works from anywhere inside `Root` — a custom control, a
+`useViewer()` works from anywhere inside `Group` — a custom control, a
 readout, an analytics hook:
 
 ```tsx

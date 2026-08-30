@@ -1,4 +1,4 @@
-import { Root } from './react/parts/Root'
+import { Group } from './react/parts/Group'
 import { Trigger } from './react/parts/Trigger'
 import { Content } from './react/parts/Content'
 import { Stage } from './react/parts/Stage'
@@ -27,11 +27,17 @@ import {
 import { Thumbnails } from './react/parts/Thumbnails'
 
 /**
- * Headless entry: behaviour and semantic parts without SingleImage,
- * DefaultContent, preset icons or automatic chrome.
+ * Headless entry: behaviour and semantic parts without the preset's
+ * `ImageView`, `DefaultContent`, icons or automatic chrome.
+ *
+ * The trigger is `Trigger` rather than the main entry's `ImageView` on
+ * purpose. `ImageView` falls back to standing up the default UI when it has
+ * no `Group`, and pulling that fallback in here would drag the preset back
+ * into an entry whose whole point is not having it. Composing explicitly is
+ * what this entry is for, so its trigger always requires a `Group`.
  */
 export {
-  Root,
+  Group,
   Trigger,
   Content,
   Stage,
@@ -64,7 +70,7 @@ export type {
   ViewerApi,
   ViewerStatus,
   Extension,
-  ImageViewRootProps,
+  ImageViewGroupProps,
   ViewerLabels,
 } from './types'
 export type { ControlProps, DownloadProps } from './react/parts/controls'

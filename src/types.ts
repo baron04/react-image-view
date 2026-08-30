@@ -90,7 +90,7 @@ export interface Extension {
   onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void
 }
 
-export interface ImageViewRootProps {
+export interface ImageViewGroupProps {
   images?: ImageItem[]
   open?: boolean
   defaultOpen?: boolean

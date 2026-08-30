@@ -30,9 +30,9 @@ function SingleImagePreview({ image }: { image: { thumb: string; full: string; n
 
 ## 多图共享一个预览器
 
-`Root` 会把它下面所有的 `Trigger` 收集成一组。点击任意一个都会打开预览器并定位到那张图，
+`Group` 会把它下面所有的 `ImageView` 收集成一组。点击任意一个都会打开预览器并定位到那张图，
 方向键和滑动可以在其余图片之间切换。这里没有写 `Content` ——
-`Root` 会自动补上同一套默认界面。
+`Group` 会自动补上同一套默认界面。
 
 ```tsx
 import { ImageView } from 'react-img-view'
@@ -41,15 +41,15 @@ import 'react-img-view/styles.css'
 
 function ImageList({ images }: { images: { src: string; name: string }[] }) {
   return (
-    <ImageView.Root images={images} labels={zhCN}>
+    <ImageView.Group images={images} labels={zhCN}>
       <div className="grid grid-cols-4 gap-3">
         {images.map((image, i) => (
-          <ImageView.Trigger key={image.src} index={i} {...image}>
+          <ImageView key={image.src} index={i} {...image}>
             <img src={image.src} alt={image.name} className="h-24 w-full object-cover" />
-          </ImageView.Trigger>
+          </ImageView>
         ))}
       </div>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 ```
@@ -67,10 +67,10 @@ function ImageList({ images }: { images: { src: string; name: string }[] }) {
 当图片数量较多、仅靠箭头说明不了情况时再打开：
 
 ```tsx
-<ImageView.Root images={images}>
+<ImageView.Group images={images}>
   {/* triggers */}
   <ImageView.DefaultContent counter thumbnails />
-</ImageView.Root>
+</ImageView.Group>
 ```
 
 ## 函数式调用
@@ -105,7 +105,7 @@ function ViewButton({ images }) {
 const [open, setOpen] = useState(false);
 const [index, setIndex] = useState(0);
 
-<ImageView.Root
+<ImageView.Group
   images={images}
   open={open}
   index={index}
@@ -113,7 +113,7 @@ const [index, setIndex] = useState(0);
   onIndexChange={setIndex}
 >
   {/* 以编程方式打开时，triggers 是可选的 */}
-</ImageView.Root>
+</ImageView.Group>
 
 <Button onClick={() => { setIndex(2); setOpen(true); }}>
   查看第 3 张
@@ -123,11 +123,11 @@ const [index, setIndex] = useState(0);
 ## 完全组合
 
 用 `DefaultContent` 所使用的同一批部件，自己拼出界面。控件和布局区域支持
-`asChild`，`Trigger` 始终直接复用自己的子元素；每个控件都会暴露
+`asChild`，`ImageView` 始终直接复用自己的子元素；每个控件都会暴露
 `data-active` / `data-boundary` / `data-disabled` 供你写样式。
 
-使用主入口时，请让 `Content` 或 `DefaultContent` 成为 `Root` 的直接子节点；
-`Root` 正是通过这一层判断是否还需要补上默认界面。
+使用主入口时，请让 `Content` 或 `DefaultContent` 成为 `Group` 的直接子节点；
+`Group` 正是通过这一层判断是否还需要补上默认界面。
 
 ```tsx
 import * as ImageView from 'react-img-view/primitives'
@@ -135,7 +135,7 @@ import zhCN from 'react-img-view/locales/zh-CN'
 
 function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={images} labels={zhCN}>
+    <ImageView.Group images={images} labels={zhCN}>
       {/* triggers */}
 
       <ImageView.Content className="riv-dialog">
@@ -169,20 +169,20 @@ function CustomViewer({ images }) {
           </ImageView.Toolbar>
         </ImageView.Stage>
       </ImageView.Content>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 ```
 
 <Aside type="tip" title="界面文案不用写死">
-  上面为了直观把中文直接写进了 JSX。实际项目里更推荐用 `Root` 的 `labels`
+  上面为了直观把中文直接写进了 JSX。实际项目里更推荐用 `Group` 的 `labels`
   统一管理所有文案，这样内置控件和你自己的控件会从同一处取词 ——
   见[自定义](../customization/#7-labels)。
 </Aside>
 
 ## 读取预览器状态
 
-`useViewer()` 在 `Root` 内部任意位置都能用 —— 自定义控件、状态展示、埋点：
+`useViewer()` 在 `Group` 内部任意位置都能用 —— 自定义控件、状态展示、埋点：
 
 ```tsx
 import { useViewer } from 'react-img-view/primitives'

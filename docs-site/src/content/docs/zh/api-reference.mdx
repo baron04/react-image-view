@@ -7,24 +7,36 @@ description: 完整说明公开的部件与属性，所有示例都经过编译�
 
 ## 组件
 
-### `ImageView`
+### `<ImageView>`
 
-它本身可以作为单图入口调用，同时把各个部件挂为静态属性 ——
-`ImageView.Root`、`ImageView.Trigger` 等等。不想引入整个命名空间的话，
-`Root`、`Trigger` 等部件也都有独立的具名导出。
+包裹一张缩略图，点击它打开预览器。它会根据自己所处的位置决定行为：
 
-自定义界面时，可以从 primitives 入口引入同一批语义部件 —— 见[其它入口](#其它入口)。
+- **在 `Group` 里面**：作为触发器。图片集合、打开状态和界面都归 `Group` 管，
+  所以它下面的每个 `ImageView` 打开的是同一个预览器，彼此之间可以翻页。
+- **单独使用时**：没有可共享的对象，于是它自己补上 `Group` 和默认界面。
+  这就是一行接入的写法。
 
-### `<ImageView src alt>`
+因此从单图扩成多图是纯追加的——把现有的 `ImageView` 包进一个 `Group` 即可，
+不需要改任何名字。
 
-单图入口。属性是 [`ImageItem`](#imageitem) 加上 `children: ReactElement`（触发元素），
-会转发给 `Root` 的 `container` 和 `labels`，以及用于替换大图的 `renderImage`。
+`ImageItem` 加上：
 
-### `<ImageView.Root>`
+| 属性                                   | 类型            |                                                                                                            |
+| -------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------- |
+| `children`                             | `ReactElement`  | 用来打开预览器的元素。始终复用唯一的子元素；`ImageView` 不接受 `asChild` 属性。                            |
+| `index`                                | `number`        | 在整组里的位置。不传时按注册顺序 —— 虚拟列表，或任何挂载顺序与视觉顺序可能不一致的场景，请显式传入。       |
+| `disabled`                             | `boolean`       |                                                                                                            |
+| `container` / `labels` / `renderImage` | 与 `Group` 相同 | 只有在外层没有 `Group` 时才会读取，因为那是它唯一自己拥有预览器的情况。放在 `Group` 里传会在开发环境告警。 |
+
+它同时也是命名空间：各个部件都挂为静态属性（`ImageView.Group`、
+`ImageView.Content`……），也都有独立的具名导出。要自己拼界面，从 primitives
+入口取同一批部件 —— 见[其它入口](#其它入口)。
+
+### `<ImageView.Group>`
 
 | 属性                     | 类型                      | 默认值                |                                                                                 |
 | ------------------------ | ------------------------- | --------------------- | ------------------------------------------------------------------------------- |
-| `images`                 | `ImageItem[]`             | 各 trigger 的注册顺序 | [`ImageItem`](#imageitem) 数组。不传则改为把 `Trigger` 作为子节点列出。         |
+| `images`                 | `ImageItem[]`             | 各 trigger 的注册顺序 | [`ImageItem`](#imageitem) 数组。不传则改为把 `ImageView` 作为子节点列出。       |
 | `open` / `defaultOpen`   | `boolean`                 | `defaultOpen = false` | 受控 / 非受控。                                                                 |
 | `onOpenChange`           | `(open: boolean) => void` | —                     |                                                                                 |
 | `index` / `defaultIndex` | `number`                  | `defaultIndex = 0`    |                                                                                 |
@@ -33,24 +45,14 @@ description: 完整说明公开的部件与属性，所有示例都经过编译�
 | `extensions`             | `Extension[]`             | `[]`                  | 见下方 [Extensions](#extension)。                                               |
 | `labels`                 | `Partial<ViewerLabels>`   | 稳定的英文默认值      | 所有面向用户的文案。见 [`ViewerLabels`](#viewerlabels)。                        |
 
-### `<ImageView.Trigger>`
-
-`ImageItem` 加上：
-
-| 属性       | 类型      |                                                                                                      |
-| ---------- | --------- | ---------------------------------------------------------------------------------------------------- |
-| `index`    | `number`  | 在整组里的位置。不传时按注册顺序 —— 虚拟列表，或任何挂载顺序与视觉顺序可能不一致的场景，请显式传入。 |
-| `disabled` | `boolean` |                                                                                                      |
-| 渲染方式   | —         | 始终复用唯一的子元素；`Trigger` 不接受 `asChild` 属性。                                              |
-
 ### `<ImageView.Content>`
 
 Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
-传子节点来自己组合布局，或者干脆不写，让 `Root` 补上
+传子节点来自己组合布局，或者干脆不写，让 `Group` 补上
 `DefaultContent`。
 
-使用主入口时，请让 `Content` 或 `DefaultContent` 成为 `Root` 的直接子节点；
-只有这一层会参与是否补上预设的判断。primitives 入口的 `Root` 从不补预设。
+使用主入口时，请让 `Content` 或 `DefaultContent` 成为 `Group` 的直接子节点；
+只有这一层会参与是否补上预设的判断。primitives 入口的 `Group` 从不补预设。
 
 ### 布局区域
 
@@ -130,7 +132,7 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 
 ### `<ImageView.DefaultContent>`
 
-没有提供自己的 `Content` 时，`Root` 自动渲染的就是它。
+没有提供自己的 `Content` 时，`Group` 自动渲染的就是它。
 也可以显式使用，比如只想打开 `counter`/`thumbnails`
 而不想自己把界面全部拼一遍：
 
@@ -141,13 +143,13 @@ Portal 出去的 `<dialog>`。它不额外渲染任何东西 ——
 | `renderImage` | 与 `Image` 相同                            | —                                    |
 
 默认错误态刻意保持紧凑：一行错误文案和一个只显示图标的重试按钮。按钮的无障碍
-名称以及其余面向用户的文案都来自 `Root` 上的 [`labels`](#viewerlabels)。
+名称以及其余面向用户的文案都来自 `Group` 上的 [`labels`](#viewerlabels)。
 
 ## 钩子
 
 ### `useViewer()`
 
-返回实时的 `ViewerApi` —— 在 `Root` 内部的任何组件里调用都是安全的。
+返回实时的 `ViewerApi` —— 在 `Group` 内部的任何组件里调用都是安全的。
 
 ```ts
 interface ViewerApi {
@@ -211,8 +213,8 @@ interface ImageItem {
 属于无障碍缺陷而不是外观问题：无论页面的 `lang` 声明成什么，读屏软件都会
 照字面朗读。
 
-不传 `labels` 时，`Root` 始终使用稳定的英文默认值，保证服务端输出与 hydration
-完全一致，并把语言选择交给应用。把 `labels` 传给 `Root`（或 `<ImageView>`）即可覆盖；它按字段合并，没覆盖的字段继续使用英文默认值。
+不传 `labels` 时，`Group` 始终使用稳定的英文默认值，保证服务端输出与 hydration
+完全一致，并把语言选择交给应用。把 `labels` 传给 `Group`（或 `<ImageView>`）即可覆盖；它按字段合并，没覆盖的字段继续使用英文默认值。
 
 ```ts
 interface ViewerLabels {
@@ -241,7 +243,7 @@ interface ViewerLabels {
 import zhCN from 'react-img-view/locales/zh-CN'
 
 function ChineseViewer({ images }) {
-  return <ImageView.Root images={images} labels={zhCN} />
+  return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
 
@@ -257,14 +259,14 @@ interface Extension {
 }
 ```
 
-返回 `true` 表示事件已被消费。通过 `Root` 的 `extensions` 属性传入数组。
+返回 `true` 表示事件已被消费。通过 `Group` 的 `extensions` 属性传入数组。
 
 ## 其它入口
 
 ### `react-img-view/primitives`
 
 和主入口一样的语义部件，但不带预设。这个入口的
-`Root` 是纯 headless 的，不会自动注入 `DefaultContent`，因此默认外观和图标不会
+`Group` 是纯 headless 的，不会自动注入 `DefaultContent`，因此默认外观和图标不会
 进入该入口 —— 自己拼界面时从这里引入。
 
 ### `react-img-view/imperative`
@@ -294,7 +296,7 @@ viewer.close()
 | `counter`                             | `boolean`                                  | `false` | 是否显示预设计数器。                            |
 | `thumbnails`                          | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | 是否显示预设缩略图轨。                          |
 | `renderImage`                         | 函数                                       | —       | 与 `ImageView.Image` 相同的图片渲染函数。       |
-| `container` / `extensions` / `labels` | 与 `Root` 相同                             | —       | 转发给内部托管的 `Root`。                       |
+| `container` / `extensions` / `labels` | 与 `Group` 相同                            | —       | 转发给内部托管的 `Group`。                      |
 
 返回的句柄只控制这次调用创建的预览；之后再次 `open()` 时，旧句柄不会误操作新预览。
 `ImagePreview.close()` 关闭当前函数式预览。自定义 `content` 内仍然可以使用

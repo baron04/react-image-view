@@ -41,26 +41,26 @@ function SingleImagePreview({ image }) {
 多张图片共享一个预览器：
 
 ```tsx
-<ImageView.Root images={images} labels={zhCN}>
+<ImageView.Group images={images} labels={zhCN}>
   {images.map((image, i) => (
-    <ImageView.Trigger key={image.src} index={i} {...image}>
+    <ImageView key={image.src} index={i} {...image}>
       <img src={image.src} alt={image.name} />
-    </ImageView.Trigger>
+    </ImageView>
   ))}
-</ImageView.Root>
+</ImageView.Group>
 ```
 
 需要完全自定义界面时，不用换库、不用自己接管状态，从 `react-img-view/primitives` 把部件重新拼一次就行（后面有完整示例）。**从一行用法到完全自定义，只是逐步打开同一个组件，中间不存在“推翻重写”。**
 
 几种使用方式怎么选：
 
-| 方式                         | 适合场景                         | 用法                                                               |
-| ---------------------------- | -------------------------------- | ------------------------------------------------------------------ |
-| `ImageView` 单图             | 一张图挂个大图预览               | 包一下缩略图即可                                                   |
-| `ImageView.Root` + `Trigger` | 图片列表、缩略图墙               | 所有触发器共享一个预览器                                           |
-| 函数式调用                   | 没有缩略图，从按钮或接口回调打开 | `ImagePreview.open({ images, index })`                             |
-| `primitives` 完全组合        | 需要重排布局、替换内部组件       | 用同一批部件自己拼界面                                             |
-| 受控模式                     | 预览状态要由外部持有             | 向 `Root` 传入 `open` / `index` / `onOpenChange` / `onIndexChange` |
+| 方式                          | 适合场景                         | 用法                                                                |
+| ----------------------------- | -------------------------------- | ------------------------------------------------------------------- |
+| `ImageView` 单图              | 一张图挂个大图预览               | 包一下缩略图即可                                                    |
+| `ImageView.Group` + `Trigger` | 图片列表、缩略图墙               | 所有触发器共享一个预览器                                            |
+| 函数式调用                    | 没有缩略图，从按钮或接口回调打开 | `ImagePreview.open({ images, index })`                              |
+| `primitives` 完全组合         | 需要重排布局、替换内部组件       | 用同一批部件自己拼界面                                              |
+| 受控模式                      | 预览状态要由外部持有             | 向 `Group` 传入 `open` / `index` / `onOpenChange` / `onIndexChange` |
 
 界面也有三种拿到方式：引一份 **CSS 预设**开箱即用；用 **shadcn registry** 把 Tailwind 源码装进项目直接改；或从 **primitives** 完全自己拼。三者详见后文架构一节。
 
@@ -110,7 +110,7 @@ React 生态里图片预览组件并不少，我最初也只是想给项目里�
 
 **界面定制**
 
-- 每一个可见部件都对外导出：`Root` / `Content` / `Stage` / `Image` / `Toolbar` / `Thumbnails` / 各控件
+- 每一个可见部件都对外导出：`Group` / `Content` / `Stage` / `Image` / `Toolbar` / `Thumbnails` / 各控件
 - 控件支持 Radix 风格的 `asChild`，直接复用你项目里的 Button、Icon，不多包一层 DOM
 - `renderImage` 可以替换大图渲染，接入 `<picture>`、业务图片组件、额外属性和加载事件
 - 状态通过 `data-active` / `data-boundary` / `data-disabled` / `data-phase` 属性暴露，写样式不用复制内部状态
@@ -198,7 +198,7 @@ import * as ImageView from 'react-img-view/primitives'
 
 function CustomViewer({ images }) {
   return (
-    <ImageView.Root images={images}>
+    <ImageView.Group images={images}>
       {/* triggers */}
       <ImageView.Content className="riv-dialog">
         <ImageView.Header>
@@ -232,7 +232,7 @@ function CustomViewer({ images }) {
           </ImageView.Toolbar>
         </ImageView.Stage>
       </ImageView.Content>
-    </ImageView.Root>
+    </ImageView.Group>
   )
 }
 ```

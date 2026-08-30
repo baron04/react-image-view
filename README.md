@@ -11,7 +11,7 @@ A **React image viewer** that works out of the box without locking you into its 
 react-img-view keeps gestures, animation, and state management inside the library while exposing the interface as composable headless parts. Start with the polished preset, then replace buttons, images, or the entire layout without reimplementing zoom and gesture handling.
 
 - **Complete interactions:** zoom, pan, pinch, rotate, fit-to-window, 1:1, keyboard shortcuts, and touch gestures.
-- **Headless and composable:** `Root`, `Content`, `Stage`, `Image`, and every control can be composed directly.
+- **Headless and composable:** `Group`, `Content`, `Stage`, `Image`, and every control can be composed directly.
 - **Flexible integration:** single image, shared viewer, controlled state, or the function-style API.
 
 **[Documentation](https://baron04.github.io/react-img-view/)** · [Quick Start](https://baron04.github.io/react-img-view/quick-start/) · [API Reference](https://baron04.github.io/react-img-view/api-reference/)
@@ -37,7 +37,7 @@ Use one line for a single image, share one viewer across a set, and expand into 
 
 For function-style use, import `ImagePreview` from `react-img-view/imperative` and call `ImagePreview.open({ images, index })`. The viewer cleans itself up after closing.
 
-The main entry is **11.6 kB gzip**. For custom chrome, import headless parts from `react-img-view/primitives` (**10.4 kB gzip**); low-level transforms and the gesture state machine live at `react-img-view/core` and tree-shake down to about **0.5 kB** when one helper is used. The minified CSS preset is **1.7 kB gzip**. CI enforces these budgets.
+The main entry is **11.7 kB gzip**. For custom chrome, import headless parts from `react-img-view/primitives` (**10.4 kB gzip**); low-level transforms and the gesture state machine live at `react-img-view/core` and tree-shake down to about **0.5 kB** when one helper is used. The minified CSS preset is **1.7 kB gzip**. CI enforces these budgets.
 
 English labels are deterministic by default. Choose another language explicitly so server and hydrated markup always agree:
 
@@ -45,7 +45,7 @@ English labels are deterministic by default. Choose another language explicitly 
 import zhCN from 'react-img-view/locales/zh-CN'
 
 function ChineseViewer({ images }) {
-  return <ImageView.Root images={images} labels={zhCN} />
+  return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
 

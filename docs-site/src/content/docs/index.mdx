@@ -45,14 +45,6 @@ import { ImageListDemo } from '../../components/Demo.tsx'
 
 <div class="riv-features">
   <div class="riv-feature">
-    <h2>Interaction: the hard parts are done</h2>
-    <p>
-      {
-        'Wheel zoom always tracks the cursor, and a drag that runs out of room pages to the next image mid-gesture. Pinch, swipe-to-dismiss and rotate are tuned to feel native — the parts most libraries either skip or get subtly wrong.'
-      }
-    </p>
-  </div>
-  <div class="riv-feature">
     <h2>Integration: several ways to plug it in</h2>
     <p>
       {
@@ -64,15 +56,23 @@ import { ImageListDemo } from '../../components/Demo.tsx'
     <h2>Customization: deep customization through composable design</h2>
     <p>
       {
-        'Toolbar, buttons, title and thumbnail strip are separate parts you can add, remove, reorder, or swap for components from your own design system. The default UI is put together the same way.'
+        'Toolbar, buttons, and title can be swapped, added, removed, or reordered, even with components from your own design system.'
       }
     </p>
   </div>
   <div class="riv-feature">
-    <h2>Engineering: production is the default bar</h2>
+    <h2>Gestures: pinch, drag, and scroll to zoom</h2>
     <p>
       {
-        'No runtime dependencies, fully typed, React 18 and 19. Focus management, screen-reader labels, retry on load failure, SSR safety, and swipe-to-dismiss that answers touch and pen only — design goals here, not patches added later.'
+        'Pinch to zoom, drag to pan, scroll to zoom at the cursor — drag past the edge and it pages to the next image. Swipe-to-dismiss answers touch and pen only, so a mouse never closes it by accident.'
+      }
+    </p>
+  </div>
+  <div class="riv-feature">
+    <h2>Animation: smooth open and close</h2>
+    <p>
+      {
+        'Opening grows the image out of its thumbnail. Closing shrinks it back, smooth the whole way.'
       }
     </p>
   </div>

@@ -81,15 +81,27 @@ const ViewerContext = React.createContext<ViewerContextValue | null>(null)
 
 export const ViewerProvider = ViewerContext.Provider
 
+/**
+ * The context, or null when there is no `Group` above.
+ *
+ * `useViewerContext` throws, which is right for a part that is meaningless on
+ * its own. `ImageView` is the one component that legitimately works either
+ * way — grouped it is a trigger, ungrouped it stands up a viewer of its own —
+ * so it needs to ask without that being an error.
+ */
+export function useOptionalViewerContext(): ViewerContextValue | null {
+  return React.useContext(ViewerContext)
+}
+
 export function useViewerContext(part: string): ViewerContextValue {
   const ctx = React.useContext(ViewerContext)
   if (!ctx) {
-    throw new Error(`<ImageView.${part}> must be rendered inside <ImageView.Root>.`)
+    throw new Error(`<ImageView.${part}> must be rendered inside <ImageView.Group>.`)
   }
   return ctx
 }
 
-/** Read-only handle plus commands. Safe to call from anywhere inside Root. */
+/** Read-only handle plus commands. Safe to call from anywhere inside a Group. */
 export function useViewer(): ViewerApi {
   return useViewerContext('useViewer').api
 }
