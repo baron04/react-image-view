@@ -3,34 +3,19 @@
 Notable changes to `react-img-view`. Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] — 2026-08-30
 
-Preparation for 1.0: the deprecated export is gone, and what the project
-promises — which browsers, which runtimes — is written down rather than
-implied.
+One name for the trigger, one shape for both entries. Everything below is
+about making the API smaller to hold in your head, not about new behaviour.
 
 ### Breaking
 
-- **`Trigger` is gone from every entry; the trigger is `ImageView`.** One
-  name for one role, rather than two depending on which entry you import
-  from. The headless `react-img-view/primitives` exports the trigger-only
-  half under that name and it still requires a `Group`; the main entry's
-  adds the standalone fallback on top, the same split `Group` already had
-  between the two entries.
-- **Both entries are shaped the same,** so one import idiom covers both:
-  `import { ImageView }`, then `<ImageView>` for the trigger and
-  `<ImageView.Group>`, `<ImageView.Content>` and the rest for everything
-  around it. Only the import path differs. The parts remain named exports
-  for anyone who prefers importing them individually.
-- **`ImageView.Trigger` is gone; `ImageView` is the trigger.** One component
-  now covers both shapes. Inside a `Group` it is a trigger sharing that
+- **`ImageView` is the trigger; `Trigger` is gone from every entry.** One
+  component covers both shapes. Inside a `Group` it is a trigger sharing that
   group's viewer; on its own it stands up a `Group` and the default UI around
   itself, which is the one-line case. Growing a single image into a gallery is
   therefore additive — wrap the existing `ImageView`s in a `Group` — where it
-  used to mean renaming every call site. The headless
-  `react-img-view/primitives` entry keeps `Trigger`, which always requires a
-  `Group`: `ImageView`'s standalone fallback needs the preset, and pulling
-  that into an entry defined by not having it would defeat the entry.
+  used to mean renaming every call site.
 - **`Root` is now `Group`,** in both entries, along with
   `ImageViewRootProps` → `ImageViewGroupProps`. With the trigger named
   `ImageView`, a `Root` containing several `ImageView`s read backwards.
@@ -39,24 +24,19 @@ implied.
   a viewer. Passing them inside a `Group` has no effect and now warns in
   development rather than being silently discarded — the failure that made
   merging the two components risky in the first place.
-- **`defaultLabels` is no longer exported.** It has been a deprecated alias
-  for `en` since 0.2.0. Import `en` from `react-img-view` or
-  `react-img-view/primitives`.
+- **Both entries are shaped the same,** so one import idiom covers both:
+  `import { ImageView }`, then `<ImageView>` for the trigger and
+  `<ImageView.Group>`, `<ImageView.Content>` and the rest for everything
+  around it. Only the import path differs. The parts remain named exports for
+  anyone who prefers importing them individually.
 
 ### Added
 
-- A stated compatibility floor. The published JavaScript needs Chrome 80,
-  Firefox 98, and Safari 15.4 (`<dialog>.showModal()`, Pointer Events,
-  `ResizeObserver`, ES2020); the preset stylesheet raises that to Chrome 111,
-  Firefox 113, and Safari 16.2 because of CSS `color-mix()`. Composing from
-  `react-img-view/primitives` keeps the lower floor.
-- **Server rendering and Next.js** documentation — why the `"use client"`
-  banner is enough inside a Server Component tree, that no `document` access
-  happens during render, and why `labels` must not be derived from anything
-  only the browser knows.
 - A `visual` CI job that skips while no Linux screenshot baselines are
   committed and enforces them as soon as they are, plus a **Visual baselines**
   workflow that generates them for review.
+- `pnpm format:check` runs in CI. It had existed all along without ever
+  running, so ten tracked files had drifted out of the configured style.
 
 ## [0.3.0] — 2026-08-30
 
@@ -79,6 +59,9 @@ checks.
 - **`Extension.onGesture` was removed.** It was exposed in the type but never
   called. Pointer gestures remain owned by Stage's state machine;
   `Extension.onKeyDown` remains the keyboard escape hatch.
+- **`defaultLabels` is no longer exported.** It has been a deprecated alias
+  for `en` since 0.2.0. Import `en` from `react-img-view` or
+  `react-img-view/primitives`.
 
 ### Added
 
@@ -92,6 +75,15 @@ checks.
 - **`react-img-view/primitives`** — semantic React parts and the pure headless
   `Root`, without `SingleImage`, `DefaultContent`, preset icons, or automatic
   chrome.
+- A stated compatibility floor. The published JavaScript needs Chrome 80,
+  Firefox 98, and Safari 15.4 (`<dialog>.showModal()`, Pointer Events,
+  `ResizeObserver`, ES2020); the preset stylesheet raises that to Chrome 111,
+  Firefox 113, and Safari 16.2 because of CSS `color-mix()`. Composing from
+  `react-img-view/primitives` keeps the lower floor.
+- **Server rendering and Next.js** documentation — why the `"use client"`
+  banner is enough inside a Server Component tree, that no `document` access
+  happens during render, and why `labels` must not be derived from anything
+  only the browser knows.
 - **`react-img-view/core`** and **`react-img-view/locales/zh-CN`** as explicit,
   independently tree-shakeable public entries.
 - Gzip budgets for every public runtime entry and the CSS preset, plus real
@@ -247,6 +239,7 @@ considered unfit for production.
 First publish. Withdrawn in practice: the toolbar was non-functional under a
 mouse.
 
+[0.4.0]: https://github.com/baron04/react-img-view/releases/tag/v0.4.0
 [0.3.0]: https://github.com/baron04/react-img-view/releases/tag/v0.3.0
 [0.2.1]: https://github.com/baron04/react-img-view/releases/tag/v0.2.1
 [0.2.0]: https://github.com/baron04/react-img-view/releases/tag/v0.2.0
