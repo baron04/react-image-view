@@ -237,7 +237,8 @@ interface ViewerLabels {
 }
 ```
 
-主入口和 primitives 入口导出 `en`。简体中文改为按需入口，不会增加默认包体积：
+内置两种语言：`en` 由主入口和 primitives 入口导出，也是 `Group` 的回退值；
+简体中文放在独立子路径按需引入，不会增加默认包体积：
 
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
@@ -246,6 +247,20 @@ function ChineseViewer({ images }) {
   return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
+
+其它语言直接传一个对象即可，没有语言包注册表要登记，也没有东西要引入 ——
+`labels` 会按字段合并到 `en` 之上，所以只传一部分也可以，没覆盖的键继续用英文：
+
+```tsx
+const ja: Partial<ViewerLabels> = { close: '閉じる', zoomIn: '拡大', next: '次へ' }
+
+function JapaneseViewer({ images }) {
+  return <ImageView.Group images={images} labels={ja} />
+}
+```
+
+完整键名清单见上面的 [`ViewerLabels`](#viewerlabels)。除 `errorTitle` 外全都是
+`aria-label`，漏翻不会显示成错字，而是变成无障碍缺陷。
 
 ## 其它入口
 

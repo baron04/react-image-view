@@ -254,8 +254,9 @@ interface ViewerLabels {
 }
 ```
 
-`en` is exported from the main and primitives entries. Simplified Chinese is
-opt-in and adds nothing to the default bundle:
+Two locales ship: `en` — exported from the main and primitives entries, and
+what `Group` falls back to — and Simplified Chinese, which is opt-in from its
+own subpath so it adds nothing to the default bundle:
 
 ```tsx
 import zhCN from 'react-img-view/locales/zh-CN'
@@ -264,6 +265,22 @@ function ChineseViewer({ images }) {
   return <ImageView.Group images={images} labels={zhCN} />
 }
 ```
+
+Any other language is a plain object you supply. There is no locale registry
+to add to and nothing to import — `labels` merges field by field over `en`, so
+a partial one is fine and untranslated keys keep the English:
+
+```tsx
+const ja: Partial<ViewerLabels> = { close: '閉じる', zoomIn: '拡大', next: '次へ' }
+
+function JapaneseViewer({ images }) {
+  return <ImageView.Group images={images} labels={ja} />
+}
+```
+
+Every key is listed under [`ViewerLabels`](#viewerlabels) above. All but
+`errorTitle` are `aria-label`s, so an untranslated one is an accessibility
+gap rather than a visible one.
 
 ## Other entry points
 
