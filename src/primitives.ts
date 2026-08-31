@@ -96,14 +96,7 @@ export {
 export { useViewer, useLabels } from './react/context'
 export { en } from './labels'
 export { Slot, composeRefs } from './react/slot'
-export type {
-  ImageItem,
-  ViewerApi,
-  ViewerStatus,
-  Extension,
-  ImageViewGroupProps,
-  ViewerLabels,
-} from './types'
+export type { ImageItem, ViewerApi, ViewerStatus, ImageViewGroupProps, ViewerLabels } from './types'
 export type { ControlProps, DownloadProps } from './react/parts/controls'
 export type {
   CounterProps,

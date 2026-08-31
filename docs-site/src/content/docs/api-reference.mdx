@@ -48,7 +48,7 @@ same names, so a custom interface is written the same way — see
 | `index` / `defaultIndex` | `number`                  | `defaultIndex = 0`               |                                                                                                           |
 | `onIndexChange`          | `(index: number) => void` | —                                |                                                                                                           |
 | `container`              | `HTMLElement \| null`     | `document.body`                  | Portal target — see [Installation](../installation/) for when to point this at a themed ancestor instead. |
-| `extensions`             | `Extension[]`             | `[]`                             | See [Extensions](#extension) below.                                                                       |
+| `onKeyDown`              | see below                 | —                                | Runs before the built-in shortcuts; return `true` to claim the key.                                       |
 | `labels`                 | `Partial<ViewerLabels>`   | stable English defaults          | Every user-facing string. See [`ViewerLabels`](#viewerlabels).                                            |
 
 ### `<ImageView.Content>`
@@ -265,22 +265,6 @@ function ChineseViewer({ images }) {
 }
 ```
 
-### `Extension`
-
-The narrow escape hatch for keyboard behaviour composition can't reach.
-Anything that needs to render belongs in the tree, while pointer gestures stay
-owned by Stage's tested state machine.
-
-```ts
-interface Extension {
-  name: string
-  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void
-}
-```
-
-Return `true` to mark the event consumed. Pass an array via `Group`'s
-`extensions` prop.
-
 ## Other entry points
 
 ### `react-img-view/primitives`
@@ -331,15 +315,15 @@ closed, and an out-of-range index is adjusted to the nearest valid value. The
 viewer cleans itself up after it is closed from the handle, the preset UI, or
 Escape. Call it only in browser code such as an event handler or Effect.
 
-| `open()` option                       | Type                                       | Default |                                                                    |
-| ------------------------------------- | ------------------------------------------ | ------- | ------------------------------------------------------------------ |
-| `images`                              | `ImageItem[]`                              | —       | Images to open.                                                    |
-| `index`                               | `number`                                   | `0`     | Initial image, clamped to the available range.                     |
-| `content`                             | `ReactNode`                                | preset  | A custom composition built from `ImageView.Content` and its parts. |
-| `counter`                             | `boolean`                                  | `false` | Show the preset counter.                                           |
-| `thumbnails`                          | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | Show the preset thumbnail strip.                                   |
-| `renderImage`                         | function                                   | —       | Same renderer accepted by `ImageView.Image`.                       |
-| `container` / `extensions` / `labels` | same as `Group`                            | —       | Forwarded to the managed `Group`.                                  |
+| `open()` option                      | Type                                       | Default |                                                                    |
+| ------------------------------------ | ------------------------------------------ | ------- | ------------------------------------------------------------------ |
+| `images`                             | `ImageItem[]`                              | —       | Images to open.                                                    |
+| `index`                              | `number`                                   | `0`     | Initial image, clamped to the available range.                     |
+| `content`                            | `ReactNode`                                | preset  | A custom composition built from `ImageView.Content` and its parts. |
+| `counter`                            | `boolean`                                  | `false` | Show the preset counter.                                           |
+| `thumbnails`                         | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | Show the preset thumbnail strip.                                   |
+| `renderImage`                        | function                                   | —       | Same renderer accepted by `ImageView.Image`.                       |
+| `container` / `onKeyDown` / `labels` | same as `Group`                            | —       | Forwarded to the managed `Group`.                                  |
 
 The returned handle controls only the viewer created by that call; after a
 later `open()`, an old handle is harmless. `ImagePreview.close()` closes the

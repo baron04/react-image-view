@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ImageView, type Extension, type ImageItem } from '../../../src/index'
+import { ImageView, type ImageItem, type ImageViewGroupProps } from '../../../src/index'
 import { ImagePreview } from '../../../src/imperative'
 import { ImageView as Headless } from '../../../src/primitives'
 import zhCN from '../../../src/locales/zh-CN'
@@ -64,19 +64,16 @@ const DesignSystemButton = React.forwardRef<
   return <button {...props} ref={ref} />
 })
 
-const pageWithSpace = {
-  name: 'space-pages',
-  onKeyDown(event, api) {
-    if (event.key !== ' ') return
-    if (event.shiftKey) api.prev()
-    else api.next()
-    return true
-  },
-} satisfies Extension
+const pageWithSpace: ImageViewGroupProps['onKeyDown'] = (event, api) => {
+  if (event.key !== ' ') return
+  if (event.shiftKey) api.prev()
+  else api.next()
+  return true
+}
 
 export function ComposedViewerExample() {
   return (
-    <Headless.Group images={images} labels={zhCN} extensions={[pageWithSpace]}>
+    <Headless.Group images={images} labels={zhCN} onKeyDown={pageWithSpace}>
       <Headless.Content>
         <Headless.Header>
           <Headless.Close>关闭</Headless.Close>

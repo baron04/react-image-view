@@ -6,7 +6,7 @@ import { useViewer } from '../react/context'
 import { DefaultContent, type DefaultContentProps } from './DefaultContent'
 
 export interface ImagePreviewOpenOptions
-  extends Pick<ImageViewGroupProps, 'container' | 'extensions' | 'labels'>, DefaultContentProps {
+  extends Pick<ImageViewGroupProps, 'container' | 'onKeyDown' | 'labels'>, DefaultContentProps {
   images: ImageItem[]
   index?: number
   /** Replace the preset UI with a composition built from ImageView parts. */
@@ -109,7 +109,7 @@ function PreviewHost({
       index={index}
       onIndexChange={setIndex}
       container={options.container}
-      extensions={options.extensions}
+      onKeyDown={options.onKeyDown}
       labels={options.labels}
     >
       <ControllerBridge session={session} />

@@ -20,7 +20,7 @@ starts with the smallest available change; full composition is rarely needed.
 | Swap a button's element or icon                | [`asChild` / children](#3-aschild)                               | No                           |
 | Add, remove, or reorder buttons                | [Compose `DefaultContent` yourself](#4-compose-your-own-content) | Yes, but from the same parts |
 | Replace the image component or observe loading | [`renderImage`](#5-renderimage)                                  | No                           |
-| Add a keyboard shortcut                        | [Extensions](#6-extensions)                                      | No                           |
+| Add a keyboard shortcut                        | [`onKeyDown`](#6-onkeydown)                                      | No                           |
 | Translate the interface                        | [`labels`](#7-labels)                                            | No                           |
 
 ---
@@ -283,30 +283,33 @@ When overriding `onLoad` or `onError`, call the original handler from
 renderer can be passed to the single-image `<ImageView>` entry,
 `ImageView.Image`, or `ImagePreview.open()`.
 
-## 6. Extensions
+## 6. `onKeyDown`
 
-For keyboard behaviour that composition cannot reach, pass an extension.
-Returning `true` marks the event consumed so the built-in handling is skipped.
+For keyboard behaviour that composition cannot reach, pass a handler. It runs
+before the built-in shortcuts; returning `true` marks the event consumed so
+they are skipped.
 
 ```tsx
-const pageWithSpace = {
-  name: 'space-pages',
-  onKeyDown(event, api) {
-    if (event.key !== ' ') return
-    if (event.shiftKey) api.prev()
-    else api.next()
-    return true // handled; don't fall through
-  },
-}
-
 function Viewer({ images }) {
-  return <ImageView.Group images={images} extensions={[pageWithSpace]} />
+  return (
+    <ImageView.Group
+      images={images}
+      onKeyDown={(event, api) => {
+        if (event.key !== ' ') return
+        if (event.shiftKey) api.prev()
+        else api.next()
+        return true // handled; don't fall through
+      }}
+    >
+      {/* triggers */}
+    </ImageView.Group>
+  )
 }
 ```
 
-Pointer gestures stay owned by Stage's tested state machine. Anything that
-needs to render belongs in the tree as a child instead — extensions are a
-narrow keyboard escape hatch, not a plugin system.
+Pointer gestures stay owned by Stage's tested state machine, and anything
+that needs to render belongs in the tree as a child. This is one callback,
+not a plugin system, which is why it is a prop rather than a registry.
 
 ## 7. Labels
 

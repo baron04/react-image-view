@@ -114,7 +114,7 @@ export const Content = React.forwardRef<HTMLDialogElement, ContentProps>(functio
 
   useScrollLock(ctx.api.open)
 
-  useKeyboard(dialogNode, ctx.api, ctx.extensions, ctx.api.open)
+  useKeyboard(dialogNode, ctx.api, ctx.onKeyDown, ctx.api.open)
 
   if (!mounted || !ctx.api.open) return null
 

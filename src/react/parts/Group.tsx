@@ -54,7 +54,7 @@ export function Group({
   defaultIndex = 0,
   onIndexChange,
   container = null,
-  extensions = [],
+  onKeyDown,
   labels: labelsProp,
   children,
 }: ImageViewGroupProps) {
@@ -652,7 +652,7 @@ export function Group({
       container,
       // eslint-disable-next-line react-hooks/refs -- see comment above
       internals,
-      extensions,
+      onKeyDown,
       labels,
       registerTrigger,
       indexOf,
@@ -664,7 +664,7 @@ export function Group({
       images,
       container,
       internals,
-      extensions,
+      onKeyDown,
       labels,
       registerTrigger,
       indexOf,

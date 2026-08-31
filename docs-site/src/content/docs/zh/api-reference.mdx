@@ -42,7 +42,7 @@ description: 完整说明公开的部件与属性，所有示例都经过编译�
 | `index` / `defaultIndex` | `number`                  | `defaultIndex = 0`    |                                                                                 |
 | `onIndexChange`          | `(index: number) => void` | —                     |                                                                                 |
 | `container`              | `HTMLElement \| null`     | `document.body`       | Portal 目标 —— 什么时候该指向一个带主题的祖先元素，见[安装](../installation/)。 |
-| `extensions`             | `Extension[]`             | `[]`                  | 见下方 [Extensions](#extension)。                                               |
+| `onKeyDown`              | 见下                      | —                     | 在内置快捷键之前运行，返回 `true` 表示这个键已被接管。                          |
 | `labels`                 | `Partial<ViewerLabels>`   | 稳定的英文默认值      | 所有面向用户的文案。见 [`ViewerLabels`](#viewerlabels)。                        |
 
 ### `<ImageView.Content>`
@@ -247,20 +247,6 @@ function ChineseViewer({ images }) {
 }
 ```
 
-### `Extension`
-
-组合方式够不着的键盘行为才用它。任何需要**渲染**的东西都应该放进组件树；
-指针手势继续由 Stage 里经过测试的状态机统一管理。
-
-```ts
-interface Extension {
-  name: string
-  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void
-}
-```
-
-返回 `true` 表示事件已被消费。通过 `Group` 的 `extensions` 属性传入数组。
-
 ## 其它入口
 
 ### `react-img-view/primitives`
@@ -307,15 +293,15 @@ viewer.close()
 传入空数组时不会打开，序号越界时会自动调整到有效范围。无论通过句柄、预设
 关闭按钮还是 Escape 关闭，预览器都会自动清理。请只在点击事件、Effect 等浏览器环境中调用。
 
-| `open()` 参数                         | 类型                                       | 默认值  |                                                 |
-| ------------------------------------- | ------------------------------------------ | ------- | ----------------------------------------------- |
-| `images`                              | `ImageItem[]`                              | —       | 要打开的图片。                                  |
-| `index`                               | `number`                                   | `0`     | 初始序号，越界时自动调整。                      |
-| `content`                             | `ReactNode`                                | 预设    | 用 `ImageView.Content` 等部件组合的自定义界面。 |
-| `counter`                             | `boolean`                                  | `false` | 是否显示预设计数器。                            |
-| `thumbnails`                          | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | 是否显示预设缩略图轨。                          |
-| `renderImage`                         | 函数                                       | —       | 与 `ImageView.Image` 相同的图片渲染函数。       |
-| `container` / `extensions` / `labels` | 与 `Group` 相同                            | —       | 转发给内部托管的 `Group`。                      |
+| `open()` 参数                        | 类型                                       | 默认值  |                                                 |
+| ------------------------------------ | ------------------------------------------ | ------- | ----------------------------------------------- |
+| `images`                             | `ImageItem[]`                              | —       | 要打开的图片。                                  |
+| `index`                              | `number`                                   | `0`     | 初始序号，越界时自动调整。                      |
+| `content`                            | `ReactNode`                                | 预设    | 用 `ImageView.Content` 等部件组合的自定义界面。 |
+| `counter`                            | `boolean`                                  | `false` | 是否显示预设计数器。                            |
+| `thumbnails`                         | `boolean \| 'auto' \| 'always' \| 'never'` | `false` | 是否显示预设缩略图轨。                          |
+| `renderImage`                        | 函数                                       | —       | 与 `ImageView.Image` 相同的图片渲染函数。       |
+| `container` / `onKeyDown` / `labels` | 与 `Group` 相同                            | —       | 转发给内部托管的 `Group`。                      |
 
 返回的句柄只控制这次调用创建的预览；之后再次 `open()` 时，旧句柄不会误操作新预览。
 `ImagePreview.close()` 关闭当前函数式预览。自定义 `content` 内仍然可以使用

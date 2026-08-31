@@ -24,6 +24,12 @@ about making the API smaller to hold in your head, not about new behaviour.
   a viewer. Passing them inside a `Group` has no effect and now warns in
   development rather than being silently discarded — the failure that made
   merging the two components risky in the first place.
+- **`Extension` is gone; `Group` takes an `onKeyDown` prop.** The interface
+  was a `name` and one optional keyboard callback, presented as an extension
+  system that the documentation then had to explain was not one. It is a
+  callback, so it is now a prop: `onKeyDown(event, api)`, run before the
+  built-in shortcuts, returning `true` to claim the key. `ImagePreview.open()`
+  takes it under the same name.
 - **Both entries are shaped the same,** so one import idiom covers both:
   `import { ImageView }`, then `<ImageView>` for the trigger and
   `<ImageView.Group>`, `<ImageView.Content>` and the rest for everything

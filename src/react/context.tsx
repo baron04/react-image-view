@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { Extension, ImageItem, ViewerApi, ViewerLabels, ViewerStatus } from '../types'
+import type { ImageItem, ViewerApi, ViewerLabels, ViewerStatus } from '../types'
 import type { ThumbnailFit } from '../core/flip'
 import type { Size, SlideSize, Transform } from '../core/types'
 import type { Ticker } from '../core/ticker'
@@ -63,7 +63,7 @@ export interface ViewerContextValue {
   images: ImageItem[]
   container: HTMLElement | null
   internals: ViewerInternals
-  extensions: Extension[]
+  onKeyDown?: (event: KeyboardEvent, api: ViewerApi) => boolean | void
   /** Fully resolved — the caller's overrides already merged over the defaults. */
   labels: ViewerLabels
   registerTrigger(reg: TriggerRegistration): () => void

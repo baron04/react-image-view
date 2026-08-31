@@ -80,16 +80,6 @@ export interface ViewerLabels {
   loading: string
 }
 
-/**
- * The narrow escape hatch for keyboard behaviour composition cannot reach.
- * Returning `true` marks the event consumed. Visual extensions belong in the
- * component tree; gestures stay owned by Stage's state machine.
- */
-export interface Extension {
-  name: string
-  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void
-}
-
 export interface ImageViewGroupProps {
   images?: ImageItem[]
   open?: boolean
@@ -106,7 +96,13 @@ export interface ImageViewGroupProps {
    * escape the theme along with the styling it was meant to escape.
    */
   container?: HTMLElement | null
-  extensions?: Extension[]
+  /**
+   * Runs before the viewer's own shortcuts, so it can claim a key outright by
+   * returning `true`. That is the whole of it: anything that renders belongs
+   * in the component tree, and pointer gestures stay owned by Stage's tested
+   * state machine.
+   */
+  onKeyDown?(event: KeyboardEvent, api: ViewerApi): boolean | void
   /**
    * Override any user-facing string. Merged over stable English defaults, so
    * passing one field leaves the rest alone. Import a complete locale from a

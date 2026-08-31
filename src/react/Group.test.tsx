@@ -716,3 +716,63 @@ describe('ImageView: grouped vs ungrouped', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 })
+
+describe('Group: onKeyDown', () => {
+  function pressArrowRight() {
+    act(() => {
+      document
+        .querySelector('dialog[data-image-view]')
+        ?.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    })
+  }
+
+  it('claims a key when it returns true, so the built-in never runs', () => {
+    Element.prototype.getBoundingClientRect = viewerRect
+    const onKeyDown = vi.fn(() => true as const)
+    render(
+      <ImageView.Group images={IMAGES} onKeyDown={onKeyDown}>
+        <Triggers />
+      </ImageView.Group>,
+    )
+    openViewer(0)
+    pressArrowRight()
+
+    // The handler ran and swallowed the key: ArrowRight would otherwise have
+    // paged to b.png.
+    expect(onKeyDown).toHaveBeenCalled()
+    expect(document.querySelector('[data-image-view-title]')?.textContent).toBe('a.png')
+  })
+
+  it('falls through to the built-in shortcut when it returns nothing', () => {
+    Element.prototype.getBoundingClientRect = viewerRect
+    render(
+      <ImageView.Group images={IMAGES} onKeyDown={() => undefined}>
+        <Triggers />
+      </ImageView.Group>,
+    )
+    openViewer(0)
+    pressArrowRight()
+
+    expect(document.querySelector('[data-image-view-title]')?.textContent).toBe('b.png')
+  })
+
+  it('receives the live api, not a snapshot from mount', () => {
+    Element.prototype.getBoundingClientRect = viewerRect
+    render(
+      <ImageView.Group
+        images={IMAGES}
+        onKeyDown={(event, api) => {
+          if (event.key !== 'ArrowRight') return
+          api.go(2)
+          return true
+        }}
+      >
+        <Triggers />
+      </ImageView.Group>,
+    )
+    openViewer(0)
+    pressArrowRight()
+
+    expect(document.querySelector('[data-image-view-title]')?.textContent).toBe('c.png')
+  })
+})

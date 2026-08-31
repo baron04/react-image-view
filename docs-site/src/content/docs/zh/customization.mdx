@@ -18,7 +18,7 @@ import { LocalizedDemo, GalleryDemo } from '../../../components/Demo.tsx'
 | 换掉某个按钮的元素或图标   | [`asChild` / children](#3-aschild)        | 不需要                   |
 | 增加、删除、重排按钮       | [自己组合 `Content`](#4-自己组合-content) | 需要，但用的是同一批部件 |
 | 更换大图组件或监听加载事件 | [`renderImage`](#5-renderimage)           | 不需要                   |
-| 加快捷键                   | [Extensions](#6-extensions)               | 不需要                   |
+| 加快捷键                   | [`onKeyDown`](#6-onkeydown)               | 不需要                   |
 | 翻译界面文案               | [`labels`](#7-labels)                     | 不需要                   |
 
 ---
@@ -271,29 +271,32 @@ const renderImage = ({ item, imageProps }) => (
 直接丢掉它们会让加载状态和重试失效。同一个 `renderImage` 也可以传给单图入口
 `<ImageView>`、`ImageView.Image` 或 `ImagePreview.open()`。
 
-## 6. Extensions
+## 6. `onKeyDown`
 
-组合方式覆盖不到的键盘行为，用 extension 补充。返回 `true` 表示事件已被消费，
-内置处理会被跳过。
+组合方式覆盖不到的键盘行为，传一个处理函数。它在内置快捷键之前运行，
+返回 `true` 表示事件已被消费，内置处理会被跳过。
 
 ```tsx
-const pageWithSpace = {
-  name: 'space-pages',
-  onKeyDown(event, api) {
-    if (event.key !== ' ') return
-    if (event.shiftKey) api.prev()
-    else api.next()
-    return true // 已处理，不要继续往下走
-  },
-}
-
 function Viewer({ images }) {
-  return <ImageView.Group images={images} extensions={[pageWithSpace]} />
+  return (
+    <ImageView.Group
+      images={images}
+      onKeyDown={(event, api) => {
+        if (event.key !== ' ') return
+        if (event.shiftKey) api.prev()
+        else api.next()
+        return true // 已处理，不要继续往下走
+      }}
+    >
+      {/* triggers */}
+    </ImageView.Group>
+  )
 }
 ```
 
-指针手势继续由 Stage 中经过测试的状态机统一管理。任何需要**渲染**的东西都应该
-作为子节点放进组件树；extension 只是键盘行为的补充入口，不是一套插件系统。
+指针手势继续由 Stage 中经过测试的状态机统一管理，任何需要**渲染**的东西都应该
+作为子节点放进组件树。这只是一个回调，不是插件系统 —— 所以它是一个属性，
+而不是一份注册表。
 
 ## 7. Labels
 

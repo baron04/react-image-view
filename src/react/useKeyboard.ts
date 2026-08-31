@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { Extension, ViewerApi } from '../types'
+import type { ViewerApi } from '../types'
 
 /**
  * Two tiers, and the split is deliberate.
@@ -13,17 +13,17 @@ import type { Extension, ViewerApi } from '../types'
 export function useKeyboard(
   node: HTMLElement | null,
   api: ViewerApi,
-  extensions: Extension[],
+  onKeyDown: ((event: KeyboardEvent, api: ViewerApi) => boolean | void) | undefined,
   enabled: boolean,
 ): void {
   const apiRef = React.useRef(api)
-  const extRef = React.useRef(extensions)
+  const handlerRef = React.useRef(onKeyDown)
   // A passive effect, not written during render: nothing reads either ref
   // before a keydown fires, which is always well after mount, so there is no
   // timing reason to pay for a layout effect here.
   React.useEffect(() => {
     apiRef.current = api
-    extRef.current = extensions
+    handlerRef.current = onKeyDown
   })
 
   React.useEffect(() => {
@@ -32,10 +32,8 @@ export function useKeyboard(
     const onKeyDown = (event: KeyboardEvent) => {
       const viewer = apiRef.current
 
-      // Extensions get first refusal, so one can claim a key outright.
-      for (const extension of extRef.current) {
-        if (extension.onKeyDown?.(event, viewer) === true) return
-      }
+      // The caller gets first refusal, so it can claim a key outright.
+      if (handlerRef.current?.(event, viewer) === true) return
 
       // Leave anything typed into a field alone.
       const target = event.target as HTMLElement | null
