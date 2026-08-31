@@ -2,6 +2,14 @@ import type { Bounds, Point, Transform } from './types'
 import type { FlipFrame } from './flip'
 import { decayStep, isSettled, springStep, type SpringState } from './gesture/spring'
 import type { Ticker } from './ticker'
+
+/**
+ * Only `add` is ever called here, and narrowing to it is what lets these
+ * functions be driven frame by frame in a test. `Ticker` has private fields,
+ * which makes it nominally typed, so a stand-in would otherwise need a cast
+ * — and a cast in a test is a hole in the thing being tested.
+ */
+type Frames = Pick<Ticker, 'add'>
 import { tuning } from './tuning'
 
 // See ./tuning for the reasoning behind every value below.
@@ -24,7 +32,7 @@ const SETTLE_EPSILON: Record<keyof Transform, { value: number; velocity: number 
 
 /** Spring every channel of a transform to `target` at once. */
 export function animateTransform(
-  ticker: Ticker,
+  ticker: Frames,
   from: Transform,
   target: Transform,
   onFrame: (t: Transform) => void,
@@ -75,7 +83,7 @@ const FLING_MIN_VELOCITY = tuning.fling.minVelocity
  * somewhere the image is not allowed to be.
  */
 export function animateFling(
-  ticker: Ticker,
+  ticker: Frames,
   from: Transform,
   velocity: Point,
   bounds: Bounds,
@@ -118,7 +126,7 @@ export function animateFling(
 
 /** Ease a number to a target — used for the track and the dismiss backdrop. */
 export function animateValue(
-  ticker: Ticker,
+  ticker: Frames,
   from: number,
   to: number,
   onFrame: (value: number) => void,
@@ -151,7 +159,7 @@ type FlipChannel = (typeof FLIP_CHANNELS)[number]
  * uses.
  */
 export function animateFlipFrame(
-  ticker: Ticker,
+  ticker: Frames,
   from: FlipFrame,
   target: FlipFrame,
   onFrame: (frame: FlipFrame) => void,
