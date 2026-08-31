@@ -41,7 +41,7 @@ jobs:
         run: pnpm e2e --project=visual --update-snapshots
 
       - name: Upload them for review
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: linux-visual-baselines
           path: e2e/**/*-linux.png

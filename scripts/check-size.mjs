@@ -47,7 +47,11 @@ const consumerEntries = [
   },
   {
     name: 'consumer: imperative',
-    budget: 12_000,
+    // Was 12_000, which happened to be the exact measured size — a budget with
+    // no headroom is a tripwire, not a budget, and any ten-byte change trips
+    // it. Held a little above the real figure so it still catches something
+    // growing rather than something moving.
+    budget: 12_100,
     source: `
       import { ImagePreview } from 'react-img-view/imperative'
       export function Preview({ images }) {

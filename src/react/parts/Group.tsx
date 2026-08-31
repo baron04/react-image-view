@@ -2,11 +2,10 @@ import * as React from 'react'
 import {
   ViewerProvider,
   type TriggerGeometry,
-  type TriggerRegistration,
   type ViewerContextValue,
   type ViewerInternals,
 } from '../context'
-import type { ImageItem, ImageViewGroupProps, ViewerApi, ViewerStatus } from '../../types'
+import type { ImageViewGroupProps, ViewerApi, ViewerStatus } from '../../types'
 import type { Size, SlideSize, Transform } from '../../core/types'
 import type { Crop } from '../../core/flip'
 import {
@@ -22,6 +21,7 @@ import { NO_CROP, fittedFlipFrame, flipFrameFromRect, prefersReducedMotion } fro
 import { en, mergeLabels } from '../../labels'
 import { paintCrop, paintImage, paintTrack, paintTransition } from '../paint'
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect'
+import { useTriggerRegistry } from '../useTriggerRegistry'
 
 const ENTRY_DURATION_MS = 360
 const ENTRY_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
@@ -147,48 +147,7 @@ export function Group({
   // and snaps it to its destination — so it has to know to keep its hands off.
   const animatingRef = React.useRef(false)
 
-  const registry = React.useRef<TriggerRegistration[]>([])
-  // Bumped on every register/unregister so the `images` memo below actually
-  // recomputes when the L2 "derive images from registered Triggers" path is
-  // in play (no `images` prop given). Registering by itself was not state,
-  // so nothing ever re-rendered Group to pick up a newly mounted ImageView —
-  // `images`/`total` would silently stay at whatever they were on first
-  // render. Every real usage in this codebase passes `images` explicitly and
-  // never hit this, which is exactly how it went unnoticed.
-  const [registryVersion, setRegistryVersion] = React.useState(0)
-  const registerTrigger = React.useCallback((reg: TriggerRegistration) => {
-    registry.current.push(reg)
-    registry.current.sort((a, b) => (a.index ?? Infinity) - (b.index ?? Infinity))
-    setRegistryVersion((v) => v + 1)
-    return () => {
-      registry.current = registry.current.filter((r) => r.id !== reg.id)
-      setRegistryVersion((v) => v + 1)
-    }
-  }, [])
-
-  const indexOf = React.useCallback((id: string) => {
-    const at = registry.current.findIndex((r) => r.id === id)
-    return at < 0 ? 0 : at
-  }, [])
-
-  const getTriggerGeometry = React.useCallback(
-    (at: number) => registry.current[at]?.getGeometry() ?? null,
-    [],
-  )
-
-  // Reads registry.current during render on purpose — this is the L2
-  // fallback's only source of truth, and registryVersion is exactly what
-  // makes that safe: it is bumped synchronously (in the same commit)
-  // whenever the ref's contents change, so this memo is never looking at a
-  // stale snapshot the way an uncoordinated ref read would be. It has to
-  // stay in the dependency array below for that guarantee to mean anything,
-  // even though the linter can't see it being read inside the callback body.
-  const images: ImageItem[] = React.useMemo(
-    // eslint-disable-next-line react-hooks/refs -- see comment above
-    () => imagesProp ?? registry.current.map((r) => r.item),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
-    [imagesProp, registryVersion],
-  )
+  const { images, registerTrigger, indexOf, getTriggerGeometry } = useTriggerRegistry(imagesProp)
   const total = images.length
 
   const fitScale = React.useMemo(
