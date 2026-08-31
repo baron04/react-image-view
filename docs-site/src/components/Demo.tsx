@@ -103,7 +103,14 @@ export function ImageListDemo({
   )
 }
 
-/** The one-line L1 entry point, for the single-image case. */
+/**
+ * The one-line entry point, for the single-image case.
+ *
+ * A bare `<img>`, deliberately: this renders directly under the minimal
+ * snippet in the Quick Start, and a reader comparing the two should find the
+ * same thing in both. The gallery demos below use a `<figure>` card instead,
+ * which is the same component wrapping something richer.
+ */
 export function SingleImageDemo({ locale = 'en' }: { locale?: DemoLocale }) {
   const img = demoImages[0]
   return (
@@ -116,7 +123,7 @@ export function SingleImageDemo({ locale = 'en' }: { locale?: DemoLocale }) {
         height={img.height}
         labels={labelsFor(locale)}
       >
-        <Thumb src={img.thumb} alt={img.alt} label={img.name} />
+        <img className="riv-demo-plain-thumb" src={img.thumb} alt={img.alt} />
       </ImageView>
     </div>
   )

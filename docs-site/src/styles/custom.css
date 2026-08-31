@@ -65,6 +65,17 @@ h4 {
   max-width: 220px;
 }
 
+/* The single-image demo renders under the Quick Start's minimal snippet, so
+   its trigger is the bare <img> that snippet shows. Sizing only — anything
+   more would be the page inventing chrome the code above it does not have. */
+.riv-demo-plain-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
 .riv-demo-thumb {
   margin: 0;
   overflow: hidden;

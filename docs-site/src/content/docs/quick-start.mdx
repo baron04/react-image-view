@@ -40,13 +40,18 @@ polished default UI itself.
 import { ImageView } from 'react-img-view'
 import 'react-img-view/styles.css'
 
-function ImageList({ images }: { images: { src: string; name: string }[] }) {
+type Photo = { src: string; thumb: string; alt: string; name: string }
+
+function ImageList({ images }: { images: Photo[] }) {
   return (
     <ImageView.Group images={images}>
-      <div className="grid grid-cols-4 gap-3">
+      <div className="thumbnail-grid">
         {images.map((image, i) => (
           <ImageView key={image.src} index={i} {...image}>
-            <img src={image.src} alt={image.name} className="h-24 w-full object-cover" />
+            <figure className="thumbnail-card">
+              <img src={image.thumb} alt={image.alt} />
+              <figcaption>{image.name}</figcaption>
+            </figure>
           </ImageView>
         ))}
       </div>
@@ -138,7 +143,7 @@ function CustomViewer({ images }) {
     <ImageView.Group images={images}>
       {images.map((image, i) => (
         <ImageView key={image.src} index={i} {...image}>
-          <img src={image.src} alt={image.alt} />
+          <img src={image.thumb} alt={image.alt} />
         </ImageView>
       ))}
 

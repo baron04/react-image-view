@@ -4,9 +4,12 @@ import { ImagePreview } from '../../../src/imperative'
 import { ImageView as Headless } from '../../../src/primitives'
 import zhCN from '../../../src/locales/zh-CN'
 
-const images: ImageItem[] = [
+// `ImageItem` has no `thumb`: which file a trigger displays is the
+// application's own data, not something the viewer needs to know about.
+const images: (ImageItem & { thumb: string })[] = [
   {
     src: '/photo-full.jpg',
+    thumb: '/photo-thumb.jpg',
     alt: 'Mountain lake',
     name: 'mountain-lake.jpg',
     width: 1600,
@@ -27,7 +30,7 @@ export function SharedViewerExample() {
     <ImageView.Group images={images} labels={zhCN}>
       {images.map((image, index) => (
         <ImageView key={image.src} index={index} {...image}>
-          <img src={image.src} alt={image.alt} />
+          <img src={image.thumb} alt={image.alt} />
         </ImageView>
       ))}
     </ImageView.Group>

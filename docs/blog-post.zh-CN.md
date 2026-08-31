@@ -46,7 +46,7 @@ function SingleImagePreview({ image }) {
 <ImageView.Group images={images} labels={zhCN}>
   {images.map((image, i) => (
     <ImageView key={image.src} index={i} {...image}>
-      <img src={image.src} alt={image.name} />
+      <img src={image.thumb} alt={image.name} />
     </ImageView>
   ))}
 </ImageView.Group>
@@ -203,7 +203,7 @@ function CustomViewer({ images }) {
     <ImageView.Group images={images}>
       {images.map((image, i) => (
         <ImageView key={image.src} index={i} {...image}>
-          <img src={image.src} alt={image.name} />
+          <img src={image.thumb} alt={image.name} />
         </ImageView>
       ))}
       <ImageView.Content className="riv-dialog">
