@@ -883,16 +883,14 @@ describe('Group: closing', () => {
 
     act(() => {
       vi.advanceTimersByTime(60)
-      document
-        .querySelector('[data-image-view-stage]')
-        ?.dispatchEvent(
-          new window.PointerEvent('pointerdown', {
-            pointerId: 1,
-            bubbles: true,
-            clientX: 10,
-            clientY: 10,
-          }),
-        )
+      document.querySelector('[data-image-view-stage]')?.dispatchEvent(
+        new window.PointerEvent('pointerdown', {
+          pointerId: 1,
+          bubbles: true,
+          clientX: 10,
+          clientY: 10,
+        }),
+      )
     })
 
     settle()
@@ -915,5 +913,40 @@ describe('Group: closing', () => {
 
     settle()
     expect(document.querySelector('dialog[data-image-view]')).toBeNull()
+  })
+})
+
+describe('Group: the first painted frame', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('is fitted, without waiting for a ResizeObserver to report', () => {
+    // A `<dialog>` that has not been shown yet is `display: none`, so the
+    // stage measures 0 — and it measures in a layout effect of its own, which
+    // React runs before `Content`'s `showModal()`. Left at that, the first
+    // frame is drawn at `fitScale` 1, which for an image larger than the stage
+    // is a crop of its middle, and only a later observer callback corrects it.
+    // The stub observer here never fires, exactly like a browser frame that
+    // has not happened yet.
+    const large = { src: 'large.png', name: 'large.png', width: 2000, height: 1500 }
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (!this.hasAttribute('data-image-view-stage')) return viewerRect.call(this)
+      const dialog = this.closest('dialog')
+      const shown = !dialog || dialog.open
+      return {
+        width: shown ? 800 : 0,
+        height: shown ? 600 : 0,
+        toJSON: () => ({}),
+      } as DOMRect
+    })
+
+    render(<ImageView.Group images={[large]} defaultOpen />)
+
+    const media = document.querySelector<HTMLElement>('[data-image-view-slide][data-current] > div')
+    // 800 / 2000 — the stage's width is the binding constraint.
+    expect(media?.style.transform).toContain('scale(0.4)')
   })
 })

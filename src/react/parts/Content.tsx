@@ -103,14 +103,41 @@ export const Content = React.forwardRef<HTMLDialogElement, ContentProps>(functio
   // viewer, and the element worth returning to is gone.
   useFocusReturn(ctx.api.open)
 
+  // Pulled out because it is stable for the life of the viewer, while
+  // `ctx.internals` is a fresh object on nearly every render — depending on
+  // the container would re-run the effect below on every one of them.
+  const { setStageSize } = ctx.internals
+
   // Layout effect, so the modal state is committed before the first paint —
   // in a passive effect the dialog shows for a frame as a plain element.
   React.useLayoutEffect(() => {
     const el = dialogRef.current
     if (!el) return
-    if (ctx.api.open && !el.open) el.showModal()
-    else if (!ctx.api.open && el.open) el.close()
-  }, [ctx.api.open])
+    if (ctx.api.open && !el.open) {
+      el.showModal()
+
+      // Measure the stage now that there is something to measure.
+      //
+      // Stage measures itself in a layout effect of its own, which is the
+      // right instinct and the wrong moment: React runs a child's layout
+      // effects before its parent's, so that measurement happens while this
+      // dialog is still `display: none` and reads 0x0 on every first open.
+      // Its ResizeObserver does correct it, but only on a later frame — long
+      // enough to paint one frame at `fitScale` 1, which for anything larger
+      // than the stage is a hard cut into the middle of the image, and long
+      // enough that the opening flight misses the frame it should have
+      // started on and runs against the decode grace period instead.
+      //
+      // Nothing else is in a position to know the dialog has just become
+      // visible, so the correction belongs here rather than in another
+      // observer somewhere else.
+      const stage = el.querySelector('[data-image-view-stage]')
+      if (stage) {
+        const rect = stage.getBoundingClientRect()
+        setStageSize({ width: rect.width, height: rect.height })
+      }
+    } else if (!ctx.api.open && el.open) el.close()
+  }, [ctx.api.open, setStageSize])
 
   useScrollLock(ctx.api.open)
 
