@@ -142,6 +142,21 @@ export function Group({
   // briefly present an incomplete tile set while the layer grows.
   const flightFrameRef = React.useRef(0)
   const flightTimerRef = React.useRef(0)
+  // The unmount at the end of a close, held apart from the flight's own timers
+  // above and deliberately out of `stopAnimations`' reach.
+  //
+  // Closing used to ride on `flightTimerRef`, which made the whole close
+  // conditional on the return flight surviving to its last frame — and it
+  // often does not: `[data-closing]` hides the header and toolbar, the stage
+  // resizes under it, and the refit effect below reads that as a change worth
+  // cancelling animations for. Whoever cancelled took the unmount with them.
+  // What was left on screen is the worst possible half-state: the chrome and
+  // backdrop are already transparent, so the dialog reads as closed, while the
+  // image sits frozen on top of the page with nothing left to ever remove it.
+  //
+  // Once `close()` has committed, the viewer closes. An interrupted flight is
+  // a cosmetic loss; a viewer that will not close is not.
+  const closeTimerRef = React.useRef(0)
   // True while an animation owns the transform. The refit effect below re-runs
   // whenever geometry resolves, which lands right on top of an entry animation
   // and snaps it to its destination — so it has to know to keep its hands off.
@@ -315,6 +330,9 @@ export function Group({
         stopAnimations()
         closingRef.current = true
         animatingRef.current = true
+        // An opening flight that never got its chance has no claim on a viewer
+        // that is already leaving.
+        flipPendingRef.current = false
 
         // Tell the chrome to leave at the same time as the image, rather than
         // waiting for it to land and then vanishing all at once.
@@ -349,6 +367,30 @@ export function Group({
           return
         }
 
+        // Booked before the flight is even started, and on its own timer: the
+        // viewer leaves after EXIT_DURATION_MS whatever becomes of the
+        // animation in between.
+        closeTimerRef.current = setTimeout(() => {
+          closeTimerRef.current = 0
+          closingRef.current = false
+          animatingRef.current = false
+          setOpen(false)
+
+          // Deliberately not removed before the unmount. Taking
+          // `[data-closing]` off puts the header and toolbar back, which
+          // reflows the column and drops the centred image by half the
+          // header's height — so the flight that had just landed exactly on
+          // the thumbnail jumped downward for the one frame between the
+          // restore and React removing the dialog.
+          //
+          // Unmounting takes the attribute with it, so the only case that
+          // still needs it cleared is a controlled `open` that declined to
+          // close and left the dialog mounted.
+          requestAnimationFrame(() => {
+            if (dialogEl?.isConnected) dialogEl.removeAttribute('data-closing')
+          })
+        }, EXIT_DURATION_MS)
+
         paintTransition(media, 'none')
         paintTransition(crop, 'none')
         flightFrameRef.current = requestAnimationFrame(() => {
@@ -359,26 +401,6 @@ export function Group({
           cropRef.current = to.crop
           paintImage(media, to.transform)
           paintCrop(crop, to.crop)
-          flightTimerRef.current = setTimeout(() => {
-            flightTimerRef.current = 0
-            closingRef.current = false
-            animatingRef.current = false
-            setOpen(false)
-
-            // Deliberately not removed before the unmount. Taking
-            // `[data-closing]` off puts the header and toolbar back, which
-            // reflows the column and drops the centred image by half the
-            // header's height — so the flight that had just landed exactly on
-            // the thumbnail jumped downward for the one frame between the
-            // restore and React removing the dialog.
-            //
-            // Unmounting takes the attribute with it, so the only case that
-            // still needs it cleared is a controlled `open` that declined to
-            // close and left the dialog mounted.
-            requestAnimationFrame(() => {
-              if (dialogEl?.isConnected) dialogEl.removeAttribute('data-closing')
-            })
-          }, EXIT_DURATION_MS)
         })
       },
       retry: () => {
@@ -555,6 +577,13 @@ export function Group({
     if (!natural || !stageSize.width) return
     // The entry animation gets first claim on the opening frame.
     if (flipPendingRef.current) return
+    // Nothing is worth reframing on the way out. `[data-closing]` reflows the
+    // dialog the moment a close starts, so the stage resize this effect keys
+    // on is a *guaranteed* event during every close — and the slide-change
+    // branch below deliberately overrides every guard, `animatingRef`
+    // included. Reframing here means, at best, snapping the return flight back
+    // to the fitted transform it had just left.
+    if (closingRef.current) return
     // Dimensions for a slide we have already left; reframing on them is what
     // put the previous image's scale on the new one.
     if (natural.forIndex !== index) return
@@ -582,7 +611,16 @@ export function Group({
     paintImage(imageRef.current, fitted)
   }, [natural, stageSize, fitScale, index, open, stopAnimations])
 
-  React.useEffect(() => () => stopAnimations(), [stopAnimations])
+  React.useEffect(
+    () => () => {
+      stopAnimations()
+      // The one thing that legitimately outranks a committed close: there is
+      // no viewer left to close.
+      clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = 0
+    },
+    [stopAnimations],
+  )
 
   const openAt = React.useCallback(
     (at: number, from: TriggerGeometry | null) => {

@@ -776,3 +776,144 @@ describe('Group: onKeyDown', () => {
     expect(document.querySelector('[data-image-view-title]')?.textContent).toBe('c.png')
   })
 })
+
+describe('Group: closing', () => {
+  // Every test here drives the shared-element return flight, which is built
+  // from a rAF and a timer. Both are faked so the flight can be interrupted
+  // partway through — the whole point of these tests — rather than raced.
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  /** Stage the viewer with the return flight available: real geometry, no
+   *  reduced-motion preference, and a trigger to fly back to. */
+  function openForClose(rect: (this: Element) => DOMRect = viewerRect) {
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(rect)
+    vi.useFakeTimers()
+    render(
+      <ImageView.Group images={IMAGES}>
+        <Triggers />
+      </ImageView.Group>,
+    )
+    openViewer()
+    expect(document.querySelector('dialog[data-image-view]')).not.toBeNull()
+  }
+
+  function clickClose() {
+    act(() => {
+      document.querySelector<HTMLButtonElement>('[data-image-view-control="close"]')?.click()
+    })
+  }
+
+  /** Let the flight and the unmount that follows it play out. */
+  function settle() {
+    act(() => {
+      vi.advanceTimersByTime(400)
+    })
+  }
+
+  it('closes even when the stage is first measured mid-flight', () => {
+    // The bug this exists for. A slow first load leaves the opening flight
+    // cancelled and nothing framed, and the stage of a dialog that has not
+    // been shown yet measures 0 — so the first real measurement can arrive
+    // from the ResizeObserver during the close, when `[data-closing]` reflows
+    // the column. The refit effect read that as a slide change, cancelled
+    // animations, and took the pending unmount with it: the chrome was
+    // already transparent, so the viewer looked closed while the image stayed
+    // frozen over the page, permanently.
+    let stageMeasures = false
+    const observers: ResizeObserverCallback[] = []
+    const RealResizeObserver = window.ResizeObserver
+    window.ResizeObserver = class {
+      constructor(callback: ResizeObserverCallback) {
+        observers.push(callback)
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver
+
+    try {
+      openForClose(function unshownStage(this: Element): DOMRect {
+        if (this.hasAttribute('data-image-view-stage') && !stageMeasures) {
+          return { width: 0, height: 0, toJSON: () => ({}) } as DOMRect
+        }
+        return viewerRect.call(this)
+      })
+
+      // Long enough for the decode grace period to lapse, which is what a slow
+      // first load does: the opening flight is called off, so nothing frames
+      // the slide on the way in.
+      act(() => {
+        vi.advanceTimersByTime(150)
+      })
+
+      clickClose()
+
+      // The reflow `[data-closing]` causes, reported the only way the stage
+      // ever hears about it.
+      stageMeasures = true
+      act(() => {
+        for (const observe of observers) {
+          observe(
+            [{ contentRect: { width: 800, height: 600 } }] as unknown as ResizeObserverEntry[],
+            {
+              observe() {},
+              unobserve() {},
+              disconnect() {},
+            } as ResizeObserver,
+          )
+        }
+      })
+
+      settle()
+      expect(document.querySelector('dialog[data-image-view]')).toBeNull()
+    } finally {
+      window.ResizeObserver = RealResizeObserver
+    }
+  })
+
+  it('closes even when a gesture cancels the flight halfway', () => {
+    // Same invariant from the other direction: a finger landing on the image
+    // takes ownership of the transform and stops every animation. That may
+    // cost the return flight; it must not cost the close.
+    openForClose()
+    clickClose()
+
+    act(() => {
+      vi.advanceTimersByTime(60)
+      document
+        .querySelector('[data-image-view-stage]')
+        ?.dispatchEvent(
+          new window.PointerEvent('pointerdown', {
+            pointerId: 1,
+            bubbles: true,
+            clientX: 10,
+            clientY: 10,
+          }),
+        )
+    })
+
+    settle()
+    expect(document.querySelector('dialog[data-image-view]')).toBeNull()
+  })
+
+  it('still animates the image back to its thumbnail', () => {
+    // The guard above must not have been bought by dropping the flight.
+    openForClose()
+    clickClose()
+
+    const media = document.querySelector<HTMLElement>('[data-image-view-slide][data-current] > div')
+    act(() => {
+      vi.advanceTimersByTime(20)
+    })
+    expect(media?.style.transition).toContain('transform')
+    expect(document.querySelector('dialog[data-image-view]')?.hasAttribute('data-closing')).toBe(
+      true,
+    )
+
+    settle()
+    expect(document.querySelector('dialog[data-image-view]')).toBeNull()
+  })
+})
