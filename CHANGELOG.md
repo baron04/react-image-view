@@ -3,6 +3,39 @@
 Notable changes to `react-img-view`. Follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] — 2026-09-03
+
+A viewer that would not close, and the frame before it opened. No API changes.
+
+### Fixed
+
+- **Closing left the image stranded on the page.** The unmount rode on the
+  return flight's own timer, created inside that flight's `requestAnimationFrame`,
+  so the whole close was conditional on the animation surviving to its last
+  frame. It frequently does not: `[data-closing]` hides the header and toolbar,
+  the stage resizes under it, and the refit effect reads that resize as a slide
+  change — the one branch that deliberately overrides every guard, "an
+  animation is running" included. It called `stopAnimations()`, which took the
+  pending unmount with it. What that leaves on screen is the worst half-state
+  available: the chrome and backdrop are already transparent, so the viewer
+  reads as closed, while the image sits frozen over the page with nothing left
+  to remove it. It took a first open with a cold cache to show up — a slow load
+  cancels the opening flight, so nothing ever framed the slide, and the first
+  stage measurement to survive its guards was the one caused by the close
+  itself. The unmount now has a timer of its own, booked the moment `close()`
+  commits and out of `stopAnimations()`' reach, and refit stands aside entirely
+  while closing.
+- **The first frame was drawn before the stage had a size.** `Stage` measures
+  itself synchronously precisely so that cannot happen, but React runs a
+  child's layout effects before its parent's, so the measurement landed while
+  the `<dialog>` was still `display: none` and read 0×0 on every first open —
+  leaving the ResizeObserver to establish, a frame later, the size the
+  synchronous measurement exists to establish early. `fitScale` falls back to 1
+  without a stage, so anything larger than the viewport was painted as a hard
+  cut into the middle of itself before snapping to its fitted size, and the
+  opening flight missed the frame it should have started on. `Content` now
+  measures the stage right after `showModal()`, in the same layout phase.
+
 ## [0.4.0] — 2026-08-30
 
 One name for the trigger, one shape for both entries. Everything below is
@@ -245,6 +278,7 @@ considered unfit for production.
 First publish. Withdrawn in practice: the toolbar was non-functional under a
 mouse.
 
+[0.4.1]: https://github.com/baron04/react-img-view/releases/tag/v0.4.1
 [0.4.0]: https://github.com/baron04/react-img-view/releases/tag/v0.4.0
 [0.3.0]: https://github.com/baron04/react-img-view/releases/tag/v0.3.0
 [0.2.1]: https://github.com/baron04/react-img-view/releases/tag/v0.2.1
