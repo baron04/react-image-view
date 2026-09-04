@@ -56,57 +56,40 @@ jobs:
       - name: E2E
         run: pnpm e2e --project=functional
 
-  # Separate job because it is the one suite that cannot run until Linux
-  # baselines exist. Playwright already suffixes snapshots with the platform,
-  # so `-linux.png` files sit next to the committed `-darwin.png` ones and
-  # neither platform invalidates the other.
+  # Separate job because the baselines are per-platform. Playwright suffixes
+  # snapshots with the platform, so the `-linux.png` files this job compares
+  # against sit next to the `-darwin.png` ones written on a Mac and neither
+  # invalidates the other. Regenerate the Linux set with the "Visual
+  # baselines" workflow, which is the only way to produce them from a Mac.
   #
-  # The guard makes this job self-enabling: it reports and skips while no
-  # Linux baselines are committed, and starts enforcing the moment they are —
-  # without a second commit to turn it on. Generate them by running the
-  # "Visual baselines" workflow and committing the artifact it uploads.
+  # A missing baseline fails this job rather than skipping it — the suite is
+  # worth nothing if losing its snapshots also loses the red light.
   visual:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
-      - name: Look for Linux baselines
-        id: baselines
-        run: |
-          if ls e2e/*-snapshots/*-linux.png >/dev/null 2>&1; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No Linux visual baselines committed yet. Run the 'Visual baselines' workflow and commit its artifact to enable this job."
-          fi
-
       - uses: pnpm/action-setup@v6
-        if: steps.baselines.outputs.present == 'true'
 
       - uses: actions/setup-node@v7
-        if: steps.baselines.outputs.present == 'true'
         with:
           node-version: 22
           cache: pnpm
 
       - name: Install dependencies
-        if: steps.baselines.outputs.present == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        if: steps.baselines.outputs.present == 'true'
         run: pnpm build
 
       - name: Install Playwright's browser
-        if: steps.baselines.outputs.present == 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Visual regression
-        if: steps.baselines.outputs.present == 'true'
         run: pnpm e2e --project=visual
 
       - name: Upload the diffs when they disagree
-        if: failure() && steps.baselines.outputs.present == 'true'
+        if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: visual-diff

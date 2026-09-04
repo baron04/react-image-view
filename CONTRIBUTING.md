@@ -81,13 +81,13 @@ assertion. `e2e/visual.spec.ts` holds the baselines; update them deliberately
 with `pnpm e2e e2e/visual.spec.ts --update-snapshots` and look at the diff.
 
 Baselines are per-platform — Playwright suffixes them, so `-darwin.png` and
-`-linux.png` sit side by side and neither invalidates the other. CI has a
-`visual` job that reports and skips while no `-linux.png` files are
-committed, and starts enforcing them the moment they are. Generate them by
-running the **Visual baselines** workflow from the Actions tab, unzipping
-its artifact over `e2e/`, reviewing the images, and committing them. Until
-that happens, the visual suite is only as good as the last person who ran it
-locally — so run it locally before a release.
+`-linux.png` sit side by side and neither invalidates the other. CI's
+`visual` job enforces the `-linux.png` set on every push, and a missing
+baseline fails it rather than skipping. Updating a baseline therefore takes
+both platforms: `--update-snapshots` locally writes only the `-darwin.png`
+half, and the `-linux.png` half comes from the **Visual baselines** workflow
+in the Actions tab — unzip its artifact over `e2e/`, look at the images, and
+commit them alongside.
 
 **One functional test is CI-skipped, not deleted.** `e2e/viewer.spec.ts`'s
 "the close animation settles smoothly" samples real-time animation position
